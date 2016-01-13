@@ -97,6 +97,60 @@ class model_updator():
     def __init__(self, model):
         self.model = model
 
+    def partions_all_refresh(self):
+        '''
+        List all partion details
+
+        CLI Example::
+
+            salt '*' sesceph.partions_all
+        '''
+        cmd = ["lsblk", "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
+        output = _excuete_local_command(cmd)
+        if output['retcode'] != 0:
+            raise Error("Failed running: lsblk --ascii --output-all")
+        all_parts = {}
+        for line in output['stdout'].split('\n'):
+            partion = {}
+            for token in shlex.split(line):
+                token_split = token.split("=")
+                if len(token_split) == 1:
+                    continue
+                key = token_split[0]
+                value = "=".join(token_split[1:])
+                if len(value) == 0:
+                    continue
+                partion[key] = value
+
+            part_name = partion.get("NAME")
+            if part_name == None:
+                continue
+            part_type = partion.get("TYPE")
+            if part_type == "disk":
+                all_parts[part_name] = partion
+                continue
+            disk_name = partion.get("PKNAME")
+            if not disk_name in all_parts:
+                continue
+            if None == all_parts[disk_name].get("PARTITION"):
+                all_parts[disk_name]["PARTITION"] = {}
+            all_parts[disk_name]["PARTITION"][part_name] = partion
+        self.model.lsblk = all_parts
+
+
+    def partions_all(self):
+        '''
+        List all partion details
+
+        CLI Example::
+
+            salt '*' sesceph.partions_all
+        '''
+        return self.model.lsblk
+
+
+
+
 def partions_all():
     '''
     List all partion details
@@ -105,39 +159,11 @@ def partions_all():
 
         salt '*' sesceph.partions_all
     '''
-    cmd = ["lsblk", "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
-    output = __salt__['cmd.run_all'](cmd,
-                                      output_loglevel='trace',
-                                      python_shell=False)
-    if output['retcode'] != 0:
-        raise Error("Failed running: lsblk --ascii --output-all")
-    all_parts = {}
-    for line in output['stdout'].split('\n'):
-        partion = {}
-        for token in shlex.split(line):
-            token_split = token.split("=")
-            if len(token_split) == 1:
-                continue
-            key = token_split[0]
-            value = "=".join(token_split[1:])
-            if len(value) == 0:
-                continue
-            partion[key] = value
+    m = model()
+    u = model_updator(m)
+    u.partions_all_refresh()
 
-        part_name = partion.get("NAME")
-        if part_name == None:
-            continue
-        part_type = partion.get("TYPE")
-        if part_type == "disk":
-            all_parts[part_name] = partion
-            continue
-        disk_name = partion.get("PKNAME")
-        if not disk_name in all_parts:
-            continue
-        if None == all_parts[disk_name].get("PARTITION"):
-            all_parts[disk_name]["PARTITION"] = {}
-        all_parts[disk_name]["PARTITION"][part_name] = partion
-    return all_parts
+    return u.partions_all()
 
 
 
