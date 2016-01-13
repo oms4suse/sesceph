@@ -450,23 +450,50 @@ def _get_cluster_name_from_uuid(cluster_uuid):
 
 def osd_prepare(**kwargs):
     """
-    prepare takes a lot of variables
+    prepare an OSD
 
     CLI Example::
 
         salt '*' sesceph.prepare "{'osd_dev' : '/dev/vdc',
-                'journel_dev'  : 'device',
-                'cluster_name' : 'ceph',
-                'cluster_uuid' : 'cluster_uuid',
-                'osd_fs_type'  : ''xfs
+                'journel_dev'   : 'device',
+                'cluster_name'  : 'ceph',
+                'cluster_uuid'  : 'cluster_uuid',
+                'osd_fs_type'   : 'xfs',
+                'osd_uuid'      : '2a143b73-6d85-4389-a9e9-b8a78d9e1e07',
+                'journel_uuid'  : '4562a5db-ff6f-4268-811d-12fd4a09ae98'
                  }"
+    Notes:
+
+    cluster_uuid
+        Set the deivce to store the osd data on.
+
+    journel_dev
+        Set the journel device. defaults to collocate with osd_dev
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster date will be added too. Defaults to the value found in local config.
+
+    osd_fs_type
+        set the file system to store OSD data with. Defaults to "xfs".
+
+    osd_uuid
+        set the OSD data UUID. If set will return if OSD with data UUID already exists.
+
+    journel_uuid
+        set the OSD journel UUID. If set will return if OSD with journel UUID already exists.
+
+    journel_uuid
     """
     osd_dev_raw = kwargs.get("osd_dev")
     journel_dev = kwargs.get("journel_dev")
     cluster_name = kwargs.get("cluster_name")
     cluster_uuid = kwargs.get("cluster_uuid")
     fs_type = kwargs.get("osd_fs_type")
-
+    osd_uuid = kwargs.get("osd_uuid")
+    journel_uuid = kwargs.get("journel_uuid")
     # Default cluster name / uuid values
     if cluster_name == None and cluster_uuid == None:
         cluster_name = "ceph"
@@ -487,7 +514,25 @@ def osd_prepare(**kwargs):
     m = model()
     u = model_updator(m)
     u.partions_all_refresh()
+    u.discover_partions_refresh()
+    u.discover_osd_refresh()
 
+    # Validate the osd_uuid and journel_uuid dont already exist
+
+    osd_list_existing = m.discovered_osd.get(cluster_uuid)
+    if osd_list_existing != None:
+        for osd_existing in osd_list_existing:
+            if osd_uuid != None:
+                osd_existing_fsid = osd_existing.get("fsid")
+                if osd_existing_fsid == osd_uuid:
+                    log.debug("osd_uuid already exists:%s" % (osd_uuid))
+                    return True
+
+            if journel_uuid != None:
+                journel_existing_uuid = osd_existing.get("journal_uuid")
+                if journel_existing_uuid == journel_uuid:
+                    log.debug("journel_uuid already exists:%s" % (journel_uuid))
+                    return True
 
     block_details_osd = m.lsblk.get(osd_dev)
     if block_details_osd == None:
@@ -519,6 +564,12 @@ def osd_prepare(**kwargs):
     if cluster_uuid != None:
         arguments.append("--cluster-uuid")
         arguments.append(cluster_uuid)
+    if osd_uuid != None:
+        arguments.append("--osd-uuid")
+        arguments.append(osd_uuid)
+    if journel_uuid != None:
+        arguments.append("--journal-uuid")
+        arguments.append(journel_uuid)
 
     output = _excuete_local_command(arguments)
     if output["retcode"] != 0:
