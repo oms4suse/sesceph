@@ -51,9 +51,18 @@ OSD_UUID = '4fbd7e29-9d25-41b8-afd0-062c0ceff05d'
 
 
 def _excuete_local_command(command_attrib_list):
-    output= __salt__['cmd.run_all'](command_attrib_list,
+    if '__salt__' in locals():
+        return __salt__['cmd.run_all'](command_attrib_list,
                                       output_loglevel='trace',
                                       python_shell=False)
+
+    # if we cant exute subprocess with salt, use python
+    import subprocess
+    output= {}
+    proc=subprocess.Popen(command_attrib_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    output['stdout'], output['stderr'] = proc.communicate()
+
+    output['retcode'] = proc.returncode
     return output
 
 
@@ -685,5 +694,6 @@ def osd_prepare(**kwargs):
     if output["retcode"] != 0:
         raise Error("Error rc=%s, stdout=%s stderr=%s" % (output["retcode"], output["stdout"], output["stderr"]))
     return True
+
 
 
