@@ -86,6 +86,17 @@ def _retrive_osd_details(part_details):
     return osd_details
 
 
+class model:
+    def __init__(self):
+        self.lsblk = {}
+        self.partions_osd = {}
+        self.partions_journel = {}
+
+
+class model_updator():
+    def __init__(self, model):
+        self.model = model
+
 def partions_all():
     '''
     List all partion details
