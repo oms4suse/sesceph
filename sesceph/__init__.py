@@ -56,7 +56,7 @@ def partions_all():
                                       output_loglevel='trace',
                                       python_shell=False)
     if output['retcode'] != 0:
-        raise error
+        raise Error("Failed running: lsblk --ascii --output-all")
     all_parts = {}
     for line in output['stdout'].split('\n'):
         partion = {}
@@ -98,7 +98,11 @@ def discover_osd_partions():
     '''
     osd_all = {}
     journel_all = {}
-    partions_struct = partions_all()
+    try:
+        partions_struct = partions_all()
+    except Error, e:
+        log.info(" dir(e)")
+        return osd_all,journel_all
     for diskname in partions_struct.keys():
         disk = partions_struct.get(diskname)
         if disk == None:
@@ -161,7 +165,10 @@ def _retrive_osd_details(part_details):
 
 def discover_osd():
     discovered_osd = {}
-    partions_osd_struct, partions_journel_struct = discover_osd_partions()
+    discovered_osd_ret = discover_osd_partions()
+    if discovered_osd_ret == None:
+        return discovered_osd
+    partions_osd_struct, partions_journel_struct = discovered_osd_ret
     # now we map UUID to NAME for both osd and journel
 
     unmounted_parts = set()
