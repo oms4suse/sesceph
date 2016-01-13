@@ -19,15 +19,15 @@ except :
     __has_salt = False
 
 try:
-    from salt.utils import which as find_executable
+    from salt.utils import which as _find_executable
 except:
-    from distutils.spawn import find_executable
+    from distutils.spawn import _find_executable
 
 
-_path_lsblk = find_executable('lsblk')
-_path_ceph_disk = find_executable('ceph-disk')
-_path_partprobe = find_executable('partprobe')
-_path_sgdisk = find_executable('sgdisk')
+_path_lsblk = _find_executable('lsblk')
+_path_ceph_disk = _find_executable('ceph-disk')
+_path_partprobe = _find_executable('partprobe')
+_path_sgdisk = _find_executable('sgdisk')
 
 class Error(Exception):
     """
@@ -110,7 +110,10 @@ def _retrive_osd_details(part_details):
     return osd_details
 
 
-class model:
+class _model:
+    """
+    Basic model class to store detrived data
+    """
     def __init__(self):
         # map device to symlinks
         self.symlinks = {}
@@ -121,7 +124,10 @@ class model:
         self.partitions_journal = {}
 
 
-class model_updator():
+class _model_updator():
+    """
+    Basic model updator retrives data and adds to model
+    """
     def __init__(self, model):
         self.model = model
 
@@ -257,7 +263,7 @@ class model_updator():
         self.model.discovered_osd = discovered_osd
 
 
-class mdl_presentor():
+class _mdl_presentor():
     """
     Since presentation should be clean to the end user
     We abstract such functiosn in this class.
@@ -415,11 +421,11 @@ def partitions_all():
 
         salt '*' sesceph.partitions_all
     '''
-    m = model()
-    u = model_updator(m)
+    m = _model()
+    u = _model_updator(m)
     u.symlinks_refresh()
     u.partitions_all_refresh()
-    p = mdl_presentor(m)
+    p = _mdl_presentor(m)
     return p.partitions_all()
 
 def osd_partitions():
@@ -430,12 +436,12 @@ def osd_partitions():
 
         salt '*' sesceph.osd_partitions
     '''
-    m = model()
-    u = model_updator(m)
+    m = _model()
+    u = _model_updator(m)
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    p = mdl_presentor(m)
+    p = _mdl_presentor(m)
     return p.discover_osd_partitions()
 
 
@@ -447,12 +453,12 @@ def journal_partitions():
 
         salt '*' sesceph.journal_partitions
     '''
-    m = model()
-    u = model_updator(m)
+    m = _model()
+    u = _model_updator(m)
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    p = mdl_presentor(m)
+    p = _mdl_presentor(m)
     return p.discover_journal_partitions()
 
 def discover_osd():
@@ -464,14 +470,14 @@ def discover_osd():
         salt '*' sesceph.discover_osd
 
     """
-    m = model()
-    u = model_updator(m)
+    m = _model()
+    u = _model_updator(m)
 
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
     u.discover_osd_refresh()
-    p = mdl_presentor(m)
+    p = _mdl_presentor(m)
     return p.discover_osd()
 
 
@@ -666,8 +672,8 @@ def osd_prepare(**kwargs):
     osd_dev = os.path.realpath(osd_dev_raw)
     # get existing state and see if action needed
 
-    m = model()
-    u = model_updator(m)
+    m = _model()
+    u = _model_updator(m)
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
     u.discover_osd_refresh()
