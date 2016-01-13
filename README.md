@@ -79,5 +79,25 @@ Exectution
 
 All functions in this application are under the sesceph namespace.
 
+Code layout
+-----------
+
+The code is structured with basic methods calling 3 main classes types.
+
+1. Models
+
+This stores all the gathered configuration on the node to apply the function.
+
+2. Loaders
+
+These objects are used to update the Model.
+
+3. Presenters
+
+These objects are used to present the data in the model to the API users.
+
+
+
+
 
 
