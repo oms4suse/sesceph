@@ -412,13 +412,18 @@ def osd_prepare(**kwargs):
 
     CLI Example::
 
-        salt '*' sesceph.prepare "{'osd' : '/dev/vdc', 'partion' : 'ding' }"
+        salt '*' sesceph.prepare "{'osd_dev' : '/dev/vdc',
+                'journel_dev'  : 'device',
+                'cluster_name' : 'ceph',
+                'cluster_uuid' : 'cluster_uuid',
+                'osd_fs_type'  : ''xfs
+                 }"
     """
-    cluster_name = kwargs.get("cluster_name","ceph")
     osd_dev = kwargs.get("osd_dev")
     journel_dev = kwargs.get("journel_dev")
     cluster_name = kwargs.get("cluster_name")
     cluster_uuid = kwargs.get("cluster_uuid")
+    fs_type = kwargs.get("osd_fs_type")
 
     # Default cluster name / uuid values
     if cluster_name == None and cluster_uuid == None:
