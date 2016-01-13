@@ -232,7 +232,33 @@ class model_updator():
     def discover_osd(self):
         return self.model.discovered_osd
 
+class mdl_presentor():
+    """
+    Since presentation should be clean to the end user
+    We abstract such functiosn in this class.
+    """
+    def __init__(self, model):
+        self.model = model
 
+    def discover_osd_by_cluster_uuid(self,cluster_uuid):
+        osd_out_list = []
+        osd_in_list = self.model.discovered_osd.get(cluster_uuid)
+        if osd_in_list == None:
+            return osd_out_list
+        for osd_in in osd_in_list:
+            osd_out = {}
+            for key in osd_in.keys():
+                if key == "ceph_fsid":
+                    continue
+                osd_out[key] = osd_in.get(key)
+            osd_out_list.append(osd_out)
+        return osd_out_list
+
+    def discover_osd(self):
+        output = {}
+        for cluster in self.model.discovered_osd.keys():
+            output[cluster] = self.discover_osd_by_cluster_uuid(cluster)
+        return output
 
 
 def partions_all():
@@ -288,7 +314,8 @@ def discover_osd():
     u.partions_all_refresh()
     u.discover_partions_refresh()
     u.discover_osd_refresh()
-    return u.discover_osd()
+    p = mdl_presentor(m)
+    return p.discover_osd()
 
 
 def get_dev_name(path):
@@ -434,7 +461,7 @@ def osd_prepare(**kwargs):
                 'osd_fs_type'  : ''xfs
                  }"
     """
-    osd_dev = kwargs.get("osd_dev")
+    osd_dev_raw = kwargs.get("osd_dev")
     journel_dev = kwargs.get("journel_dev")
     cluster_name = kwargs.get("cluster_name")
     cluster_uuid = kwargs.get("cluster_uuid")
@@ -450,15 +477,19 @@ def osd_prepare(**kwargs):
 
     fs_type = kwargs.get("fs_type","xfs")
     # Check required variables are set
-    if osd_dev == None:
+    if osd_dev_raw == None:
         raise Error("osd_dev not specified")
 
     # normalise paths
-    osd_dev = os.path.realpath(osd_dev)
+    osd_dev = os.path.realpath(osd_dev_raw)
     # get existing state and see if action needed
 
-    storage_tree = partions_all()
-    block_details_osd = storage_tree.get(osd_dev)
+    m = model()
+    u = model_updator(m)
+    u.partions_all_refresh()
+
+
+    block_details_osd = m.lsblk.get(osd_dev)
     if block_details_osd == None:
         raise Error("Not a block device")
 
@@ -467,6 +498,8 @@ def osd_prepare(**kwargs):
         raise Error("Programming error")
     if len(part_table.keys()) > 0:
         return True
+
+
     arguments = [
         'ceph-disk',
         '-v',
