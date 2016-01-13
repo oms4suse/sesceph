@@ -101,7 +101,7 @@ class model_updator():
         '''
         List all partion details
 
-        CLI Example::
+        CLI Example:
 
             salt '*' sesceph.partions_all
         '''
@@ -142,7 +142,7 @@ class model_updator():
         '''
         List all partion details
 
-        CLI Example::
+        CLI Example:
 
             salt '*' sesceph.partions_all
         '''
@@ -156,7 +156,7 @@ class model_updator():
         '''
         List all OSD and journel partions
 
-        CLI Example::
+        CLI Example:
 
             salt '*' sesceph.discover_osd_partions
         '''
@@ -187,7 +187,7 @@ class model_updator():
         '''
         List all OSD and journel partions
 
-        CLI Example::
+        CLI Example:
 
             salt '*' sesceph.discover_osd_partions
         '''
@@ -198,7 +198,7 @@ class model_updator():
         '''
         List all OSD and journel partions
 
-        CLI Example::
+        CLI Example:
 
             salt '*' sesceph.discover_osd_partions
         '''
@@ -229,8 +229,6 @@ class model_updator():
                 journal_uuid = osd_data.get("journal_uuid")
         self.model.discovered_osd = discovered_osd
 
-    def discover_osd(self):
-        return self.model.discovered_osd
 
 class mdl_presentor():
     """
@@ -265,7 +263,7 @@ def partions_all():
     '''
     List partions by disk
 
-    CLI Example::
+    CLI Example:
 
         salt '*' sesceph.partions_all
     '''
@@ -278,11 +276,11 @@ def partions_all():
 
 def osd_partions():
     '''
-    List all OSD partions by disk
+    List all OSD data partions by partition
 
-    CLI Example::
+    CLI Example:
 
-        salt '*' sesceph.discover_osd_partions
+        salt '*' sesceph.osd_partions
     '''
     m = model()
     u = model_updator(m)
@@ -293,11 +291,11 @@ def osd_partions():
 
 def journel_partions():
     '''
-    List all journel partions by disk
+    List all OSD journel partions by partition
 
-    CLI Example::
+    CLI Example:
 
-        salt '*' sesceph.discover_osd_partions
+        salt '*' sesceph.journel_partions
     '''
     m = model()
     u = model_updator(m)
@@ -306,9 +304,14 @@ def journel_partions():
     return u.discover_journel_partions()
 
 def discover_osd():
-    '''
-    List all OSD's by cluster
-    '''
+    """
+    List all OSD by cluster
+
+    CLI Example:
+
+        salt '*' sesceph.discover_osd
+
+    """
     m = model()
     u = model_updator(m)
     u.partions_all_refresh()
@@ -452,7 +455,7 @@ def osd_prepare(**kwargs):
     """
     prepare an OSD
 
-    CLI Example::
+    CLI Example:
 
         salt '*' sesceph.prepare "{'osd_dev' : '/dev/vdc',
                 'journel_dev'   : 'device',
@@ -468,7 +471,7 @@ def osd_prepare(**kwargs):
         Set the deivce to store the osd data on.
 
     journel_dev
-        Set the journel device. defaults to collocate with osd_dev
+        Set the journel device. defaults to osd_dev.
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
@@ -484,8 +487,6 @@ def osd_prepare(**kwargs):
 
     journel_uuid
         set the OSD journel UUID. If set will return if OSD with journel UUID already exists.
-
-    journel_uuid
     """
     osd_dev_raw = kwargs.get("osd_dev")
     journel_dev = kwargs.get("journel_dev")
