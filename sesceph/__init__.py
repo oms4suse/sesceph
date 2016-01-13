@@ -481,7 +481,7 @@ def discover_osd():
     return p.discover_osd()
 
 
-def get_dev_name(path):
+def _get_dev_name(path):
     """
     get device name from path.  e.g.::
 
@@ -505,7 +505,7 @@ def is_partition(dev):
     if not stat.S_ISBLK(os.lstat(dev).st_mode):
         raise Error('not a block device', dev)
 
-    name = get_dev_name(dev)
+    name = _get_dev_name(dev)
     if os.path.exists(os.path.join('/sys/block', name)):
         return False
 
