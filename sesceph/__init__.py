@@ -112,6 +112,26 @@ class model_updator():
     def __init__(self, model):
         self.model = model
 
+    def symlinks_refresh(self):
+        '''
+        List all symlinks under /dev/disk/
+        '''
+        interesting_dirs = set(["by-path","by-id","by-uuid","by-partuuid"])
+        paths = {}
+        for root, dirs, files in os.walk("/dev/disk/"):
+            path_head, path_tail = os.path.split(root)
+            if not path_tail in interesting_dirs:
+                continue
+            for file_name in files:
+                file_path = os.path.join(root,file_name)
+                if not os.path.islink(file_path):
+                    continue
+                real_path = os.path.realpath(file_path)
+                if not real_path in paths.keys():
+                    paths[real_path] = []
+                paths[real_path].append(file_path)
+        self.model.symlinks = paths
+
     def partitions_all_refresh(self):
         '''
         List all partition details
@@ -152,16 +172,6 @@ class model_updator():
             all_parts[disk_name]["PARTITION"][part_name] = partition
         self.model.lsblk = all_parts
 
-
-    def partitions_all(self):
-        '''
-        List all partition details
-
-        CLI Example:
-
-            salt '*' sesceph.partitions_all
-        '''
-        return self.model.lsblk
 
 
 
@@ -253,6 +263,88 @@ class mdl_presentor():
     def __init__(self, model):
         self.model = model
 
+    def lsblk_partition_by_disk_part(self, disk, part):
+        output = {}
+        disk_details = self.model.lsblk.get(disk)
+        if disk_details == None:
+            return None
+        symlinks = self.model.symlinks.get(part)
+        if symlinks != None:
+            output["LINK"] = symlinks
+        wanted_keys = set([
+                'SIZE',
+                'NAME',
+                'VENDOR',
+                'UUID',
+                'PARTLABEL',
+                'PKNAME',
+                'FSTYPE',
+                'PARTTYPE',
+                'MOUNTPOINT',
+                'PARTUUID',
+                'ROTA',
+                'SCHED',
+                'RQ-SIZE'
+            ])
+
+        all_parts = disk_details.get('PARTITION')
+        if all_parts == None:
+            return None
+        part_details = all_parts.get(part)
+        for key in part_details:
+            if not key in wanted_keys:
+                continue
+            output[key] = part_details.get(key)
+
+        return output
+
+    def lsblk_disk_by_disk(self, disk):
+        output = {}
+        disk_details = self.model.lsblk.get(disk)
+        if disk_details == None:
+            return None
+        symlinks = self.model.symlinks.get(disk)
+        if symlinks != None:
+            output["LINK"] = symlinks
+        wanted_keys = set([
+                'SIZE',
+                'NAME',
+                'VENDOR'
+            ])
+        for key in disk_details:
+            if key == 'PARTITION':
+                part_list = []
+                for part in disk_details['PARTITION'].keys():
+                    part_info = self.lsblk_partition_by_disk_part(disk, part)
+                    if part_info == None:
+                        continue
+                    part_list.append(part_info)
+                output["PARTITION"] = part_list
+            if not key in wanted_keys:
+                continue
+            output[key] = disk_details.get(key)
+
+        return output
+
+
+
+
+    def partitions_all(self):
+        '''
+        List all partition details
+
+        CLI Example::
+
+            salt '*' sesceph.partitions_all
+        '''
+        output = {}
+        for disk in self.model.lsblk.keys():
+            output[disk] = self.lsblk_disk_by_disk(disk)
+
+        return output
+
+
+
     def discover_osd_by_cluster_uuid(self,cluster_uuid):
         osd_out_list = []
         osd_in_list = self.model.discovered_osd.get(cluster_uuid)
@@ -274,6 +366,7 @@ class mdl_presentor():
         return output
 
 
+
 def partitions_all():
     '''
     List partitions by disk
@@ -284,10 +377,10 @@ def partitions_all():
     '''
     m = model()
     u = model_updator(m)
+    u.symlinks_refresh()
     u.partitions_all_refresh()
-
-    return u.partitions_all()
-
+    p = mdl_presentor(m)
+    return p.partitions_all()
 
 def osd_partitions():
     '''
