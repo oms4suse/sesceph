@@ -56,7 +56,7 @@ This allowed me to easily identify orphaned OSD's :)
 Instalation
 -----------
 
-copy the content of "sesceph" to 
+copy the content of "sesceph" to
 
     /srv/salt/_modules/sesceph
 
@@ -69,10 +69,15 @@ This will distribute the runner to all salt minions.
 Docuemntation
 -------------
 
-All API methods shoudl provide documentation, to list all runners methods 
+All API methods shoudl provide documentation, to list all runners methods
 available in your salt system please run:
 
     salt-run doc.execution
+
+To show sesceph method:
+
+    salt "ceph-node*" sesceph -d
+
 
 Exectution
 ----------
