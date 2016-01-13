@@ -539,10 +539,9 @@ def osd_prepare(**kwargs):
         raise Error("Not a block device")
 
     part_table = block_details_osd.get("PARTITION")
-    if part_table == None:
-        raise Error("Programming error")
-    if len(part_table.keys()) > 0:
-        return True
+    if part_table != None:
+        if len(part_table.keys()) > 0:
+            return True
 
 
     arguments = [
