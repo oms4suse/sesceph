@@ -250,11 +250,9 @@ def partions_all():
     return u.partions_all()
 
 
-
-
-def discover_osd_partions():
+def osd_partions():
     '''
-    List all OSD and journel partions
+    List all OSD partions by disk
 
     CLI Example::
 
@@ -264,10 +262,27 @@ def discover_osd_partions():
     u = model_updator(m)
     u.partions_all_refresh()
     u.discover_partions_refresh()
-    return u.discover_osd_partions(),u.discover_journel_partions()
+    return u.discover_osd_partions()
 
+
+def journel_partions():
+    '''
+    List all journel partions by disk
+
+    CLI Example::
+
+        salt '*' sesceph.discover_osd_partions
+    '''
+    m = model()
+    u = model_updator(m)
+    u.partions_all_refresh()
+    u.discover_partions_refresh()
+    return u.discover_journel_partions()
 
 def discover_osd():
+    '''
+    List all OSD's by cluster
+    '''
     m = model()
     u = model_updator(m)
     u.partions_all_refresh()
