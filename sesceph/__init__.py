@@ -42,6 +42,49 @@ def _excuete_local_command(command_attrib_list):
     return output
 
 
+def _retrive_osd_details_from_dir(directory):
+    osd_required_files = set(["ceph_fsid","fsid"])
+    osd_details = {}
+    dir_content = os.listdir(directory)
+    if not osd_required_files.issubset(dir_content):
+        return None
+    with open('%s/ceph_fsid' % (directory), 'r') as infile:
+        osd_details["ceph_fsid"] = infile.read().strip()
+    with open('%s/fsid' % (directory), 'r') as infile:
+        osd_details["fsid"] = infile.read().strip()
+    with open('%s/journal_uuid' % (directory), 'r') as infile:
+        osd_details["journal_uuid"] = infile.read().strip()
+    with open('%s/magic' % (directory), 'r') as infile:
+        osd_details["magic"] = infile.read().strip()
+    path_whoami = '%s/whoami' % (directory)
+    if os.path.isfile(path_whoami):
+        with open('%s/whoami' % (directory), 'r') as infile:
+            osd_details["whoami"] = infile.read().strip()
+    path_link = '%s/journal' % (directory)
+    if os.path.islink(path_link):
+        osd_details["dev_journal"] = os.path.realpath(path_link)
+
+    return osd_details
+
+
+
+def _retrive_osd_details(part_details):
+    osd_details = {}
+    device_name = part_details.get("NAME")
+    if device_name == None:
+        return None
+    try:
+        tmpd = tempfile.mkdtemp()
+        try:
+            out_mnt = _excuete_local_command(['mount',device_name,tmpd])
+            if out_mnt['retcode'] == 0:
+                osd_details = _retrive_osd_details_from_dir(tmpd)
+        finally:
+            _excuete_local_command(['umount',tmpd])
+    finally:
+        os.rmdir(tmpd)
+    return osd_details
+
 
 def partions_all():
     '''
@@ -118,49 +161,6 @@ def discover_osd_partions():
             if part_type == JOURNAL_UUID:
                 journel_all[partname] = part_details
     return osd_all,journel_all
-
-def _retrive_osd_details_from_dir(directory):
-    osd_required_files = set(["ceph_fsid","fsid"])
-    osd_details = {}
-    dir_content = os.listdir(directory)
-    if not osd_required_files.issubset(dir_content):
-        return None
-    with open('%s/ceph_fsid' % (directory), 'r') as infile:
-        osd_details["ceph_fsid"] = infile.read().strip()
-    with open('%s/fsid' % (directory), 'r') as infile:
-        osd_details["fsid"] = infile.read().strip()
-    with open('%s/journal_uuid' % (directory), 'r') as infile:
-        osd_details["journal_uuid"] = infile.read().strip()
-    with open('%s/magic' % (directory), 'r') as infile:
-        osd_details["magic"] = infile.read().strip()
-    path_whoami = '%s/whoami' % (directory)
-    if os.path.isfile(path_whoami):
-        with open('%s/whoami' % (directory), 'r') as infile:
-            osd_details["whoami"] = infile.read().strip()
-    path_link = '%s/journal' % (directory)
-    if os.path.islink(path_link):
-        osd_details["dev_journal"] = os.path.realpath(path_link)
-
-    return osd_details
-
-
-
-def _retrive_osd_details(part_details):
-    osd_details = {}
-    device_name = part_details.get("NAME")
-    if device_name == None:
-        return None
-    try:
-        tmpd = tempfile.mkdtemp()
-        try:
-            out_mnt = _excuete_local_command(['mount',device_name,tmpd])
-            if out_mnt['retcode'] == 0:
-                osd_details = _retrive_osd_details_from_dir(tmpd)
-        finally:
-            _excuete_local_command(['umount',tmpd])
-    finally:
-        os.rmdir(tmpd)
-    return osd_details
 
 
 def discover_osd():
