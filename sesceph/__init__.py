@@ -206,6 +206,34 @@ class model_updator():
         return self.model.partions_journel
 
 
+    def discover_osd_refresh(self):
+        discovered_osd = {}
+        # now we map UUID to NAME for both osd and journel
+        unmounted_parts = set()
+        for part_name in self.model.partions_osd.keys():
+            part_details = self.model.partions_osd.get(part_name)
+            output = _retrive_osd_details(part_details)
+            if output == None:
+                print "we have more to code here"
+                continue
+            output["dev"] = part_details.get("NAME")
+            output["dev_parent"] = part_details.get("PKNAME")
+            ceph_fsid = output.get("ceph_fsid")
+            if not ceph_fsid in discovered_osd.keys():
+                discovered_osd[ceph_fsid] = []
+            discovered_osd[ceph_fsid].append(output)
+        for cluser_id in discovered_osd.keys():
+            osd_data_list = discovered_osd.get(cluser_id)
+            for osd_data in osd_data_list:
+                fsid = osd_data.get("fsid")
+                journal_uuid = osd_data.get("journal_uuid")
+        self.model.discovered_osd = discovered_osd
+
+    def discover_osd(self):
+        return self.model.discovered_osd
+
+
+
 
 def partions_all():
     '''
@@ -240,32 +268,13 @@ def discover_osd_partions():
 
 
 def discover_osd():
-    discovered_osd = {}
-    discovered_osd_ret = discover_osd_partions()
-    if discovered_osd_ret == None:
-        return discovered_osd
-    partions_osd_struct, partions_journel_struct = discovered_osd_ret
-    # now we map UUID to NAME for both osd and journel
+    m = model()
+    u = model_updator(m)
+    u.partions_all_refresh()
+    u.discover_partions_refresh()
+    u.discover_osd_refresh()
+    return u.discover_osd()
 
-    unmounted_parts = set()
-    for part_name in partions_osd_struct.keys():
-        part_details = partions_osd_struct.get(part_name)
-        output = _retrive_osd_details(part_details)
-        if output == None:
-            print "we have more to code here"
-            continue
-        output["dev"] = part_details.get("NAME")
-        output["dev_parent"] = part_details.get("PKNAME")
-        ceph_fsid = output.get("ceph_fsid")
-        if not ceph_fsid in discovered_osd.keys():
-            discovered_osd[ceph_fsid] = []
-        discovered_osd[ceph_fsid].append(output)
-    for cluser_id in discovered_osd.keys():
-        osd_data_list = discovered_osd.get(cluser_id)
-        for osd_data in osd_data_list:
-            fsid = osd_data.get("fsid")
-            journal_uuid = osd_data.get("journal_uuid")
-    return discovered_osd
 
 def get_dev_name(path):
     """
