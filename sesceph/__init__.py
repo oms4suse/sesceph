@@ -237,7 +237,7 @@ class model_updator():
 
 def partions_all():
     '''
-    List all partion details
+    List partions by disk
 
     CLI Example::
 
