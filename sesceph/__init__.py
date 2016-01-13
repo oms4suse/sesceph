@@ -151,6 +151,62 @@ class model_updator():
 
 
 
+
+    def discover_partions_refresh(self):
+        '''
+        List all OSD and journel partions
+
+        CLI Example::
+
+            salt '*' sesceph.discover_osd_partions
+        '''
+        osd_all = {}
+        journel_all = {}
+        for diskname in self.model.lsblk.keys():
+            disk = self.model.lsblk.get(diskname)
+            if disk == None:
+                sdfsdfsdf
+                continue
+            part_struct = disk.get("PARTITION")
+            if part_struct == None:
+                continue
+            for partname in part_struct.keys():
+                part_details = part_struct.get(partname)
+                if part_details == None:
+
+                    continue
+                part_type = part_details.get("PARTTYPE")
+                if part_type == OSD_UUID:
+                    osd_all[partname] = part_details
+                if part_type == JOURNAL_UUID:
+                    journel_all[partname] = part_details
+        self.model.partions_osd = osd_all
+        self.model.partions_journel = journel_all
+
+    def discover_osd_partions(self):
+        '''
+        List all OSD and journel partions
+
+        CLI Example::
+
+            salt '*' sesceph.discover_osd_partions
+        '''
+
+        return self.model.partions_osd
+
+    def discover_journel_partions(self):
+        '''
+        List all OSD and journel partions
+
+        CLI Example::
+
+            salt '*' sesceph.discover_osd_partions
+        '''
+
+        return self.model.partions_journel
+
+
+
 def partions_all():
     '''
     List all partion details
@@ -176,28 +232,11 @@ def discover_osd_partions():
 
         salt '*' sesceph.discover_osd_partions
     '''
-    osd_all = {}
-    journel_all = {}
-    try:
-        partions_struct = partions_all()
-    except Error, e:
-        log.info(" dir(e)")
-        return osd_all,journel_all
-    for diskname in partions_struct.keys():
-        disk = partions_struct.get(diskname)
-        if disk == None:
-            continue
-        part_struct = disk.get("PARTITION")
-        if part_struct == None:
-            continue
-        for partname in part_struct.keys():
-            part_details = part_struct.get(partname)
-            part_type = part_details.get("PARTTYPE")
-            if part_type == OSD_UUID:
-                osd_all[partname] = part_details
-            if part_type == JOURNAL_UUID:
-                journel_all[partname] = part_details
-    return osd_all,journel_all
+    m = model()
+    u = model_updator(m)
+    u.partions_all_refresh()
+    u.discover_partions_refresh()
+    return u.discover_osd_partions(),u.discover_journel_partions()
 
 
 def discover_osd():
