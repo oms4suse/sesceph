@@ -112,7 +112,11 @@ def _retrive_osd_details(part_details):
 
 class model:
     def __init__(self):
+        # map device to symlinks
+        self.symlinks = {}
         self.lsblk = {}
+        # map partition to pairent
+        self.part_pairent = {}
         self.partitions_osd = {}
         self.partitions_journal = {}
 
@@ -149,6 +153,7 @@ class model_updator():
 
             salt '*' sesceph.partitions_all
         '''
+        part_map = {}
         cmd = [ _path_lsblk, "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
         output = _excuete_local_command(cmd)
         if output['retcode'] != 0:
@@ -176,10 +181,12 @@ class model_updator():
             disk_name = partition.get("PKNAME")
             if not disk_name in all_parts:
                 continue
+            part_map[part_name] = disk_name
             if None == all_parts[disk_name].get("PARTITION"):
                 all_parts[disk_name]["PARTITION"] = {}
             all_parts[disk_name]["PARTITION"][part_name] = partition
         self.model.lsblk = all_parts
+        self.model.part_pairent = part_map
 
 
 
@@ -194,12 +201,11 @@ class model_updator():
 
             salt '*' sesceph.discover_osd_partitions
         '''
-        osd_all = {}
-        journal_all = {}
+        osd_all = set()
+        journal_all = set()
         for diskname in self.model.lsblk.keys():
             disk = self.model.lsblk.get(diskname)
             if disk == None:
-                sdfsdfsdf
                 continue
             part_struct = disk.get("PARTITION")
             if part_struct == None:
@@ -211,44 +217,31 @@ class model_updator():
                     continue
                 part_type = part_details.get("PARTTYPE")
                 if part_type == OSD_UUID:
-                    osd_all[partname] = part_details
+                    osd_all.add(partname)
                 if part_type == JOURNAL_UUID:
-                    journal_all[partname] = part_details
+                    journal_all.add(partname)
         self.model.partitions_osd = osd_all
         self.model.partitions_journal = journal_all
 
-    def discover_osd_partitions(self):
-        '''
-        List all OSD and journal partitions
-
-        CLI Example:
-
-            salt '*' sesceph.discover_osd_partitions
-        '''
-
-        return self.model.partitions_osd
-
-    def discover_journal_partitions(self):
-        '''
-        List all OSD and journal partitions
-
-        CLI Example:
-
-            salt '*' sesceph.discover_osd_partitions
-        '''
-
-        return self.model.partitions_journal
 
 
     def discover_osd_refresh(self):
         discovered_osd = {}
         # now we map UUID to NAME for both osd and journal
         unmounted_parts = set()
-        for part_name in self.model.partitions_osd.keys():
-            part_details = self.model.partitions_osd.get(part_name)
+        for part_name in self.model.partitions_osd:
+            diskname = self.model.part_pairent.get(part_name)
+            if diskname == None:
+                continue
+            disk = self.model.lsblk.get(diskname)
+            if disk == None:
+                continue
+            part_struct = disk.get("PARTITION")
+            if part_struct == None:
+                continue
+            part_details = part_struct.get(part_name)
             output = _retrive_osd_details(part_details)
             if output == None:
-                print "we have more to code here"
                 continue
             output["dev"] = part_details.get("NAME")
             output["dev_parent"] = part_details.get("PKNAME")
@@ -272,8 +265,11 @@ class mdl_presentor():
     def __init__(self, model):
         self.model = model
 
-    def lsblk_partition_by_disk_part(self, disk, part):
+    def lsblk_partition_by_disk_part(self, part):
         output = {}
+        disk = self.model.part_pairent.get(part)
+        if disk == None:
+            return None
         disk_details = self.model.lsblk.get(disk)
         if disk_details == None:
             return None
@@ -300,6 +296,8 @@ class mdl_presentor():
         if all_parts == None:
             return None
         part_details = all_parts.get(part)
+        if part_details == None:
+            return None
         for key in part_details:
             if not key in wanted_keys:
                 continue
@@ -327,7 +325,7 @@ class mdl_presentor():
             if key == 'PARTITION':
                 part_list = []
                 for part in disk_details['PARTITION'].keys():
-                    part_info = self.lsblk_partition_by_disk_part(disk, part)
+                    part_info = self.lsblk_partition_by_disk_part(part)
                     if part_info == None:
                         continue
                     part_list.append(part_info)
@@ -365,7 +363,7 @@ class mdl_presentor():
         for osd_in in osd_in_list:
             osd_out = {}
             for key in osd_in.keys():
-                if key == "ceph_fsid":
+                if key in ["ceph_fsid", "dev_parent"]:
                     continue
                 osd_out[key] = osd_in.get(key)
             osd_out_list.append(osd_out)
@@ -377,7 +375,37 @@ class mdl_presentor():
             output[cluster] = self.discover_osd_by_cluster_uuid(cluster)
         return output
 
+    def discover_osd_partitions(self):
+        '''
+        List all OSD and journal partitions
 
+        CLI Example:
+
+            salt '*' sesceph.discover_osd_partitions
+        '''
+        output = []
+        for part_name in self.model.partitions_osd:
+            part_info = self.lsblk_partition_by_disk_part(part_name)
+            if part_info == None:
+                continue
+            output.append(part_info)
+        return output
+
+    def discover_journal_partitions(self):
+        '''
+        List all OSD and journal partitions
+
+        CLI Example:
+
+            salt '*' sesceph.discover_osd_partitions
+        '''
+        output = []
+        for part_name in self.model.partitions_journal:
+            part_info = self.lsblk_partition_by_disk_part(part_name)
+            if part_info == None:
+                continue
+            output.append(part_info)
+        return output
 
 def partitions_all():
     '''
@@ -404,9 +432,11 @@ def osd_partitions():
     '''
     m = model()
     u = model_updator(m)
+    u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    return u.discover_osd_partitions()
+    p = mdl_presentor(m)
+    return p.discover_osd_partitions()
 
 
 def journal_partitions():
@@ -419,9 +449,11 @@ def journal_partitions():
     '''
     m = model()
     u = model_updator(m)
+    u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    return u.discover_journal_partitions()
+    p = mdl_presentor(m)
+    return p.discover_journal_partitions()
 
 def discover_osd():
     """
@@ -434,6 +466,8 @@ def discover_osd():
     """
     m = model()
     u = model_updator(m)
+
+    u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
     u.discover_osd_refresh()
