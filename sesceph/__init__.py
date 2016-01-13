@@ -318,7 +318,10 @@ class mdl_presentor():
         wanted_keys = set([
                 'SIZE',
                 'NAME',
-                'VENDOR'
+                'VENDOR',
+                'ROTA',
+                'SCHED',
+                'RQ-SIZE'
             ])
         for key in disk_details:
             if key == 'PARTITION':
