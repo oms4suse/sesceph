@@ -18,7 +18,16 @@ try:
 except :
     __has_salt = False
 
+try:
+    from salt.utils import which as find_executable
+except:
+    from distutils.spawn import find_executable
 
+
+_path_lsblk = find_executable('lsblk')
+_path_ceph_disk = find_executable('ceph-disk')
+_path_partprobe = find_executable('partprobe')
+_path_sgdisk = find_executable('sgdisk')
 
 class Error(Exception):
     """
@@ -29,6 +38,12 @@ class Error(Exception):
         doc = self.__doc__.strip()
         return ': '.join([doc] + [str(a) for a in self.args])
 
+
+def __virtual__():
+    if not _path_lsblk:
+        log.info("Error 'lsblk' command not find.")
+        return False
+    return __virtualname__
 
 
 JOURNAL_UUID = '45b0969e-9b03-4f30-b4c6-b4b80ceff106'
@@ -105,7 +120,7 @@ class model_updator():
 
             salt '*' sesceph.partitions_all
         '''
-        cmd = ["lsblk", "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
+        cmd = [ _path_lsblk, "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
         output = _excuete_local_command(cmd)
         if output['retcode'] != 0:
             raise Error("Failed running: lsblk --ascii --output-all")
@@ -358,20 +373,20 @@ def is_partition(dev):
 
 
 def _update_partition(action, dev, description):
-     # try to make sure the kernel refreshes the table.  note
-     # that if this gets ebusy, we are probably racing with
-     # udev because it already updated it.. ignore failure here.
+    # try to make sure the kernel refreshes the table.  note
+    # that if this gets ebusy, we are probably racing with
+    # udev because it already updated it.. ignore failure here.
 
-     # On RHEL and CentOS distros, calling partprobe forces a reboot of the
-     # server. Since we are not resizing partitons so we rely on calling
-     # partx
+    # On RHEL and CentOS distros, calling partprobe forces a reboot of the
+    # server. Since we are not resizing partitons so we rely on calling
+    # partx
 
-     _excuete_local_command(
-         [
-             'partprobe',
+    _excuete_local_command(
+        [
+             _path_partprobe,
              dev,
-         ],
-     )
+        ],
+    )
 
 
 
@@ -395,7 +410,7 @@ def zap(dev):
 
         _excuete_local_command(
             [
-                'sgdisk',
+                _path_sgdisk,
                 '--zap-all',
                 '--',
                 dev,
@@ -403,7 +418,7 @@ def zap(dev):
         )
         _excuete_local_command(
             [
-                'sgdisk',
+                _path_sgdisk,
                 '--clear',
                 '--mbrtogpt',
                 '--',
@@ -545,8 +560,10 @@ def osd_prepare(**kwargs):
             return True
 
 
+    if not _path_ceph_disk:
+        raise Error("Error 'ceph-disk' command not find")
     arguments = [
-        'ceph-disk',
+        _path_ceph_disk,
         '-v',
         'prepare',
         '--fs-type',
@@ -577,6 +594,3 @@ def osd_prepare(**kwargs):
     return True
 
 
-
-def __virtual__():
-    return __virtualname__
