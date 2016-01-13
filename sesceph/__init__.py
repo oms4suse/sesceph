@@ -89,21 +89,21 @@ def _retrive_osd_details(part_details):
 class model:
     def __init__(self):
         self.lsblk = {}
-        self.partions_osd = {}
-        self.partions_journel = {}
+        self.partitions_osd = {}
+        self.partitions_journal = {}
 
 
 class model_updator():
     def __init__(self, model):
         self.model = model
 
-    def partions_all_refresh(self):
+    def partitions_all_refresh(self):
         '''
-        List all partion details
+        List all partition details
 
         CLI Example:
 
-            salt '*' sesceph.partions_all
+            salt '*' sesceph.partitions_all
         '''
         cmd = ["lsblk", "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
         output = _excuete_local_command(cmd)
@@ -111,7 +111,7 @@ class model_updator():
             raise Error("Failed running: lsblk --ascii --output-all")
         all_parts = {}
         for line in output['stdout'].split('\n'):
-            partion = {}
+            partition = {}
             for token in shlex.split(line):
                 token_split = token.split("=")
                 if len(token_split) == 1:
@@ -120,31 +120,31 @@ class model_updator():
                 value = "=".join(token_split[1:])
                 if len(value) == 0:
                     continue
-                partion[key] = value
+                partition[key] = value
 
-            part_name = partion.get("NAME")
+            part_name = partition.get("NAME")
             if part_name == None:
                 continue
-            part_type = partion.get("TYPE")
+            part_type = partition.get("TYPE")
             if part_type == "disk":
-                all_parts[part_name] = partion
+                all_parts[part_name] = partition
                 continue
-            disk_name = partion.get("PKNAME")
+            disk_name = partition.get("PKNAME")
             if not disk_name in all_parts:
                 continue
             if None == all_parts[disk_name].get("PARTITION"):
                 all_parts[disk_name]["PARTITION"] = {}
-            all_parts[disk_name]["PARTITION"][part_name] = partion
+            all_parts[disk_name]["PARTITION"][part_name] = partition
         self.model.lsblk = all_parts
 
 
-    def partions_all(self):
+    def partitions_all(self):
         '''
-        List all partion details
+        List all partition details
 
         CLI Example:
 
-            salt '*' sesceph.partions_all
+            salt '*' sesceph.partitions_all
         '''
         return self.model.lsblk
 
@@ -152,16 +152,16 @@ class model_updator():
 
 
 
-    def discover_partions_refresh(self):
+    def discover_partitions_refresh(self):
         '''
-        List all OSD and journel partions
+        List all OSD and journal partitions
 
         CLI Example:
 
-            salt '*' sesceph.discover_osd_partions
+            salt '*' sesceph.discover_osd_partitions
         '''
         osd_all = {}
-        journel_all = {}
+        journal_all = {}
         for diskname in self.model.lsblk.keys():
             disk = self.model.lsblk.get(diskname)
             if disk == None:
@@ -179,39 +179,39 @@ class model_updator():
                 if part_type == OSD_UUID:
                     osd_all[partname] = part_details
                 if part_type == JOURNAL_UUID:
-                    journel_all[partname] = part_details
-        self.model.partions_osd = osd_all
-        self.model.partions_journel = journel_all
+                    journal_all[partname] = part_details
+        self.model.partitions_osd = osd_all
+        self.model.partitions_journal = journal_all
 
-    def discover_osd_partions(self):
+    def discover_osd_partitions(self):
         '''
-        List all OSD and journel partions
+        List all OSD and journal partitions
 
         CLI Example:
 
-            salt '*' sesceph.discover_osd_partions
+            salt '*' sesceph.discover_osd_partitions
         '''
 
-        return self.model.partions_osd
+        return self.model.partitions_osd
 
-    def discover_journel_partions(self):
+    def discover_journal_partitions(self):
         '''
-        List all OSD and journel partions
+        List all OSD and journal partitions
 
         CLI Example:
 
-            salt '*' sesceph.discover_osd_partions
+            salt '*' sesceph.discover_osd_partitions
         '''
 
-        return self.model.partions_journel
+        return self.model.partitions_journal
 
 
     def discover_osd_refresh(self):
         discovered_osd = {}
-        # now we map UUID to NAME for both osd and journel
+        # now we map UUID to NAME for both osd and journal
         unmounted_parts = set()
-        for part_name in self.model.partions_osd.keys():
-            part_details = self.model.partions_osd.get(part_name)
+        for part_name in self.model.partitions_osd.keys():
+            part_details = self.model.partitions_osd.get(part_name)
             output = _retrive_osd_details(part_details)
             if output == None:
                 print "we have more to code here"
@@ -259,49 +259,49 @@ class mdl_presentor():
         return output
 
 
-def partions_all():
+def partitions_all():
     '''
-    List partions by disk
+    List partitions by disk
 
     CLI Example:
 
-        salt '*' sesceph.partions_all
+        salt '*' sesceph.partitions_all
     '''
     m = model()
     u = model_updator(m)
-    u.partions_all_refresh()
+    u.partitions_all_refresh()
 
-    return u.partions_all()
+    return u.partitions_all()
 
 
-def osd_partions():
+def osd_partitions():
     '''
-    List all OSD data partions by partition
+    List all OSD data partitions by partition
 
     CLI Example:
 
-        salt '*' sesceph.osd_partions
+        salt '*' sesceph.osd_partitions
     '''
     m = model()
     u = model_updator(m)
-    u.partions_all_refresh()
-    u.discover_partions_refresh()
-    return u.discover_osd_partions()
+    u.partitions_all_refresh()
+    u.discover_partitions_refresh()
+    return u.discover_osd_partitions()
 
 
-def journel_partions():
+def journal_partitions():
     '''
-    List all OSD journel partions by partition
+    List all OSD journal partitions by partition
 
     CLI Example:
 
-        salt '*' sesceph.journel_partions
+        salt '*' sesceph.journal_partitions
     '''
     m = model()
     u = model_updator(m)
-    u.partions_all_refresh()
-    u.discover_partions_refresh()
-    return u.discover_journel_partions()
+    u.partitions_all_refresh()
+    u.discover_partitions_refresh()
+    return u.discover_journal_partitions()
 
 def discover_osd():
     """
@@ -314,8 +314,8 @@ def discover_osd():
     """
     m = model()
     u = model_updator(m)
-    u.partions_all_refresh()
-    u.discover_partions_refresh()
+    u.partitions_all_refresh()
+    u.discover_partitions_refresh()
     u.discover_osd_refresh()
     p = mdl_presentor(m)
     return p.discover_osd()
@@ -458,20 +458,20 @@ def osd_prepare(**kwargs):
     CLI Example:
 
         salt '*' sesceph.prepare "{'osd_dev' : '/dev/vdc',
-                'journel_dev'   : 'device',
+                'journal_dev'   : 'device',
                 'cluster_name'  : 'ceph',
                 'cluster_uuid'  : 'cluster_uuid',
                 'osd_fs_type'   : 'xfs',
                 'osd_uuid'      : '2a143b73-6d85-4389-a9e9-b8a78d9e1e07',
-                'journel_uuid'  : '4562a5db-ff6f-4268-811d-12fd4a09ae98'
+                'journal_uuid'  : '4562a5db-ff6f-4268-811d-12fd4a09ae98'
                  }"
     Notes:
 
     cluster_uuid
         Set the deivce to store the osd data on.
 
-    journel_dev
-        Set the journel device. defaults to osd_dev.
+    journal_dev
+        Set the journal device. defaults to osd_dev.
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
@@ -485,16 +485,16 @@ def osd_prepare(**kwargs):
     osd_uuid
         set the OSD data UUID. If set will return if OSD with data UUID already exists.
 
-    journel_uuid
-        set the OSD journel UUID. If set will return if OSD with journel UUID already exists.
+    journal_uuid
+        set the OSD journal UUID. If set will return if OSD with journal UUID already exists.
     """
     osd_dev_raw = kwargs.get("osd_dev")
-    journel_dev = kwargs.get("journel_dev")
+    journal_dev = kwargs.get("journal_dev")
     cluster_name = kwargs.get("cluster_name")
     cluster_uuid = kwargs.get("cluster_uuid")
     fs_type = kwargs.get("osd_fs_type")
     osd_uuid = kwargs.get("osd_uuid")
-    journel_uuid = kwargs.get("journel_uuid")
+    journal_uuid = kwargs.get("journal_uuid")
     # Default cluster name / uuid values
     if cluster_name == None and cluster_uuid == None:
         cluster_name = "ceph"
@@ -514,11 +514,11 @@ def osd_prepare(**kwargs):
 
     m = model()
     u = model_updator(m)
-    u.partions_all_refresh()
-    u.discover_partions_refresh()
+    u.partitions_all_refresh()
+    u.discover_partitions_refresh()
     u.discover_osd_refresh()
 
-    # Validate the osd_uuid and journel_uuid dont already exist
+    # Validate the osd_uuid and journal_uuid dont already exist
 
     osd_list_existing = m.discovered_osd.get(cluster_uuid)
     if osd_list_existing != None:
@@ -529,10 +529,10 @@ def osd_prepare(**kwargs):
                     log.debug("osd_uuid already exists:%s" % (osd_uuid))
                     return True
 
-            if journel_uuid != None:
-                journel_existing_uuid = osd_existing.get("journal_uuid")
-                if journel_existing_uuid == journel_uuid:
-                    log.debug("journel_uuid already exists:%s" % (journel_uuid))
+            if journal_uuid != None:
+                journal_existing_uuid = osd_existing.get("journal_uuid")
+                if journal_existing_uuid == journal_uuid:
+                    log.debug("journal_uuid already exists:%s" % (journal_uuid))
                     return True
 
     block_details_osd = m.lsblk.get(osd_dev)
@@ -555,9 +555,9 @@ def osd_prepare(**kwargs):
     if osd_dev != None:
         arguments.append("--data-dev")
         arguments.append(osd_dev)
-    if journel_dev != None:
+    if journal_dev != None:
         arguments.append("--journal-dev")
-        arguments.append(journel_dev)
+        arguments.append(journal_dev)
     if cluster_name != None:
         arguments.append("--cluster")
         arguments.append(cluster_name)
@@ -567,9 +567,9 @@ def osd_prepare(**kwargs):
     if osd_uuid != None:
         arguments.append("--osd-uuid")
         arguments.append(osd_uuid)
-    if journel_uuid != None:
+    if journal_uuid != None:
         arguments.append("--journal-uuid")
-        arguments.append(journel_uuid)
+        arguments.append(journal_uuid)
 
     output = _excuete_local_command(arguments)
     if output["retcode"] != 0:
