@@ -667,6 +667,10 @@ def osd_prepare(**kwargs):
     if osd_dev_raw == None:
         raise Error("osd_dev not specified")
 
+    # Check boot strap key exists
+    if os.path.isfile("/var/lib/ceph/bootstrap-osd/ceph.keyring"):
+        raise Error("File not found /var/lib/ceph/bootstrap-osd/ceph.keyring")
+
     # normalise paths
     osd_dev = os.path.realpath(osd_dev_raw)
     # get existing state and see if action needed
