@@ -617,7 +617,7 @@ def osd_prepare(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.prepare 'osd_dev'='/dev/vdc' \
+        salt '*' sesceph.osd_prepare 'osd_dev'='/dev/vdc' \
                 'journal_dev'='device' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
