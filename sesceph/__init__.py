@@ -617,14 +617,13 @@ def osd_prepare(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.prepare "{'osd_dev' : '/dev/vdc',
-                'journal_dev'   : 'device',
-                'cluster_name'  : 'ceph',
-                'cluster_uuid'  : 'cluster_uuid',
-                'osd_fs_type'   : 'xfs',
-                'osd_uuid'      : '2a143b73-6d85-4389-a9e9-b8a78d9e1e07',
-                'journal_uuid'  : '4562a5db-ff6f-4268-811d-12fd4a09ae98'
-                 }"
+        salt '*' sesceph.prepare 'osd_dev'='/dev/vdc' \
+                'journal_dev'='device' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+                'osd_fs_type'='xfs' \
+                'osd_uuid'='2a143b73-6d85-4389-a9e9-b8a78d9e1e07' \
+                'journal_uuid'='4562a5db-ff6f-4268-811d-12fd4a09ae98'
     Notes:
 
     cluster_uuid
