@@ -5,6 +5,8 @@ import stat
 import ConfigParser
 import os.path
 import os
+import platform
+import json
 
 log = logging.getLogger(__name__)
 
@@ -110,11 +112,12 @@ def _retrive_osd_details(part_details):
     return osd_details
 
 
+
 class _model:
     """
     Basic model class to store detrived data
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
         # map device to symlinks
         self.symlinks = {}
         self.lsblk = {}
@@ -122,6 +125,19 @@ class _model:
         self.part_pairent = {}
         self.partitions_osd = {}
         self.partitions_journal = {}
+        self.ceph_conf = ConfigParser.ConfigParser()
+        # list of (hostname,addr) touples
+        self.mon_members = []
+        self.cluster_name = kwargs.get("cluster_name")
+        self.cluster_uuid = kwargs.get("cluster_uuid")
+
+        # Default cluster name / uuid values
+        if self.cluster_name == None and self.cluster_uuid == None:
+            self.cluster_name = "ceph"
+        if self.cluster_name != None and self.cluster_uuid == None:
+            self.cluster_uuid = _get_cluster_uuid_from_name(self.cluster_name)
+        if self.cluster_name == None and self.cluster_uuid != None:
+            self.cluster_name = _get_cluster_name_from_uuid(self.cluster_uuid)
 
 
 class _model_updator():
@@ -262,6 +278,47 @@ class _model_updator():
                 journal_uuid = osd_data.get("journal_uuid")
         self.model.discovered_osd = discovered_osd
 
+    def load_confg(self, cluster_name):
+        configfile = "/etc/ceph/%s.conf" % (cluster_name)
+        if not os.path.isfile(configfile):
+            raise Error("Cluster confg file does not exist:'%s'" % configfile)
+        self.model.ceph_conf.read(configfile)
+
+    def mon_members_refresh(self):
+        try:
+            mon_initial_members_name_raw = self.model.ceph_conf.get("global","mon_initial_members")
+        except ConfigParser.NoOptionError:
+            raise Error("Cluster confg file does not set mon_initial_members")
+        mon_initial_members_name_cleaned = []
+
+        for mon_split in mon_initial_members_name_raw.split(","):
+            mon_initial_members_name_cleaned.append(mon_split.strip())
+        hostname = platform.node()
+
+        try:
+            index = mon_initial_members_name_cleaned.index(hostname)
+        except:
+            log.debug("Mon not needed on %s" % (hostname))
+            print "Mon not needed on %s" % (hostname)
+            return True
+        try:
+            mon_initial_members_addr_raw = self.model.ceph_conf.get("global","mon_host")
+        except ConfigParser.NoOptionError:
+            raise Error("Cluster confg file does not set mon_host")
+        mon_initial_members_addr_cleaned = []
+        for mon_split in mon_initial_members_addr_raw.split(","):
+            mon_initial_members_addr_cleaned.append(mon_split.strip())
+
+        if len(mon_initial_members_name_cleaned) != len(mon_initial_members_addr_cleaned):
+            raise Error("config has different numbers of mon 'names' and ip addresses")
+        output = []
+        items = len(mon_initial_members_name_cleaned)
+        for idx in range(0,len(mon_initial_members_name_cleaned)):
+            output.append((
+                    mon_initial_members_name_cleaned[idx],
+                    mon_initial_members_addr_cleaned[idx]
+                ))
+        self.model.mon_members = output
 
 class _mdl_presentor():
     """
@@ -742,4 +799,45 @@ def osd_prepare(**kwargs):
     return True
 
 
+
+
+def mon_status(**kwargs):
+    """
+    Get status from mon deamon
+
+    CLI Example:
+
+        salt '*' sesceph.prepare
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the deivce to store the osd data on.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    hostname = platform.node()
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    p = _mdl_presentor(m)
+    arguments = [
+        "ceph",
+        "--cluster=%s" % (m.cluster_name),
+        "--admin-daemon",
+        "/var/run/ceph/ceph-mon.%s.asok" % (hostname),
+        "mon_status"
+        ]
+    output = _excuete_local_command(arguments)
+    if output["retcode"] != 0:
+        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    output["retcode"],
+                    output["stdout"],
+                    output["stderr"])
+                    )
+    return json.loads(output['stdout'])
 
