@@ -732,7 +732,7 @@ def osd_prepare(**kwargs):
     osd_dev = os.path.realpath(osd_dev_raw)
     # get existing state and see if action needed
 
-    m = _model()
+    m = _model(**kwargs)
     u = _model_updator(m)
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
@@ -813,7 +813,7 @@ def mon_status(**kwargs):
     Notes:
 
     cluster_uuid
-        Set the deivce to store the osd data on.
+        Set the cluster UUID. Defaults to value found in ceph config file.
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
@@ -840,4 +840,220 @@ def mon_status(**kwargs):
                     output["stderr"])
                     )
     return json.loads(output['stdout'])
+
+
+def _create_monmap(model, path_monmap):
+    """
+    create_monmap file
+    """
+    if not os.path.isfile(path_monmap):
+        arguments = [
+            "monmaptool",
+            "--create",
+            "--fsid",
+            model.cluster_uuid,
+            path_monmap
+            ]
+        output = _excuete_local_command(arguments)
+        if output["retcode"] != 0:
+                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    output["retcode"],
+                    output["stdout"],
+                    output["stderr"])
+                    )
+        for name, addr in model.mon_members:
+            arguments = [
+                    "monmaptool",
+                    "--add",
+                    name,
+                    addr,
+                    path_monmap
+                    ]
+            output = _excuete_local_command(arguments)
+            if output["retcode"] != 0:
+                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    output["retcode"],
+                    output["stdout"],
+                    output["stderr"])
+                    )
+    return True
+
+def mon(**kwargs):
+    """
+    mod node
+    """
+    cluster_name = kwargs.get("cluster_name")
+    cluster_uuid = kwargs.get("cluster_uuid")
+
+    hostname = kwargs.get("hostname")
+
+    # Default cluster name / uuid values
+    if cluster_name == None and cluster_uuid == None:
+        cluster_name = "ceph"
+    if cluster_name != None and cluster_uuid == None:
+        cluster_uuid = _get_cluster_uuid_from_name(cluster_name)
+    if cluster_name == None and cluster_uuid != None:
+        cluster_name = _get_cluster_name_from_uuid(cluster_name)
+
+    m = _model(**kwargs)
+
+    u = _model_updator(m)
+    u.load_confg(cluster_name)
+    u.mon_members_refresh()
+    p = _mdl_presentor(m)
+
+
+    try:
+        mon_initial_members_name_raw = m.ceph_conf.get("global","mon_initial_members")
+    except ConfigParser.NoOptionError:
+        raise Error("Cluster confg file does not set mon_initial_members")
+    mon_initial_members_name_cleaned = []
+
+    for mon_split in mon_initial_members_name_raw.split(","):
+        mon_initial_members_name_cleaned.append(mon_split.strip())
+    hostname = platform.node()
+
+    try:
+        index = mon_initial_members_name_cleaned.index(hostname)
+    except:
+        log.debug("Mon not needed on %s" % (hostname))
+        print "Mon not needed on %s" % (hostname)
+        return True
+    try:
+        mon_initial_members_addr_raw = m.ceph_conf.get("global","mon_host")
+    except ConfigParser.NoOptionError:
+        raise Error("Cluster confg file does not set mon_host")
+
+    mon_initial_members_addr_cleaned = []
+    for mon_split in mon_initial_members_addr_raw.split(","):
+        mon_initial_members_addr_cleaned.append(mon_split.strip())
+    try:
+        ipaddress = mon_initial_members_addr_cleaned[index]
+    except:
+        raise Error("addr for %s not found in config" % (hostname))
+
+
+
+    path_done_file = "/var/lib/ceph/mon/%s-%s/done" % (
+            cluster_name,
+            hostname
+        )
+    path_tmp_keyring = "/var/lib/ceph/tmp/%s.mon.keyring" % (
+            cluster_name
+        )
+    path_adm_sock = "/var/run/ceph/%s-mon.%s.asok" % (
+            cluster_name,
+            hostname
+        )
+    path_mon_dir = "/var/lib/ceph/mon/%s-%s" % (
+            cluster_name,
+            hostname
+        )
+    path_client_admin_keyring = '/etc/ceph/%s.client.admin.keyring' % (cluster_name)
+
+    path_admin_keyring = "/etc/ceph/ceph.client.admin.keyring"
+
+    path_monmap = "/var/lib/ceph/tmp/%s.monmap" % (
+            cluster_name
+        )
+
+    if os.path.isfile(path_done_file):
+        log.debug("Mon done file exists:%s" % (path_done_file))
+        return True
+
+    if not os.path.isfile(path_tmp_keyring):
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            path_tmp_keyring,
+            "--gen-key",
+            "-n",
+            "mon.",
+            "--cap",
+            "mon",
+            "allow *"
+            ]
+        output = _excuete_local_command(arguments)
+
+    if not os.path.isfile(path_admin_keyring):
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            path_admin_keyring,
+            "--gen-key",
+            "-n",
+            "client.admin",
+            "--set-uid=0",
+            "--cap",
+            "mon",
+            "allow *",
+            "--cap",
+            "mds",
+            "allow *"
+            ]
+        output = _excuete_local_command(arguments)
+        arguments = [
+            "ceph-authtool",
+            path_tmp_keyring,
+            "--import-keyring",
+            path_admin_keyring
+            ]
+        output = _excuete_local_command(arguments)
+
+
+    if not os.path.isfile(path_monmap):
+        _create_monmap(m, path_monmap)
+
+    if not os.path.isdir(path_mon_dir):
+        os.makedirs(path_mon_dir)
+
+
+
+    if not os.path.isfile(path_mon_dir):
+        arguments = [
+                "ceph-mon",
+                "--mkfs",
+                "-i",
+                hostname,
+                "--monmap",
+                path_monmap,
+                '--keyring',
+                path_tmp_keyring
+                ]
+        output = _excuete_local_command(arguments)
+
+
+
+
+
+    if not os.path.isfile(path_tmp_keyring):
+        log.debug("no keyring:%s" % (path_tmp_keyring))
+        return True
+    open(path_done_file, 'a').close()
+    arguments = [
+        "systemctl",
+        "enable",
+        "ceph-mon@%s" % (hostname)
+        ]
+    output = _excuete_local_command(arguments)
+    arguments = [
+        "systemctl",
+        "start",
+        "ceph-mon@%s" % (hostname)
+        ]
+    output = _excuete_local_command(arguments)
+    arguments = [
+        "ceph",
+        "--cluster=%s" % (cluster_name),
+        "--admin-daemon",
+        "/var/run/ceph/ceph-mon.%s.asok" % (hostname),
+        "mon_status"
+        ]
+
+    output = _excuete_local_command(arguments)
+
+
+    return True
 
