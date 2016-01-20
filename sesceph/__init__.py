@@ -7,6 +7,7 @@ import os.path
 import os
 import platform
 import json
+import shutil
 
 log = logging.getLogger(__name__)
 
@@ -895,6 +896,313 @@ def _get_path_keyring_osd(cluster_name):
 
 def _get_path_keyring_mds(cluster_name):
     return '/var/lib/ceph/bootstrap-mds/%s.keyring' % (cluster_name)
+
+def _keying_read(key_path):
+    output = ""
+    with open(key_path, 'r') as infile:
+        output = infile.read()
+    return output
+
+def keyring_admin_create(**kwargs):
+    """
+    Create admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.key_mon_create
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
+    if not os.path.isfile(keyring_path_mon):
+        raise Error("File missing '%s'" % (keyring_path_mon))
+
+    keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
+    if os.path.isfile(keyring_path_admin):
+        return _keying_read(keyring_path_admin)
+    try:
+        tmpd = tempfile.mkdtemp()
+        key_path = os.path.join(tmpd,"keyring")
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            key_path,
+            "--gen-key",
+            "-n",
+            "client.admin",
+            "--set-uid=0",
+            "--cap",
+            "mon",
+            "allow *",
+            "--cap",
+            "mds",
+            "allow *"
+            ]
+        cmd_out = _excuete_local_command(arguments)
+        arguments = [
+            "ceph-authtool",
+            keyring_path_mon,
+            "--import-keyring",
+            key_path
+            ]
+        output = _excuete_local_command(arguments)
+        output = _keying_read(key_path)
+    finally:
+        shutil.rmtree(tmpd)
+    return output
+
+def keyring_admin_write(key_content, **kwargs):
+    """
+    Write admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_admin_write \
+                '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
+    if os.path.isfile(keyring_path_admin):
+        return True
+    with open(keyring_path_admin, 'w') as infile:
+        output = infile.write(key_content)
+    return True
+
+
+def keyring_mon_create(**kwargs):
+    """
+    Create mon keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.key_mon_create
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
+    if os.path.isfile(keyring_path_mon):
+        return _keying_read(keyring_path_mon)
+    try:
+        tmpd = tempfile.mkdtemp()
+        key_path = os.path.join(tmpd,"keyring")
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            key_path,
+            "--gen-key",
+            "-n",
+            "mon.",
+            "--cap",
+            "mon",
+            "allow *"
+            ]
+        cmd_out = _excuete_local_command(arguments)
+        output = _keying_read(key_path)
+    finally:
+        shutil.rmtree(tmpd)
+    return output
+
+def keyring_mon_write(key_content, **kwargs):
+    """
+    Write admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mon_write \
+                '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
+    if os.path.isfile(keyring_path_mon):
+        return True
+    with open(keyring_path_mon, 'w') as infile:
+        output = infile.write(key_content)
+    return True
+
+def keyring_osd_create(**kwargs):
+    """
+    Create osd keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.key_osd_create
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
+    if os.path.isfile(keyring_path_osd):
+        return _keying_read(keyring_path_osd)
+    try:
+        tmpd = tempfile.mkdtemp()
+        key_path = os.path.join(tmpd,"keyring")
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            key_path,
+            "--gen-key",
+            "-n",
+            "client.bootstrap-osd"
+            ]
+        cmd_out = _excuete_local_command(arguments)
+        output = _keying_read(key_path)
+    finally:
+        shutil.rmtree(tmpd)
+    return output
+
+def keyring_osd_write(key_content, **kwargs):
+    """
+    Write admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_osd_write \
+                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
+    if os.path.isfile(keyring_path_osd):
+        return True
+    dirname = os.path.dirname(keyring_path_osd)
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+    with open(keyring_path_osd, 'w') as infile:
+        output = infile.write(key_content)
+    return True
+
+
+def keyring_mds_create(**kwargs):
+    """
+    Create mds keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.key_mds_create
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
+    if os.path.isfile(keyring_path_mds):
+        return _keying_read(keyring_path_mds)
+    try:
+        tmpd = tempfile.mkdtemp()
+        key_path = os.path.join(tmpd,"keyring")
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            key_path,
+            "--gen-key",
+            "-n",
+            "client.bootstrap-mds",
+            ]
+        cmd_out = _excuete_local_command(arguments)
+        output = _keying_read(key_path)
+    finally:
+        shutil.rmtree(tmpd)
+    return output
+
+def keyring_mds_write(key_content, **kwargs):
+    """
+    Write admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mds_write \
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.defaults_refresh()
+    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
+    if os.path.isfile(keyring_path_mds):
+        return True
+    dirname = os.path.dirname(keyring_path_mds)
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+    with open(keyring_path_mds, 'w') as infile:
+        output = infile.write(key_content)
+    return True
 
 def mon_create(**kwargs):
     """
