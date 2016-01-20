@@ -883,6 +883,19 @@ def _create_monmap(model, path_monmap):
                     )
     return True
 
+
+def _get_path_keyring_admin(cluster_name):
+    return '/etc/ceph/%s.client.admin.keyring' % (cluster_name)
+
+def _get_path_keyring_mon(cluster_name):
+    return '/var/lib/ceph/tmp/%s.mon.keyring' % (cluster_name)
+
+def _get_path_keyring_osd(cluster_name):
+    return '/var/lib/ceph/bootstrap-osd/%s.keyring' % (cluster_name)
+
+def _get_path_keyring_mds(cluster_name):
+    return '/var/lib/ceph/bootstrap-mds/%s.keyring' % (cluster_name)
+
 def mon_create(**kwargs):
     """
     Create a mon node
@@ -957,9 +970,7 @@ def mon_create(**kwargs):
             cluster_name,
             hostname
         )
-    path_tmp_keyring = "/var/lib/ceph/tmp/%s.mon.keyring" % (
-            cluster_name
-        )
+    path_tmp_keyring = _get_path_keyring_mon(cluster_name)
     path_adm_sock = "/var/run/ceph/%s-mon.%s.asok" % (
             cluster_name,
             hostname
@@ -968,9 +979,8 @@ def mon_create(**kwargs):
             cluster_name,
             hostname
         )
-    path_client_admin_keyring = '/etc/ceph/%s.client.admin.keyring' % (cluster_name)
 
-    path_admin_keyring = "/etc/ceph/ceph.client.admin.keyring"
+    path_admin_keyring = _get_path_keyring_admin(cluster_name)
 
     path_monmap = "/var/lib/ceph/tmp/%s.monmap" % (
             cluster_name
