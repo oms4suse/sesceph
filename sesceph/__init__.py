@@ -131,14 +131,6 @@ class _model:
         self.cluster_name = kwargs.get("cluster_name")
         self.cluster_uuid = kwargs.get("cluster_uuid")
 
-        # Default cluster name / uuid values
-        if self.cluster_name == None and self.cluster_uuid == None:
-            self.cluster_name = "ceph"
-        if self.cluster_name != None and self.cluster_uuid == None:
-            self.cluster_uuid = _get_cluster_uuid_from_name(self.cluster_name)
-        if self.cluster_name == None and self.cluster_uuid != None:
-            self.cluster_name = _get_cluster_name_from_uuid(self.cluster_uuid)
-
 
 class _model_updator():
     """
@@ -146,6 +138,15 @@ class _model_updator():
     """
     def __init__(self, model):
         self.model = model
+
+    def defaults_refresh(self):
+        # Default cluster name / uuid values
+        if self.model.cluster_name == None and self.model.cluster_uuid == None:
+            self.model.cluster_name = "ceph"
+        if self.model.cluster_name != None and self.model.cluster_uuid == None:
+            self.model.cluster_uuid = _get_cluster_uuid_from_name(self.model.cluster_name)
+        if self.model.cluster_name == None and self.model.cluster_uuid != None:
+            self.model.cluster_name = _get_cluster_name_from_uuid(self.model.cluster_uuid)
 
     def symlinks_refresh(self):
         '''
@@ -734,6 +735,7 @@ def osd_prepare(**kwargs):
 
     m = _model(**kwargs)
     u = _model_updator(m)
+    u.defaults_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
     u.discover_osd_refresh()
@@ -821,6 +823,7 @@ def mon_status(**kwargs):
     hostname = platform.node()
     m = _model(**kwargs)
     u = _model_updator(m)
+    u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     p = _mdl_presentor(m)
@@ -880,9 +883,22 @@ def _create_monmap(model, path_monmap):
                     )
     return True
 
-def mon(**kwargs):
+def mon_create(**kwargs):
     """
-    mod node
+    Create a mon node
+
+    CLI Example:
+
+        salt '*' sesceph.prepare
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
     """
     cluster_name = kwargs.get("cluster_name")
     cluster_uuid = kwargs.get("cluster_uuid")
@@ -900,6 +916,7 @@ def mon(**kwargs):
     m = _model(**kwargs)
 
     u = _model_updator(m)
+    u.defaults_refresh()
     u.load_confg(cluster_name)
     u.mon_members_refresh()
     p = _mdl_presentor(m)
