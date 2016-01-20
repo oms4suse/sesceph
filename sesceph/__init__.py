@@ -903,6 +903,21 @@ def _keying_read(key_path):
         output = infile.read()
     return output
 
+def _keying_write(key_path,content):
+    dirname = os.path.dirname(key_path)
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+    with open(key_path, 'w') as infile:
+        for line in content.split('\n'):
+            stripped = line.strip()
+            if len(stripped) == 0:
+                continue
+            if stripped[0] == '[':
+                infile.write('%s\n' % (stripped))
+                continue
+            infile.write('\t%s\n' % (stripped))
+    return
+
 def keyring_admin_create(**kwargs):
     """
     Create admin keyring for cluster
@@ -985,8 +1000,7 @@ def keyring_admin_write(key_content, **kwargs):
     keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
     if os.path.isfile(keyring_path_admin):
         return True
-    with open(keyring_path_admin, 'w') as infile:
-        output = infile.write(key_content)
+    _keying_write(keyring_path_admin, key_content)
     return True
 
 
@@ -1057,8 +1071,7 @@ def keyring_mon_write(key_content, **kwargs):
     keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
     if os.path.isfile(keyring_path_mon):
         return True
-    with open(keyring_path_mon, 'w') as infile:
-        output = infile.write(key_content)
+    _keying_write(keyring_path_mon, key_content)
     return True
 
 def keyring_osd_create(**kwargs):
@@ -1125,11 +1138,7 @@ def keyring_osd_write(key_content, **kwargs):
     keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
     if os.path.isfile(keyring_path_osd):
         return True
-    dirname = os.path.dirname(keyring_path_osd)
-    if not os.path.isdir(dirname):
-        os.makedirs(dirname)
-    with open(keyring_path_osd, 'w') as infile:
-        output = infile.write(key_content)
+    _keying_write(keyring_path_osd, key_content)
     return True
 
 
@@ -1197,11 +1206,7 @@ def keyring_mds_write(key_content, **kwargs):
     keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
     if os.path.isfile(keyring_path_mds):
         return True
-    dirname = os.path.dirname(keyring_path_mds)
-    if not os.path.isdir(dirname):
-        os.makedirs(dirname)
-    with open(keyring_path_mds, 'w') as infile:
-        output = infile.write(key_content)
+    _keying_write(keyring_path_mds, key_content)
     return True
 
 def mon_create(**kwargs):
