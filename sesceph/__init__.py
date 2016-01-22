@@ -129,6 +129,7 @@ class _model:
         self.ceph_conf = ConfigParser.ConfigParser()
         # list of (hostname,addr) touples
         self.mon_members = []
+        self.hostname = None
         self.cluster_name = kwargs.get("cluster_name")
         self.cluster_uuid = kwargs.get("cluster_uuid")
 
@@ -139,6 +140,10 @@ class _model_updator():
     """
     def __init__(self, model):
         self.model = model
+
+    def hostname_refresh(self):
+        self.model.hostname = platform.node()
+
 
     def defaults_refresh(self):
         # Default cluster name / uuid values
@@ -321,6 +326,25 @@ class _model_updator():
                     mon_initial_members_addr_cleaned[idx]
                 ))
         self.model.mon_members = output
+
+
+class _mdl_query():
+    """
+    This is for querying the model with common queries,
+    that are internal.
+    """
+    def __init__(self, model):
+        self.model = model
+
+    def mon_is(self):
+        if self.model.hostname == None:
+            raise Error("Programming error: Hostname not detected")
+        for hostname, addr in self.model.mon_members:
+            if hostname == self.model.hostname:
+                return True
+        return False
+
+
 
 class _mdl_presentor():
     """
@@ -1208,6 +1232,36 @@ def keyring_mds_write(key_content, **kwargs):
         return True
     _keying_write(keyring_path_mds, key_content)
     return True
+
+
+def mon_is(**kwargs):
+    """
+    Is this a mon node
+
+    CLI Example:
+
+        salt '*' sesceph.keys_create
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        return False
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    return q.mon_is()
 
 def mon_create(**kwargs):
     """
