@@ -351,6 +351,50 @@ class _model_updator():
         self.model.mon_status = json.loads(output['stdout'])
 
 
+
+    def auth_list(self):
+        arguments = [
+            "ceph",
+            "auth",
+            "list"
+            ]
+        output = _excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                        " ".join(arguments),
+                        output["retcode"],
+                        output["stdout"],
+                        output["stderr"])
+                        )
+        auth_list_out = {}
+        section = {}
+        for line in output["stdout"].split('\n'):
+            if len(line) == 0:
+                continue
+            if line[0] != '\t':
+                prev_sec_name = section.get("name")
+                if prev_sec_name != None:
+                    auth_list_out[prev_sec_name] = section
+                section = { "name" : line }
+                continue
+            tokenised_line = shlex.split(line)
+            if len(tokenised_line) == 0:
+                continue
+            if tokenised_line[0] == 'key:':
+                section['key'] = tokenised_line[1]
+            if tokenised_line[0] == 'caps:':
+                if not 'caps' in section:
+                    section['caps'] = []
+                cap_details = tokenised_line[1:]
+                section["caps"].append(cap_details)
+
+
+        prev_sec_name = section.get("name")
+        if prev_sec_name != None:
+            auth_list_out[prev_sec_name] = section
+        self.model.auth_list = auth_list_out
+
+
 class _mdl_query():
     """
     This is for querying the model with common queries,
@@ -543,6 +587,18 @@ class _mdl_presentor():
             return {}
         return {fsid : output}
 
+
+    def auth_list(self):
+        output = {}
+        for keyname in self.model.auth_list.keys():
+            section = {}
+            keydetails = self.model.auth_list.get(keyname)
+            for keysection in keydetails.keys():
+                if keysection == "name":
+                    continue
+                section[keysection] = keydetails.get(keysection)
+            output[keyname] = section
+        return output
 
 
 def partitions_all():
@@ -1532,4 +1588,35 @@ def mon_create(**kwargs):
 
 
     return True
+
+
+def auth_list(**kwargs):
+    """
+    list all auth keys
+
+    CLI Example:
+
+        salt '*' sesceph.auth_list
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        return {}
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    u.auth_list()
+    p = _mdl_presentor(m)
+    return p.auth_list()
 
