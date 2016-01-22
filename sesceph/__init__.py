@@ -328,6 +328,29 @@ class _model_updator():
         self.model.mon_members = output
 
 
+    def mon_status(self):
+        if self.model.hostname == None:
+            raise Error("Hostname not set")
+        if self.model.cluster_name == None:
+            raise Error("cluster_name not set")
+        arguments = [
+            "ceph",
+            "--cluster=%s" % (self.model.cluster_name),
+            "--admin-daemon",
+            "/var/run/ceph/ceph-mon.%s.asok" % (self.model.hostname),
+            "mon_status"
+            ]
+        output = _excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                        " ".join(arguments),
+                        output["retcode"],
+                        output["stdout"],
+                        output["stderr"])
+                        )
+        self.model.mon_status = json.loads(output['stdout'])
+
+
 class _mdl_query():
     """
     This is for querying the model with common queries,
@@ -1262,6 +1285,36 @@ def mon_is(**kwargs):
     u.mon_members_refresh()
     q = _mdl_query(m)
     return q.mon_is()
+
+
+def mon_status(**kwargs):
+    """
+    Get status from mon deamon
+
+    CLI Example:
+
+        salt '*' sesceph.prepare
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    hostname = platform.node()
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    u.defaults_refresh()
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    u.mon_status()
+    p = _mdl_presentor(m)
+    return m.mon_status
+
 
 def mon_create(**kwargs):
     """
