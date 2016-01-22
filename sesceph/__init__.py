@@ -519,6 +519,32 @@ class _mdl_presentor():
             output.append(part_info)
         return output
 
+    def mon_status(self):
+        """
+        Present the monitor status
+        """
+        if (None == self.model.mon_status):
+            return {}
+        fsid = None
+        output = {}
+        for key in self.model.mon_status.keys():
+            if key == 'monmap':
+                monmap_in = self.model.mon_status.get(key)
+                monmap_out = {}
+                for monmap_key in monmap_in.keys():
+                    if monmap_key == 'fsid':
+                        fsid = monmap_in.get(monmap_key)
+                        continue
+                    monmap_out[monmap_key] = monmap_in.get(monmap_key)
+                output[key] = monmap_out
+                continue
+            output[key] = self.model.mon_status.get(key)
+        if fsid == None:
+            return {}
+        return {fsid : output}
+
+
+
 def partitions_all():
     '''
     List partitions by disk
@@ -1308,12 +1334,15 @@ def mon_status(**kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     u.hostname_refresh()
-    u.defaults_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        return {}
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     u.mon_status()
     p = _mdl_presentor(m)
-    return m.mon_status
+    return p.mon_status()
 
 
 def mon_create(**kwargs):
