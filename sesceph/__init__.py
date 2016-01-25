@@ -410,6 +410,11 @@ def _get_path_keyring_osd(cluster_name):
 def _get_path_keyring_mds(cluster_name):
     return '/var/lib/ceph/bootstrap-mds/%s.keyring' % (cluster_name)
 
+
+def _get_path_keyring_rgw(cluster_name):
+    return '/var/lib/ceph/bootstrap-rgw/%s.keyring' % (cluster_name)
+
+
 def _keying_read(key_path):
     output = ""
     with open(key_path, 'r') as infile:
@@ -920,6 +925,159 @@ def keyring_mds_delete(**kwargs):
     if os.path.isfile(keyring_path_mds):
         try:
             os.remove(keyring_path_mds)
+        except:
+            raise Error("Keyring could not be deleted")
+
+    return True
+
+
+def keyring_rgw_create(**kwargs):
+    """
+    Create rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.key_rgw_create
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
+    if os.path.isfile(keyring_path_rgw):
+        return _keying_read(keyring_path_rgw)
+    try:
+        tmpd = tempfile.mkdtemp()
+        key_path = os.path.join(tmpd,"keyring")
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            key_path,
+            "--gen-key",
+            "-n",
+            "client.bootstrap-rgw",
+            "--cap",
+            "mon",
+            "allow profile bootstrap-rgw"
+            ]
+        cmd_out = _excuete_local_command(arguments)
+        output = _keying_read(key_path)
+    finally:
+        shutil.rmtree(tmpd)
+    return output
+
+def keyring_rgw_write(key_content, **kwargs):
+    """
+    Write rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_rgw_write \
+                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If the value is set, it will not be changed untill the keyring is deleted.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
+    if os.path.isfile(keyring_path_rgw):
+        return True
+    _keying_write(keyring_path_rgw, key_content)
+    return True
+
+def keyring_rgw_authorise(**kwargs):
+    """
+    Write rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_rgw_write \
+                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
+    if not os.path.isfile(keyring_path_rgw):
+        raise Error("rgw keyring not found")
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not ruining a mon daemon")
+    u.mon_status()
+    if not q.mon_quorum():
+        raise Error("mon daemon is not in quorum")
+    arguments = [
+            "ceph",
+            "auth",
+            "import",
+            "-i",
+            keyring_path_rgw
+            ]
+    cmd_out = _excuete_local_command(arguments)
+    return True
+
+
+def keyring_rgw_delete(**kwargs):
+    """
+    Delete rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_rgw_write \
+                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If no ceph config file is found, this command will fail.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
+    if os.path.isfile(keyring_path_rgw):
+        try:
+            os.remove(keyring_path_rgw)
         except:
             raise Error("Keyring could not be deleted")
 
