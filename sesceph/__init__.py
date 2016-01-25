@@ -752,6 +752,42 @@ def keyring_mds_write(key_content, **kwargs):
     _keying_write(keyring_path_mds, key_content)
     return True
 
+def keyring_mds_delete(**kwargs):
+    """
+    Delete MDS keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mds_write \
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If no ceph config file is found, this command will fail.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    if m.cluster_name == None:
+        try:
+            u.defaults_refresh()
+        except:
+            raise Error("Could not establish cluster details")
+    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
+    if os.path.isfile(keyring_path_mds):
+        try:
+            os.remove(keyring_path_mds)
+        except:
+            raise Error("Keyring could not be deleted")
+
+    return True
+
 
 def mon_is(**kwargs):
     """
