@@ -103,6 +103,64 @@ These objects are used to present the data in the model to the API users.
 
 
 
+Example
+~~~~~~~
+
+Get a list of potential mon keys:
 
 
+    # salt "*ceph-node*" sesceph.keyring_admin_create
+
+Use one output to write the keyring to admin nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_admin_write '[client.admin]
+    > key = AQDHYqZWkGHiEhAA5T+214L5CiIeek5o3zGZtQ==
+    > auid = 0
+    > caps mds = "allow *"
+    > caps mon = "allow *"
+    > caps osd = "allow *"
+    > '
+
+Repeat the process for mon keyring
+
+    # salt "*ceph-node*" sesceph.keyring_mon_create
+
+Use one output to write the keyring to mon nodes:
+
+
+    # salt "*ceph-node*" sesceph.keyring_mon_write '[mon.]
+    > key = AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ==
+    > caps mon = "allow *"
+    > '
+
+Create the monitor deamons
+
+    # salt "*ceph-node*" sesceph.mon_create
+
+Get moinitor status
+
+    # salt "*ceph-node*" sesceph.mon_status
+
+List authorised keys
+
+    # salt "*ceph-node*" sesceph.auth_list
+
+Get a list of potential osd keys:
+
+    # salt "*ceph-node*" sesceph.keyring_osd_create
+
+Use one output to write the keyring to osd nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_osd_write '[client.bootstrap-osd]
+    > key = AQAFNKZWaByNLxAAmIx9CbAaN+9L5KvZunmo2w==
+    > caps mon = "allow profile bootstrap-osd"
+    > '
+
+Authorise the OSD boot strap
+
+    # salt "*ceph-node*" sesceph.keyring_osd_authorise
+
+Create some OSD's
+
+    # salt "*ceph-node*" sesceph.osd_prepare  osd_dev=/dev/vdb
 
