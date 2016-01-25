@@ -397,8 +397,8 @@ def _create_monmap(model, path_monmap):
 def _get_path_keyring_admin(cluster_name):
     return '/etc/ceph/%s.client.admin.keyring' % (cluster_name)
 
-def _get_path_keyring_mon(cluster_name):
-    return '/var/lib/ceph/tmp/%s.mon.keyring' % (cluster_name)
+def _get_path_keyring_mon(cluster_name, host_name):
+    return '/var/lib/ceph/mon/%s-%s/keyring' % (cluster_name, host_name)
 
 def _get_path_keyring_osd(cluster_name):
     return '/var/lib/ceph/bootstrap-osd/%s.keyring' % (cluster_name)
@@ -446,12 +446,10 @@ def keyring_admin_create(**kwargs):
     """
     m = _model(**kwargs)
     u = _model_updator(m)
+    u.hostname_refresh()
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
+        u.defaults_refresh()
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
     if not os.path.isfile(keyring_path_mon):
         raise Error("File missing '%s'" % (keyring_path_mon))
 
@@ -510,10 +508,7 @@ def keyring_admin_write(key_content, **kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
+        u.defaults_refresh()
     keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
     if os.path.isfile(keyring_path_admin):
         return True
@@ -540,12 +535,10 @@ def keyring_mon_create(**kwargs):
     """
     m = _model(**kwargs)
     u = _model_updator(m)
+    u.hostname_refresh()
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
+        u.defaults_refresh()
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
         return _keying_read(keyring_path_mon)
     try:
@@ -588,12 +581,10 @@ def keyring_mon_write(key_content, **kwargs):
     """
     m = _model(**kwargs)
     u = _model_updator(m)
+    u.hostname_refresh()
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name)
+        u.defaults_refresh()
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
         return True
     _keying_write(keyring_path_mon, key_content)
@@ -619,10 +610,7 @@ def keyring_osd_create(**kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
+        u.defaults_refresh()
     keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
     if os.path.isfile(keyring_path_osd):
         return _keying_read(keyring_path_osd)
@@ -664,10 +652,7 @@ def keyring_osd_write(key_content, **kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
+        u.defaults_refresh()
     keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
     if os.path.isfile(keyring_path_osd):
         return True
@@ -695,10 +680,7 @@ def keyring_mds_create(**kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
+        u.defaults_refresh()
     keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
     if os.path.isfile(keyring_path_mds):
         return _keying_read(keyring_path_mds)
@@ -742,10 +724,7 @@ def keyring_mds_write(key_content, **kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
+        u.defaults_refresh()
     keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
     if os.path.isfile(keyring_path_mds):
         return True
@@ -775,10 +754,7 @@ def keyring_mds_delete(**kwargs):
     m = _model(**kwargs)
     u = _model_updator(m)
     if m.cluster_name == None:
-        try:
-            u.defaults_refresh()
-        except:
-            raise Error("Could not establish cluster details")
+        u.defaults_refresh()
     keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
     if os.path.isfile(keyring_path_mds):
         try:
@@ -885,6 +861,7 @@ def mon_create(**kwargs):
     m = _model(**kwargs)
 
     u = _model_updator(m)
+    u.hostname_refresh()
     u.defaults_refresh()
     u.load_confg(cluster_name)
     u.mon_members_refresh()
@@ -926,7 +903,7 @@ def mon_create(**kwargs):
             cluster_name,
             hostname
         )
-    path_tmp_keyring = _get_path_keyring_mon(cluster_name)
+    path_tmp_keyring = _get_path_keyring_mon(m.cluster_name, m.hostname)
     path_adm_sock = "/var/run/ceph/%s-mon.%s.asok" % (
             cluster_name,
             hostname
