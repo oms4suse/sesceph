@@ -106,6 +106,9 @@ class _mdl_presentor():
             for key in osd_in.keys():
                 if key in ["ceph_fsid", "dev_parent"]:
                     continue
+                if key in [ "dev", "dev_journal"]:
+                    osd_out[key] = self.lsblk_partition_by_disk_part(osd_in.get(key))
+                    continue
                 osd_out[key] = osd_in.get(key)
             osd_out_list.append(osd_out)
         return osd_out_list
