@@ -893,6 +893,39 @@ def mon_status(**kwargs):
     return p.mon_status()
 
 
+def mon_quorum(**kwargs):
+    """
+    Is mon deamon in quorum
+
+    CLI Example:
+
+        salt '*' sesceph.prepare
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+
+    hostname = platform.node()
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        raise Error("Could not get cluster details")
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    u.mon_status()
+    p = _mdl_presentor(m)
+    return p.mon_quorum()
+
+
 def mon_create(**kwargs):
     """
     Create a mon node
