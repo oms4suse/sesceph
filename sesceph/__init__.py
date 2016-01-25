@@ -400,6 +400,10 @@ def _get_path_keyring_admin(cluster_name):
 def _get_path_keyring_mon(cluster_name, host_name):
     return '/var/lib/ceph/mon/%s-%s/keyring' % (cluster_name, host_name)
 
+def _get_path_keyring_mon_bootstrap(cluster_name, host_name):
+    return '/var/lib/ceph/bootstrap-mon/%s-%s.keyring' % (cluster_name, host_name)
+
+
 def _get_path_keyring_osd(cluster_name):
     return '/var/lib/ceph/bootstrap-osd/%s.keyring' % (cluster_name)
 
@@ -427,6 +431,7 @@ def _keying_write(key_path,content):
             infile.write('\t%s\n' % (stripped))
     return
 
+
 def keyring_admin_create(**kwargs):
     """
     Create admin keyring for cluster
@@ -449,9 +454,6 @@ def keyring_admin_create(**kwargs):
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
-    if not os.path.isfile(keyring_path_mon):
-        raise Error("File missing '%s'" % (keyring_path_mon))
 
     keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
     if os.path.isfile(keyring_path_admin):
@@ -472,16 +474,19 @@ def keyring_admin_create(**kwargs):
             "allow *",
             "--cap",
             "mds",
+            "allow *",
+            "--cap",
+            "osd",
             "allow *"
             ]
         cmd_out = _excuete_local_command(arguments)
-        arguments = [
-            "ceph-authtool",
-            keyring_path_mon,
-            "--import-keyring",
-            key_path
-            ]
-        output = _excuete_local_command(arguments)
+        if cmd_out["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                cmd_out["retcode"],
+                cmd_out["stdout"],
+                cmd_out["stderr"])
+                )
         output = _keying_read(key_path)
     finally:
         shutil.rmtree(tmpd)
@@ -538,6 +543,11 @@ def keyring_mon_create(**kwargs):
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not a mon server")
     keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
         return _keying_read(keyring_path_mon)
@@ -584,11 +594,66 @@ def keyring_mon_write(key_content, **kwargs):
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not a mon server")
+
     keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
         return True
-    _keying_write(keyring_path_mon, key_content)
+    keyring_path_mon_bootstrap = _get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
+    if os.path.isfile(keyring_path_mon_bootstrap):
+        return True
+    _keying_write(keyring_path_mon_bootstrap, key_content)
     return True
+
+def keyring_mon_delete(**kwargs):
+    """
+    Delete Mon keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mds_write \
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If no ceph config file is found, this command will fail.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not a mon server")
+    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
+    if os.path.isfile(keyring_path_mon):
+        try:
+            os.remove(keyring_path_mon)
+        except:
+            raise Error("Keyring could not be deleted")
+    keyring_path_mon_bootstrap = _get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
+    if os.path.isfile(keyring_path_mon_bootstrap):
+        try:
+            os.remove(keyring_path_mon_bootstrap)
+        except:
+            raise Error("Keyring could not be deleted")
+    return True
+
+
 
 def keyring_osd_create(**kwargs):
     """
@@ -867,7 +932,6 @@ def mon_create(**kwargs):
     u.mon_members_refresh()
     p = _mdl_presentor(m)
 
-
     try:
         mon_initial_members_name_raw = m.ceph_conf.get("global","mon_initial_members")
     except ConfigParser.NoOptionError:
@@ -903,7 +967,7 @@ def mon_create(**kwargs):
             cluster_name,
             hostname
         )
-    path_tmp_keyring = _get_path_keyring_mon(m.cluster_name, m.hostname)
+    keyring_path_mon = _get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
     path_adm_sock = "/var/run/ceph/%s-mon.%s.asok" % (
             cluster_name,
             hostname
@@ -918,60 +982,59 @@ def mon_create(**kwargs):
     path_monmap = "/var/lib/ceph/tmp/%s.monmap" % (
             cluster_name
         )
-
+    path_tmp_keyring = "/var/lib/ceph/tmp/%s.keyring" % (
+            cluster_name
+        )
     if os.path.isfile(path_done_file):
         log.debug("Mon done file exists:%s" % (path_done_file))
         return True
 
-    if not os.path.isfile(path_tmp_keyring):
-        arguments = [
-            "ceph-authtool",
-            "--create-keyring",
-            path_tmp_keyring,
-            "--gen-key",
-            "-n",
-            "mon.",
-            "--cap",
-            "mon",
-            "allow *"
-            ]
-        output = _excuete_local_command(arguments)
-
+    if not os.path.isfile(keyring_path_mon):
+        raise Error("Mon keyring missing")
     if not os.path.isfile(path_admin_keyring):
-        arguments = [
-            "ceph-authtool",
-            "--create-keyring",
-            path_admin_keyring,
-            "--gen-key",
-            "-n",
-            "client.admin",
-            "--set-uid=0",
-            "--cap",
-            "mon",
-            "allow *",
-            "--cap",
-            "mds",
-            "allow *"
-            ]
-        output = _excuete_local_command(arguments)
-        arguments = [
-            "ceph-authtool",
-            path_tmp_keyring,
-            "--import-keyring",
-            path_admin_keyring
-            ]
-        output = _excuete_local_command(arguments)
-
+        raise Error("Admin keyring missing")
 
     if not os.path.isfile(path_monmap):
         _create_monmap(m, path_monmap)
+
+
 
     if not os.path.isdir(path_mon_dir):
         os.makedirs(path_mon_dir)
 
 
-
-    if not os.path.isfile(path_mon_dir):
+    try:
+        tmpd = tempfile.mkdtemp()
+        key_path = os.path.join(tmpd,"keyring")
+        arguments = [
+            "ceph-authtool",
+            "--create-keyring",
+            key_path,
+            "--import-keyring",
+            keyring_path_mon,
+            ]
+        output = _excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"]
+                ))
+        arguments = [
+            "ceph-authtool",
+            key_path,
+            "--import-keyring",
+            path_admin_keyring,
+            ]
+        output = _excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"]
+                ))
         arguments = [
                 "ceph-mon",
                 "--mkfs",
@@ -980,30 +1043,45 @@ def mon_create(**kwargs):
                 "--monmap",
                 path_monmap,
                 '--keyring',
-                path_tmp_keyring
+                key_path
                 ]
         output = _excuete_local_command(arguments)
-
-
-
-
-
-    if not os.path.isfile(path_tmp_keyring):
-        log.debug("no keyring:%s" % (path_tmp_keyring))
-        return True
-    open(path_done_file, 'a').close()
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"]
+                ))
+        open(path_done_file, 'a').close()
+    finally:
+        shutil.rmtree(tmpd)
     arguments = [
         "systemctl",
         "enable",
         "ceph-mon@%s" % (hostname)
         ]
     output = _excuete_local_command(arguments)
+    if output["retcode"] != 0:
+        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+            " ".join(arguments),
+            output["retcode"],
+            output["stdout"],
+            output["stderr"])
+            )
     arguments = [
         "systemctl",
         "start",
         "ceph-mon@%s" % (hostname)
         ]
     output = _excuete_local_command(arguments)
+    if output["retcode"] != 0:
+        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+            " ".join(arguments),
+            output["retcode"],
+            output["stdout"],
+            output["stderr"])
+            )
     arguments = [
         "ceph",
         "--cluster=%s" % (cluster_name),
@@ -1013,9 +1091,17 @@ def mon_create(**kwargs):
         ]
 
     output = _excuete_local_command(arguments)
-
-
+    if output["retcode"] != 0:
+        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+            " ".join(arguments),
+            output["retcode"],
+            output["stdout"],
+            output["stderr"])
+            )
     return True
+
+
+
 
 
 def auth_list(**kwargs):
