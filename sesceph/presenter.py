@@ -175,19 +175,6 @@ class _mdl_presentor():
             return {}
         return {fsid : output}
 
-
-    def mon_quorum(self):
-        """
-        Present the monitor status
-        """
-        if (None == self.model.mon_status):
-            return False
-        name = self.model.mon_status.get("name")
-        outside_quorum = self.model.mon_status.get("outside_quorum")
-        if name in outside_quorum:
-            return False
-        return True
-
     def auth_list(self):
         output = {}
         for keyname in self.model.auth_list.keys():

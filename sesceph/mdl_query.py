@@ -13,3 +13,15 @@ class _mdl_query():
             if hostname == self.model.hostname:
                 return True
         return False
+
+    def mon_quorum(self):
+        """
+        Present the monitor status
+        """
+        if (None == self.model.mon_status):
+            return False
+        name = self.model.mon_status.get("name")
+        outside_quorum = self.model.mon_status.get("outside_quorum")
+        if name in outside_quorum:
+            return False
+        return True

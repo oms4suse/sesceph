@@ -688,7 +688,10 @@ def keyring_osd_create(**kwargs):
             key_path,
             "--gen-key",
             "-n",
-            "client.bootstrap-osd"
+            "client.bootstrap-osd",
+            "--cap",
+            "mon",
+            "allow profile bootstrap-osd"
             ]
         cmd_out = _excuete_local_command(arguments)
         output = _keying_read(key_path)
@@ -723,6 +726,50 @@ def keyring_osd_write(key_content, **kwargs):
         return True
     _keying_write(keyring_path_osd, key_content)
     return True
+
+def keyring_osd_authorise(**kwargs):
+    """
+    Write admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_osd_write \
+                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
+    if not os.path.isfile(keyring_path_osd):
+        raise Error("osd keyring not found")
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not ruining a mon daemon")
+    u.mon_status()
+    if not q.mon_quorum():
+        raise Error("mon daemon is not in quorum")
+    arguments = [
+            "ceph",
+            "auth",
+            "import",
+            "-i",
+            keyring_path_osd
+            ]
+    cmd_out = _excuete_local_command(arguments)
+    return True
+
 
 
 def keyring_mds_create(**kwargs):
@@ -922,8 +969,8 @@ def mon_quorum(**kwargs):
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     u.mon_status()
-    p = _mdl_presentor(m)
-    return p.mon_quorum()
+    q = _mdl_query(m)
+    return q.mon_quorum()
 
 
 def mon_create(**kwargs):
