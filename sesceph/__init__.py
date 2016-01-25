@@ -17,6 +17,8 @@ from mdl_updater import _model_updator
 from presenter import _mdl_presentor
 from mdl_query import _mdl_query
 from utils import _excuete_local_command
+import keyring
+
 log = logging.getLogger(__name__)
 
 __virtualname__ = 'sesceph'
@@ -677,32 +679,9 @@ def keyring_osd_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
-    if os.path.isfile(keyring_path_osd):
-        return _keying_read(keyring_path_osd)
-    try:
-        tmpd = tempfile.mkdtemp()
-        key_path = os.path.join(tmpd,"keyring")
-        arguments = [
-            "ceph-authtool",
-            "--create-keyring",
-            key_path,
-            "--gen-key",
-            "-n",
-            "client.bootstrap-osd",
-            "--cap",
-            "mon",
-            "allow profile bootstrap-osd"
-            ]
-        cmd_out = _excuete_local_command(arguments)
-        output = _keying_read(key_path)
-    finally:
-        shutil.rmtree(tmpd)
-    return output
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "osd"
+    return keyobj.create(**kwargs)
 
 def keyring_osd_write(key_content, **kwargs):
     """
@@ -722,15 +701,9 @@ def keyring_osd_write(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
-    if os.path.isfile(keyring_path_osd):
-        return True
-    _keying_write(keyring_path_osd, key_content)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "osd"
+    return keyobj.write(key_content, **kwargs)
 
 def keyring_osd_authorise(**kwargs):
     """
@@ -750,31 +723,31 @@ def keyring_osd_authorise(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
-    if not os.path.isfile(keyring_path_osd):
-        raise Error("osd keyring not found")
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = _mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not ruining a mon daemon")
-    u.mon_status()
-    if not q.mon_quorum():
-        raise Error("mon daemon is not in quorum")
-    arguments = [
-            "ceph",
-            "auth",
-            "import",
-            "-i",
-            keyring_path_osd
-            ]
-    cmd_out = _excuete_local_command(arguments)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "osd"
+    return keyobj.auth_add(**kwargs)
+
+def keyring_osd_delete(**kwargs):
+    """
+    Write admin keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_osd_write \
+                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "osd"
+    return keyobj.remove(**kwargs)
 
 
 
@@ -795,32 +768,9 @@ def keyring_mds_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
-    if os.path.isfile(keyring_path_mds):
-        return _keying_read(keyring_path_mds)
-    try:
-        tmpd = tempfile.mkdtemp()
-        key_path = os.path.join(tmpd,"keyring")
-        arguments = [
-            "ceph-authtool",
-            "--create-keyring",
-            key_path,
-            "--gen-key",
-            "-n",
-            "client.bootstrap-mds",
-            "--cap",
-            "mon",
-            "allow profile bootstrap-mds"
-            ]
-        cmd_out = _excuete_local_command(arguments)
-        output = _keying_read(key_path)
-    finally:
-        shutil.rmtree(tmpd)
-    return output
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mds"
+    return keyobj.create(**kwargs)
 
 def keyring_mds_write(key_content, **kwargs):
     """
@@ -842,15 +792,9 @@ def keyring_mds_write(key_content, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
-    if os.path.isfile(keyring_path_mds):
-        return True
-    _keying_write(keyring_path_mds, key_content)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mds"
+    return keyobj.write(key_content, **kwargs)
 
 def keyring_mds_authorise(**kwargs):
     """
@@ -870,31 +814,9 @@ def keyring_mds_authorise(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
-    if not os.path.isfile(keyring_path_mds):
-        raise Error("mds keyring not found")
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = _mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not ruining a mon daemon")
-    u.mon_status()
-    if not q.mon_quorum():
-        raise Error("mon daemon is not in quorum")
-    arguments = [
-            "ceph",
-            "auth",
-            "import",
-            "-i",
-            keyring_path_mds
-            ]
-    cmd_out = _excuete_local_command(arguments)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mds"
+    return keyobj.auth_add(**kwargs)
 
 
 def keyring_mds_delete(**kwargs):
@@ -917,18 +839,9 @@ def keyring_mds_delete(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
-    if os.path.isfile(keyring_path_mds):
-        try:
-            os.remove(keyring_path_mds)
-        except:
-            raise Error("Keyring could not be deleted")
-
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mds"
+    return keyobj.remove(**kwargs)
 
 
 def keyring_rgw_create(**kwargs):
@@ -948,32 +861,10 @@ def keyring_rgw_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
-    if os.path.isfile(keyring_path_rgw):
-        return _keying_read(keyring_path_rgw)
-    try:
-        tmpd = tempfile.mkdtemp()
-        key_path = os.path.join(tmpd,"keyring")
-        arguments = [
-            "ceph-authtool",
-            "--create-keyring",
-            key_path,
-            "--gen-key",
-            "-n",
-            "client.bootstrap-rgw",
-            "--cap",
-            "mon",
-            "allow profile bootstrap-rgw"
-            ]
-        cmd_out = _excuete_local_command(arguments)
-        output = _keying_read(key_path)
-    finally:
-        shutil.rmtree(tmpd)
-    return output
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "rgw"
+    return keyobj.create(**kwargs)
+
 
 def keyring_rgw_write(key_content, **kwargs):
     """
@@ -995,15 +886,9 @@ def keyring_rgw_write(key_content, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
-    if os.path.isfile(keyring_path_rgw):
-        return True
-    _keying_write(keyring_path_rgw, key_content)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "rgw"
+    return keyobj.write(key_content, **kwargs)
 
 def keyring_rgw_authorise(**kwargs):
     """
@@ -1023,31 +908,9 @@ def keyring_rgw_authorise(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
-    if not os.path.isfile(keyring_path_rgw):
-        raise Error("rgw keyring not found")
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = _mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not ruining a mon daemon")
-    u.mon_status()
-    if not q.mon_quorum():
-        raise Error("mon daemon is not in quorum")
-    arguments = [
-            "ceph",
-            "auth",
-            "import",
-            "-i",
-            keyring_path_rgw
-            ]
-    cmd_out = _excuete_local_command(arguments)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "rgw"
+    return keyobj.auth_add(**kwargs)
 
 
 def keyring_rgw_delete(**kwargs):
@@ -1070,18 +933,10 @@ def keyring_rgw_delete(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_rgw = _get_path_keyring_rgw(m.cluster_name)
-    if os.path.isfile(keyring_path_rgw):
-        try:
-            os.remove(keyring_path_rgw)
-        except:
-            raise Error("Keyring could not be deleted")
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mds"
+    return keyobj.remove(**kwargs)
 
-    return True
 
 
 def mon_is(**kwargs):
