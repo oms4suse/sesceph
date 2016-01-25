@@ -807,6 +807,9 @@ def keyring_mds_create(**kwargs):
             "--gen-key",
             "-n",
             "client.bootstrap-mds",
+            "--cap",
+            "mon",
+            "allow profile bootstrap-mds"
             ]
         cmd_out = _excuete_local_command(arguments)
         output = _keying_read(key_path)
@@ -816,7 +819,7 @@ def keyring_mds_create(**kwargs):
 
 def keyring_mds_write(key_content, **kwargs):
     """
-    Write admin keyring for cluster
+    Write mds keyring for cluster
 
     CLI Example:
 
@@ -843,6 +846,51 @@ def keyring_mds_write(key_content, **kwargs):
         return True
     _keying_write(keyring_path_mds, key_content)
     return True
+
+def keyring_mds_authorise(**kwargs):
+    """
+    Write mds keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mds_write \
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    if m.cluster_name == None:
+        u.defaults_refresh()
+    keyring_path_mds = _get_path_keyring_mds(m.cluster_name)
+    if not os.path.isfile(keyring_path_mds):
+        raise Error("mds keyring not found")
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not ruining a mon daemon")
+    u.mon_status()
+    if not q.mon_quorum():
+        raise Error("mon daemon is not in quorum")
+    arguments = [
+            "ceph",
+            "auth",
+            "import",
+            "-i",
+            keyring_path_mds
+            ]
+    cmd_out = _excuete_local_command(arguments)
+    return True
+
 
 def keyring_mds_delete(**kwargs):
     """
