@@ -747,6 +747,7 @@ def keyring_osd_authorise(**kwargs):
     """
     m = _model(**kwargs)
     u = _model_updator(m)
+    u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
     keyring_path_osd = _get_path_keyring_osd(m.cluster_name)
