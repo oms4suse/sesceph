@@ -687,6 +687,29 @@ def keyring_osd_authorise(**kwargs):
     keyobj.key_type = "osd"
     return keyobj.auth_add(**kwargs)
 
+
+def keyring_osd_auth_del(**kwargs):
+    """
+    Write rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_osd_auth_del \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "osd"
+    return keyobj.auth_del(**kwargs)
+
+
 def keyring_osd_delete(**kwargs):
     """
     Write admin keyring for cluster
@@ -777,6 +800,28 @@ def keyring_mds_authorise(**kwargs):
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "mds"
     return keyobj.auth_add(**kwargs)
+
+
+def keyring_mds_auth_del(**kwargs):
+    """
+    Write rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mds_auth_del \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mds"
+    return keyobj.auth_del(**kwargs)
 
 
 def keyring_mds_delete(**kwargs):
@@ -871,6 +916,28 @@ def keyring_rgw_authorise(**kwargs):
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "rgw"
     return keyobj.auth_add(**kwargs)
+
+
+def keyring_rgw_auth_del(**kwargs):
+    """
+    Write rgw keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_rgw_auth_del \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "rgw"
+    return keyobj.auth_del(**kwargs)
 
 
 def keyring_rgw_delete(**kwargs):

@@ -139,6 +139,35 @@ class keyring_implementation_base(object):
         return True
 
 
+
+    def auth_del(self, **kwargs):
+        """
+        Remove Authorised keyring
+        """
+        m = _model(**kwargs)
+        u = _model_updator(m)
+        u.hostname_refresh()
+        if m.cluster_name == None:
+            u.defaults_refresh()
+        self.cluster_name = m.cluster_name
+        u.load_confg(m.cluster_name)
+        u.mon_members_refresh()
+        q = _mdl_query(m)
+        if not q.mon_is():
+            raise Error("Not ruining a mon daemon")
+        u.mon_status()
+        if not q.mon_quorum():
+            raise Error("mon daemon is not in quorum")
+        arguments = [
+                "ceph",
+                "auth",
+                "del",
+                self.keyring_name
+                ]
+        cmd_out = _excuete_local_command(arguments)
+        return True
+
+
     def remove(self, **kwargs):
         """
         Delete keyring
@@ -161,6 +190,7 @@ class keyring_implementation_base(object):
 class keyring_implementation_osd(keyring_implementation_base):
     def __init__(self):
         self.cluster_name = None
+        self.keyring_name = "client.bootstrap-osd"
 
     def get_path_keyring(self):
         return _get_path_keyring_osd(self.cluster_name)
@@ -172,7 +202,7 @@ class keyring_implementation_osd(keyring_implementation_base):
             path,
             "--gen-key",
             "-n",
-            "client.bootstrap-osd",
+            self.keyring_name,
             "--cap",
             "mon",
             "allow profile bootstrap-osd"
@@ -181,6 +211,7 @@ class keyring_implementation_osd(keyring_implementation_base):
 class keyring_implementation_rgw(keyring_implementation_base):
     def __init__(self):
         self.cluster_name = None
+        self.keyring_name = "client.bootstrap-rgw"
 
     def get_path_keyring(self):
         return _get_path_keyring_rgw(self.cluster_name)
@@ -192,7 +223,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
             path,
             "--gen-key",
             "-n",
-            "client.bootstrap-rgw",
+            self.keyring_name,
             "--cap",
             "mon",
             "allow profile bootstrap-rgw"
@@ -202,6 +233,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
 class keyring_implementation_mds(keyring_implementation_base):
     def __init__(self):
         self.cluster_name = None
+        self.keyring_name = "client.bootstrap-mds"
 
     def get_path_keyring(self):
         return _get_path_keyring_mds(self.cluster_name)
@@ -213,7 +245,7 @@ class keyring_implementation_mds(keyring_implementation_base):
             path,
             "--gen-key",
             "-n",
-            "client.bootstrap-mds",
+            self.keyring_name,
             "--cap",
             "mon",
             "allow profile bootstrap-mds"
@@ -292,6 +324,13 @@ class keyring_facard(object):
             raise Error("Programming error: key type unset")
         return self._keyImp.auth_add(**kwargs)
 
+    def auth_del(self, **kwargs):
+        """
+        Authorise keyring
+        """
+        if self._keyImp == None:
+            raise Error("Programming error: key type unset")
+        return self._keyImp.auth_del(**kwargs)
 
     def remove(self, **kwargs):
         """
