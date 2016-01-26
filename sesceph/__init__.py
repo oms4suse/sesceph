@@ -278,7 +278,7 @@ def osd_prepare(**kwargs):
         raise Error("osd_dev not specified")
 
     # Check boot strap key exists
-    bootstrap_path_osd = _get_path_keyring_osd(cluster_name)
+    bootstrap_path_osd = keyring._get_path_keyring_osd(cluster_name)
     if not os.path.isfile(bootstrap_path_osd):
         raise Error(bootstrap_path_osd)
 
@@ -396,47 +396,7 @@ def _create_monmap(model, path_monmap):
     return True
 
 
-def _get_path_keyring_admin(cluster_name):
-    return '/etc/ceph/%s.client.admin.keyring' % (cluster_name)
 
-def _get_path_keyring_mon(cluster_name, host_name):
-    return '/var/lib/ceph/mon/%s-%s/keyring' % (cluster_name, host_name)
-
-def _get_path_keyring_mon_bootstrap(cluster_name, host_name):
-    return '/var/lib/ceph/bootstrap-mon/%s-%s.keyring' % (cluster_name, host_name)
-
-
-def _get_path_keyring_osd(cluster_name):
-    return '/var/lib/ceph/bootstrap-osd/%s.keyring' % (cluster_name)
-
-def _get_path_keyring_mds(cluster_name):
-    return '/var/lib/ceph/bootstrap-mds/%s.keyring' % (cluster_name)
-
-
-def _get_path_keyring_rgw(cluster_name):
-    return '/var/lib/ceph/bootstrap-rgw/%s.keyring' % (cluster_name)
-
-
-def _keying_read(key_path):
-    output = ""
-    with open(key_path, 'r') as infile:
-        output = infile.read()
-    return output
-
-def _keying_write(key_path,content):
-    dirname = os.path.dirname(key_path)
-    if not os.path.isdir(dirname):
-        os.makedirs(dirname)
-    with open(key_path, 'w') as infile:
-        for line in content.split('\n'):
-            stripped = line.strip()
-            if len(stripped) == 0:
-                continue
-            if stripped[0] == '[':
-                infile.write('%s\n' % (stripped))
-                continue
-            infile.write('\t%s\n' % (stripped))
-    return
 
 
 def keyring_admin_create(**kwargs):
@@ -462,9 +422,9 @@ def keyring_admin_create(**kwargs):
     if m.cluster_name == None:
         u.defaults_refresh()
 
-    keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
+    keyring_path_admin = keyring._get_path_keyring_admin(m.cluster_name)
     if os.path.isfile(keyring_path_admin):
-        return _keying_read(keyring_path_admin)
+        return keyring._keying_read(keyring_path_admin)
     try:
         tmpd = tempfile.mkdtemp()
         key_path = os.path.join(tmpd,"keyring")
@@ -494,7 +454,7 @@ def keyring_admin_create(**kwargs):
                 cmd_out["stdout"],
                 cmd_out["stderr"])
                 )
-        output = _keying_read(key_path)
+        output = keyring._keying_read(key_path)
     finally:
         shutil.rmtree(tmpd)
     return output
@@ -521,10 +481,10 @@ def keyring_admin_write(key_content, **kwargs):
     u = _model_updator(m)
     if m.cluster_name == None:
         u.defaults_refresh()
-    keyring_path_admin = _get_path_keyring_admin(m.cluster_name)
+    keyring_path_admin = keyring._get_path_keyring_admin(m.cluster_name)
     if os.path.isfile(keyring_path_admin):
         return True
-    _keying_write(keyring_path_admin, key_content)
+    keyring._keying_write(keyring_path_admin, key_content)
     return True
 
 
@@ -555,9 +515,9 @@ def keyring_mon_create(**kwargs):
     q = _mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon server")
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
+    keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
-        return _keying_read(keyring_path_mon)
+        return keyring._keying_read(keyring_path_mon)
     try:
         tmpd = tempfile.mkdtemp()
         key_path = os.path.join(tmpd,"keyring")
@@ -573,7 +533,7 @@ def keyring_mon_create(**kwargs):
             "allow *"
             ]
         cmd_out = _excuete_local_command(arguments)
-        output = _keying_read(key_path)
+        output = keyring._keying_read(key_path)
     finally:
         shutil.rmtree(tmpd)
     return output
@@ -607,13 +567,13 @@ def keyring_mon_write(key_content, **kwargs):
     if not q.mon_is():
         raise Error("Not a mon server")
 
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
+    keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
         return True
-    keyring_path_mon_bootstrap = _get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
+    keyring_path_mon_bootstrap = keyring._get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon_bootstrap):
         return True
-    _keying_write(keyring_path_mon_bootstrap, key_content)
+    keyring._keying_write(keyring_path_mon_bootstrap, key_content)
     return True
 
 def keyring_mon_delete(**kwargs):
@@ -646,13 +606,13 @@ def keyring_mon_delete(**kwargs):
     q = _mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon server")
-    keyring_path_mon = _get_path_keyring_mon(m.cluster_name, m.hostname)
+    keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon):
         try:
             os.remove(keyring_path_mon)
         except:
             raise Error("Keyring could not be deleted")
-    keyring_path_mon_bootstrap = _get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
+    keyring_path_mon_bootstrap = keyring._get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
     if os.path.isfile(keyring_path_mon_bootstrap):
         try:
             os.remove(keyring_path_mon_bootstrap)
@@ -1088,8 +1048,7 @@ def mon_create(**kwargs):
         index = mon_initial_members_name_cleaned.index(hostname)
     except:
         log.debug("Mon not needed on %s" % (hostname))
-        print "Mon not needed on %s" % (hostname)
-        return True
+        raise Error("Not a mon server")
     try:
         mon_initial_members_addr_raw = m.ceph_conf.get("global","mon_host")
     except ConfigParser.NoOptionError:
@@ -1109,7 +1068,7 @@ def mon_create(**kwargs):
             cluster_name,
             hostname
         )
-    keyring_path_mon = _get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
+    keyring_path_mon = keyring._get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
     path_adm_sock = "/var/run/ceph/%s-mon.%s.asok" % (
             cluster_name,
             hostname
@@ -1119,7 +1078,7 @@ def mon_create(**kwargs):
             hostname
         )
 
-    path_admin_keyring = _get_path_keyring_admin(cluster_name)
+    path_admin_keyring = keyring._get_path_keyring_admin(cluster_name)
 
     path_monmap = "/var/lib/ceph/tmp/%s.monmap" % (
             cluster_name
