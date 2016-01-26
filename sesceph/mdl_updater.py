@@ -286,8 +286,8 @@ class _model_updator():
                         )
         self.model.mon_status = json.loads(output['stdout'])
 
-    
-    
+
+
     def auth_list(self):
         arguments = [
             "ceph",
@@ -330,3 +330,83 @@ class _model_updator():
             auth_list_out[prev_sec_name] = section
         self.model.auth_list = auth_list_out
 
+
+    def pool_list(self):
+        arguments = [
+            "ceph",
+            "-f",
+            "json",
+            "osd",
+            "lspools"
+            ]
+        output = utils._excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                        " ".join(arguments),
+                        output["retcode"],
+                        output["stdout"],
+                        output["stderr"])
+                        )
+        details = {}
+        for item in json.loads(output["stdout"].strip()):
+            pool_num = item.get("poolnum")
+            pool_name = item.get("poolname")
+            details[pool_name] = {"poolnum" : pool_num }
+        self.model.pool_list = details
+
+    def _pool_adder(self, name, **kwargs):
+        pg_num = kwargs.get("pg_num", 8)
+        pgp_num = kwargs.get("pgp_num", pg_num)
+        pool_type = kwargs.get("pool_type")
+        er_profile = kwargs.get("erasure_code_profile")
+        crush_ruleset_name = kwargs.get("crush_ruleset")
+
+        arguments = [
+            'ceph',
+            'osd',
+            'pool',
+            'create',
+            name,
+            str(pg_num)
+            ]
+        if pgp_num != None:
+            arguments.append(str(pgp_num))
+        if pool_type == "replicated":
+            arguments.append("replicated")
+        if pool_type == "erasure":
+            arguments.append("erasure")
+            arguments.append("erasure-code-profile=%s" % (er_profile))
+        if crush_ruleset_name != None:
+            arguments.append(crush_ruleset_name)
+        output = utils._excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                        " ".join(arguments),
+                        output["retcode"],
+                        output["stdout"],
+                        output["stderr"]))
+
+    def pool_add(self, name, **kwargs):
+        if not name in self.model.pool_list.keys():
+            return self._pool_adder(name, **kwargs)
+
+    def pool_del(self, name):
+        if not name in self.model.pool_list.keys():
+            return True
+        arguments = [
+            'ceph',
+            'osd',
+            'pool',
+            'delete',
+            name,
+            name,
+            '--yes-i-really-really-mean-it'
+            ]
+        output = utils._excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                        " ".join(arguments),
+                        output["retcode"],
+                        output["stdout"],
+                        output["stderr"]))
+        return True

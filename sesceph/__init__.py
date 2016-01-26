@@ -1305,3 +1305,110 @@ def auth_list(**kwargs):
     p = _mdl_presentor(m)
     return p.auth_list()
 
+
+def pool_list(**kwargs):
+    """
+    List all cephx authorization keys
+
+    CLI Example:
+
+        salt '*' sesceph.pool_list
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        return {}
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    u.pool_list()
+    p = _mdl_presentor(m)
+    return p.pool_list()
+
+
+def pool_add(pool_name, **kwargs):
+    """
+    List all cephx authorization keys
+
+    CLI Example:
+
+        salt '*' sesceph.pool_add pool_name \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    pg_num
+        Default to 8
+
+    pgp_num
+        Default to pg_num
+
+    pool_type
+        can take values "replicated" or "erasure"
+
+    erasure_code_profile
+        Set the "erasure_code_profile"
+
+    crush_ruleset
+        Set the crush map rule set
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        return {}
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    u.pool_list()
+    u.pool_add(pool_name, **kwargs)
+    return True
+
+
+def pool_del(pool_name, **kwargs):
+    """
+    List all cephx authorization keys
+
+    CLI Example:
+
+        salt '*' sesceph.pool_del pool_name \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+    """
+    m = _model(**kwargs)
+    u = _model_updator(m)
+    u.hostname_refresh()
+    try:
+        u.defaults_refresh()
+    except:
+        return {}
+    u.load_confg(m.cluster_name)
+    u.mon_members_refresh()
+    u.pool_list()
+    u.pool_del(pool_name)
+    return True

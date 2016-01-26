@@ -186,3 +186,8 @@ class _mdl_presentor():
                 section[keysection] = keydetails.get(keysection)
             output[keyname] = section
         return output
+
+
+    def pool_list(self):
+        return self.model.pool_list
+
