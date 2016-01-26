@@ -957,6 +957,9 @@ def mon_status(**kwargs):
         return {}
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
+    q = _mdl_query(m)
+    if not q.mon_is():
+        raise Error("Not a mon node")
     u.mon_status()
     p = _mdl_presentor(m)
     return p.mon_status()
