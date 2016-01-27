@@ -164,3 +164,36 @@ Create some OSD's
 
     # salt "*ceph-node*" sesceph.osd_prepare  osd_dev=/dev/vdb
 
+
+SLS example
+~~~~~~~~~~~
+
+An example SLS file. After the writing of all keys:
+
+    keyring_admin_create:
+      module.run:
+        - name:  sesceph.keyring_admin_create
+
+    keyring_mon_create:
+      module.run:
+        - name:  sesceph.keyring_mon_create
+
+    mon_create:
+      module.run:
+        - name:  sesceph.mon_create
+
+    keyring_osd_create:
+      module.run:
+        - name:  sesceph.keyring_osd_create
+
+    keyring_osd_authorise:
+      module.run:
+        - name:  sesceph.keyring_osd_authorise
+
+    prepare:
+      module.run:
+        - name: sesceph.osd_prepare
+        - kwargs: {
+            osd_dev: /dev/vdb
+            }
+
