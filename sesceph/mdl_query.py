@@ -1,3 +1,11 @@
+import logging
+
+from utils import _excuete_local_command
+
+log = logging.getLogger(__name__)
+
+
+
 class _mdl_query():
     """
     This is for querying the model with common queries,
@@ -25,3 +33,41 @@ class _mdl_query():
         if name in outside_quorum:
             return False
         return True
+
+
+    def mon_active(self):
+        systemctl_name = "ceph-mon@%s.service" % (self.model.hostname)
+        arguments = [
+            'systemctl',
+            'show',
+            '--property',
+            'ActiveState',
+            systemctl_name,
+            ]
+        log.debug("Running:%s" % (" ".join(arguments)))
+        output = _excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"]
+                ))
+        running = None
+        for raw_line in output["stdout"].split('\n'):
+            stripline = raw_line.strip()
+            if len(stripline) == 0:
+                continue
+            splitline = stripline.split('=')
+            if len(splitline) < 2:
+                continue
+            key = splitline[0]
+            value = "=".join(splitline[1:])
+            if key == "ActiveState":
+                if value == "active":
+                    running = True
+                else:
+                    running = False
+        if running == None:
+            raise Error("failed to get ActiveState from %s" % (systemctl_name))
+        return running
