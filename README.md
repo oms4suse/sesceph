@@ -53,7 +53,7 @@ by  cluster for example:
 
 This allowed me to easily identify orphaned OSD's :)
 
-Instalation
+Installation
 -----------
 
 copy the content of "sesceph" to
