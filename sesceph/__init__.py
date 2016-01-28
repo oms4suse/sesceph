@@ -142,6 +142,12 @@ def _get_dev_name(path):
 def is_partition(dev):
     """
     Check whether a given device path is a partition or a full disk.
+
+    CLI Example:
+
+    .. code-block:: bash
+    salt '*' sesceph.is_partition /dev/sdc1
+
     """
     dev = os.path.realpath(dev)
     if not stat.S_ISBLK(os.lstat(dev).st_mode):
