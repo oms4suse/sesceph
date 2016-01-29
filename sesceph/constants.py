@@ -2,7 +2,7 @@
 try:
     from salt.utils import which as _find_executable
 except:
-    from distutils.spawn import _find_executable
+    from distutils.spawn import find_executable
 
 _path_lsblk = _find_executable('lsblk')
 _path_ceph_disk = _find_executable('ceph-disk')
