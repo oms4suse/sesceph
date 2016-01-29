@@ -17,6 +17,10 @@ class model:
         # list of (hostname,addr) touples
         self.mon_members = []
         self.hostname = None
+        self.kargs_apply(**kwargs)
+
+
+    def kargs_apply(self, **kwargs):
         self.cluster_name = kwargs.get("cluster_name")
         self.cluster_uuid = kwargs.get("cluster_uuid")
 

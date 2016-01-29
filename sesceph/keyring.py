@@ -6,6 +6,7 @@ import model
 import mdl_updater
 import utils
 import mdl_query
+import constants
 
 class Error(Exception):
     """
@@ -66,18 +67,18 @@ def Property(func):
 
 
 class keyring_implementation_base(object):
-    def __init__(self):
-        self.model = model
+    def __init__(self,**kwargs):
+        self.model = model.model(**kwargs)
 
     def create(self, **kwargs):
         """
         Create keyring
         """
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
-        if m.cluster_name == None:
+        self.model.kargs_apply(**kwargs)
+        u = mdl_updater.model_updater(self.model)
+        u.hostname_refresh()
+        if self.model.cluster_name == None:
             u.defaults_refresh()
-        self.cluster_name = m.cluster_name
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             return _keying_read(keyring_path)
@@ -88,7 +89,6 @@ class keyring_implementation_base(object):
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
-        print output
         return output
 
 
@@ -96,11 +96,11 @@ class keyring_implementation_base(object):
         """
         Persist keyring
         """
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
-        if m.cluster_name == None:
+        self.model.kargs_apply(**kwargs)
+        u = mdl_updater.model_updater(self.model)
+        u.hostname_refresh()
+        if self.model.cluster_name == None:
             u.defaults_refresh()
-        self.cluster_name = m.cluster_name
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             return True
@@ -111,18 +111,17 @@ class keyring_implementation_base(object):
         """
         Authorise keyring
         """
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
+        self.model.kargs_apply(**kwargs)
+        u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
-        if m.cluster_name == None:
+        if self.model.cluster_name == None:
             u.defaults_refresh()
-        self.cluster_name = m.cluster_name
         keyring_path = self.get_path_keyring()
         if not os.path.isfile(keyring_path):
             raise Error("rgw keyring not found")
-        u.load_confg(m.cluster_name)
+        u.load_confg(self.model.cluster_name)
         u.mon_members_refresh()
-        q = mdl_query.mdl_query(m)
+        q = mdl_query.mdl_query(self.model)
         if not q.mon_is():
             raise Error("Not ruining a mon daemon")
         u.mon_status()
@@ -144,7 +143,7 @@ class keyring_implementation_base(object):
         """
         Remove Authorised keyring
         """
-        m = model.model(**kwargs)
+        self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(m)
         u.hostname_refresh()
         if m.cluster_name == None:
@@ -172,7 +171,7 @@ class keyring_implementation_base(object):
         """
         Delete keyring
         """
-        m = model.model(**kwargs)
+        self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(m)
         if m.cluster_name == None:
             u.defaults_refresh()
@@ -187,11 +186,11 @@ class keyring_implementation_base(object):
 
 class keyring_implementation_admin(keyring_implementation_base):
     def __init__(self):
-        self.cluster_name = None
+        keyring_implementation_base.__init__(self)
         self.keyring_name = "client.admin"
 
     def get_path_keyring(self):
-        return _get_path_keyring_admin(self.cluster_name)
+        return _get_path_keyring_admin(self.model.cluster_name)
 
     def get_arguments_create(self, path):
         return [
@@ -215,11 +214,16 @@ class keyring_implementation_admin(keyring_implementation_base):
 
 class keyring_implementation_mon(keyring_implementation_base):
     def __init__(self):
-        self.cluster_name = None
+        keyring_implementation_base.__init__(self)
         self.keyring_name = "mon."
 
     def get_path_keyring(self):
-        return _get_path_keyring_mon_bootstrap(self.cluster_name)
+        if self.model.cluster_name == None:
+            raise  Error("Cluster name not found")
+        if self.model.hostname == None:
+            raise  Error("Cluster name not found")
+        return _get_path_keyring_mon_bootstrap(self.model.cluster_name,
+                self.model.hostname)
 
     def get_arguments_create(self, path):
         return [
@@ -238,11 +242,13 @@ class keyring_implementation_mon(keyring_implementation_base):
 
 class keyring_implementation_osd(keyring_implementation_base):
     def __init__(self):
-        self.cluster_name = None
+        keyring_implementation_base.__init__(self)
         self.keyring_name = "client.bootstrap-osd"
 
     def get_path_keyring(self):
-        return _get_path_keyring_osd(self.cluster_name)
+        if self.model.cluster_name == None:
+            raise  Error("Cluster name not found")
+        return _get_path_keyring_osd(self.model.cluster_name)
 
     def get_arguments_create(self, path):
         return [
@@ -259,11 +265,13 @@ class keyring_implementation_osd(keyring_implementation_base):
 
 class keyring_implementation_rgw(keyring_implementation_base):
     def __init__(self):
-        self.cluster_name = None
+        keyring_implementation_base.__init__(self)
         self.keyring_name = "client.bootstrap-rgw"
 
     def get_path_keyring(self):
-        return _get_path_keyring_rgw(self.cluster_name)
+        if self.model.cluster_name == None:
+            raise  Error("Cluster name not found")
+        return _get_path_keyring_rgw(self.model.cluster_name)
 
     def get_arguments_create(self, path):
         return [
@@ -281,11 +289,13 @@ class keyring_implementation_rgw(keyring_implementation_base):
 
 class keyring_implementation_mds(keyring_implementation_base):
     def __init__(self):
-        self.cluster_name = None
+        keyring_implementation_base.__init__(self)
         self.keyring_name = "client.bootstrap-mds"
 
     def get_path_keyring(self):
-        return _get_path_keyring_mds(self.cluster_name)
+        if self.model.cluster_name == None:
+            raise  Error("Cluster name not found")
+        return _get_path_keyring_mds(self.model.cluster_name)
 
     def get_arguments_create(self, path):
         return [
