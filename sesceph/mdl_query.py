@@ -1,12 +1,12 @@
 import logging
 
-from utils import _excuete_local_command
+import utils
 
 log = logging.getLogger(__name__)
 
 
 
-class _mdl_query():
+class mdl_query():
     """
     This is for querying the model with common queries,
     that are internal.
@@ -45,7 +45,7 @@ class _mdl_query():
             systemctl_name,
             ]
         log.debug("Running:%s" % (" ".join(arguments)))
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),

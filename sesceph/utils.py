@@ -9,10 +9,6 @@ try:
 except :
     __has_salt = False
 
-try:
-    from salt.utils import which as _find_executable
-except:
-    from distutils.spawn import _find_executable
 
 class Error(Exception):
     """
@@ -23,7 +19,7 @@ class Error(Exception):
         doc = self.__doc__.strip()
         return ': '.join([doc] + [str(a) for a in self.args])
 
-def _excuete_local_command(command_attrib_list):
+def excuete_local_command(command_attrib_list):
     if '__salt__' in locals():
         return __salt__['cmd.run_all'](command_attrib_list,
                                       output_loglevel='trace',

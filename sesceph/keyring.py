@@ -2,10 +2,10 @@ import os
 import shutil
 import tempfile
 
-from model import _model
-from mdl_updater import _model_updator
-from utils import _excuete_local_command
-from mdl_query import _mdl_query
+import model
+import mdl_updater
+import utils
+import mdl_query
 
 class Error(Exception):
     """
@@ -73,8 +73,8 @@ class keyring_implementation_base(object):
         """
         Create keyring
         """
-        m = _model(**kwargs)
-        u = _model_updator(m)
+        m = model.model(**kwargs)
+        u = mdl_updater.model_updater(m)
         if m.cluster_name == None:
             u.defaults_refresh()
         self.cluster_name = m.cluster_name
@@ -84,7 +84,7 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            cmd_out = _excuete_local_command(self.get_arguments_create(key_path))
+            cmd_out = utils.excuete_local_command(self.get_arguments_create(key_path))
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
@@ -96,8 +96,8 @@ class keyring_implementation_base(object):
         """
         Persist keyring
         """
-        m = _model(**kwargs)
-        u = _model_updator(m)
+        m = model.model(**kwargs)
+        u = mdl_updater.model_updater(m)
         if m.cluster_name == None:
             u.defaults_refresh()
         self.cluster_name = m.cluster_name
@@ -111,8 +111,8 @@ class keyring_implementation_base(object):
         """
         Authorise keyring
         """
-        m = _model(**kwargs)
-        u = _model_updator(m)
+        m = model.model(**kwargs)
+        u = mdl_updater.model_updater(m)
         u.hostname_refresh()
         if m.cluster_name == None:
             u.defaults_refresh()
@@ -122,7 +122,7 @@ class keyring_implementation_base(object):
             raise Error("rgw keyring not found")
         u.load_confg(m.cluster_name)
         u.mon_members_refresh()
-        q = _mdl_query(m)
+        q = mdl_query.mdl_query(m)
         if not q.mon_is():
             raise Error("Not ruining a mon daemon")
         u.mon_status()
@@ -135,7 +135,7 @@ class keyring_implementation_base(object):
                 "-i",
                 keyring_path
                 ]
-        cmd_out = _excuete_local_command(arguments)
+        cmd_out = utils.excuete_local_command(arguments)
         return True
 
 
@@ -144,15 +144,15 @@ class keyring_implementation_base(object):
         """
         Remove Authorised keyring
         """
-        m = _model(**kwargs)
-        u = _model_updator(m)
+        m = model.model(**kwargs)
+        u = mdl_updater.model_updater(m)
         u.hostname_refresh()
         if m.cluster_name == None:
             u.defaults_refresh()
         self.cluster_name = m.cluster_name
         u.load_confg(m.cluster_name)
         u.mon_members_refresh()
-        q = _mdl_query(m)
+        q = mdl_query.mdl_query(m)
         if not q.mon_is():
             raise Error("Not ruining a mon daemon")
         u.mon_status()
@@ -164,7 +164,7 @@ class keyring_implementation_base(object):
                 "del",
                 self.keyring_name
                 ]
-        cmd_out = _excuete_local_command(arguments)
+        cmd_out = utils.excuete_local_command(arguments)
         return True
 
 
@@ -172,8 +172,8 @@ class keyring_implementation_base(object):
         """
         Delete keyring
         """
-        m = _model(**kwargs)
-        u = _model_updator(m)
+        m = model.model(**kwargs)
+        u = mdl_updater.model_updater(m)
         if m.cluster_name == None:
             u.defaults_refresh()
         self.cluster_name = m.cluster_name

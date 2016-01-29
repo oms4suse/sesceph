@@ -1,7 +1,7 @@
 import ConfigParser
 
 
-class _model:
+class model:
     """
     Basic model class to store detrived data
     """

@@ -12,11 +12,11 @@ import constants
 
 # local modules
 import utils
-from model import _model
-from mdl_updater import _model_updator
-from presenter import _mdl_presentor
-from mdl_query import _mdl_query
-from utils import _excuete_local_command
+import model
+import mdl_updater
+import presenter
+import mdl_query
+import utils
 import keyring
 
 log = logging.getLogger(__name__)
@@ -63,11 +63,11 @@ def partitions_all():
 
         salt '*' sesceph.partitions_all
     '''
-    m = _model()
-    u = _model_updator(m)
+    m = model.model()
+    u = mdl_updater.model_updater(m)
     u.symlinks_refresh()
     u.partitions_all_refresh()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.partitions_all()
 
 def osd_partitions():
@@ -78,12 +78,12 @@ def osd_partitions():
 
         salt '*' sesceph.osd_partitions
     '''
-    m = _model()
-    u = _model_updator(m)
+    m = model.model()
+    u = mdl_updater.model_updater(m)
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.discover_osd_partitions()
 
 
@@ -95,12 +95,12 @@ def journal_partitions():
 
         salt '*' sesceph.journal_partitions
     '''
-    m = _model()
-    u = _model_updator(m)
+    m = model.model()
+    u = mdl_updater.model_updater(m)
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.discover_journal_partitions()
 
 def discover_osd():
@@ -112,14 +112,14 @@ def discover_osd():
         salt '*' sesceph.discover_osd
 
     """
-    m = _model()
-    u = _model_updator(m)
+    m = model.model()
+    u = mdl_updater.model_updater(m)
 
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
     u.discover_osd_refresh()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.discover_osd()
 
 
@@ -174,7 +174,7 @@ def _update_partition(action, dev, description):
     # server. Since we are not resizing partitons so we rely on calling
     # partx
 
-    _excuete_local_command(
+    utils.excuete_local_command(
         [
              constants._path_partprobe,
              dev,
@@ -201,7 +201,7 @@ def zap(dev):
             dev_file.seek(-size, os.SEEK_END)
             dev_file.write(size*'\0')
 
-        _excuete_local_command(
+        utils.excuete_local_command(
             [
                 constants._path_sgdisk,
                 '--zap-all',
@@ -209,7 +209,7 @@ def zap(dev):
                 dev,
             ],
         )
-        _excuete_local_command(
+        utils.excuete_local_command(
             [
                 constants._path_sgdisk,
                 '--clear',
@@ -292,8 +292,8 @@ def osd_prepare(**kwargs):
     osd_dev = os.path.realpath(osd_dev_raw)
     # get existing state and see if action needed
 
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.defaults_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
@@ -354,7 +354,7 @@ def osd_prepare(**kwargs):
         arguments.append("--journal-uuid")
         arguments.append(journal_uuid)
 
-    output = _excuete_local_command(arguments)
+    output = utils.excuete_local_command(arguments)
     if output["retcode"] != 0:
         raise Error("Error rc=%s, stdout=%s stderr=%s" % (output["retcode"], output["stdout"], output["stderr"]))
     return True
@@ -375,7 +375,7 @@ def _create_monmap(model, path_monmap):
             model.cluster_uuid,
             path_monmap
             ]
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -391,7 +391,7 @@ def _create_monmap(model, path_monmap):
                     addr,
                     path_monmap
                     ]
-            output = _excuete_local_command(arguments)
+            output = utils.excuete_local_command(arguments)
             if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -422,8 +422,8 @@ def keyring_admin_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
@@ -435,7 +435,7 @@ def keyring_admin_create(**kwargs):
         tmpd = tempfile.mkdtemp()
         key_path = os.path.join(tmpd,"keyring")
         arguments = [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             "--create-keyring",
             key_path,
             "--gen-key",
@@ -452,7 +452,7 @@ def keyring_admin_create(**kwargs):
             "osd",
             "allow *"
             ]
-        cmd_out = _excuete_local_command(arguments)
+        cmd_out = utils.excuete_local_command(arguments)
         if cmd_out["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -483,8 +483,8 @@ def keyring_admin_write(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     if m.cluster_name == None:
         u.defaults_refresh()
     keyring_path_admin = keyring._get_path_keyring_admin(m.cluster_name)
@@ -511,14 +511,14 @@ def keyring_mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon server")
     keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
@@ -528,7 +528,7 @@ def keyring_mon_create(**kwargs):
         tmpd = tempfile.mkdtemp()
         key_path = os.path.join(tmpd,"keyring")
         arguments = [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             "--create-keyring",
             key_path,
             "--gen-key",
@@ -538,7 +538,7 @@ def keyring_mon_create(**kwargs):
             "mon",
             "allow *"
             ]
-        cmd_out = _excuete_local_command(arguments)
+        cmd_out = utils.excuete_local_command(arguments)
         output = keyring._keying_read(key_path)
     finally:
         shutil.rmtree(tmpd)
@@ -562,14 +562,14 @@ def keyring_mon_write(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon server")
 
@@ -602,14 +602,14 @@ def keyring_mon_delete(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     if m.cluster_name == None:
         u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon server")
     keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
@@ -989,8 +989,8 @@ def mon_is(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()
@@ -998,7 +998,7 @@ def mon_is(**kwargs):
         return False
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     return q.mon_is()
 
 
@@ -1021,8 +1021,8 @@ def mon_status(**kwargs):
     """
 
     hostname = platform.node()
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()
@@ -1030,11 +1030,11 @@ def mon_status(**kwargs):
         return {}
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon node")
     u.mon_status()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.mon_status()
 
 
@@ -1057,8 +1057,8 @@ def mon_quorum(**kwargs):
     """
 
     hostname = platform.node()
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()
@@ -1067,16 +1067,16 @@ def mon_quorum(**kwargs):
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     u.mon_status()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     return q.mon_quorum()
 
 
 
 def mon_active(**kwargs):
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     return q.mon_active()
 
 
@@ -1098,16 +1098,16 @@ def mon_create(**kwargs):
         Set the cluster name. Defaults to "ceph".
     """
 
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    q = _mdl_query(m)
+    q = mdl_query.mdl_query(m)
     if not q.mon_is():
         raise Error("Not a mon node")
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
 
     path_done_file = "/var/lib/ceph/mon/%s-%s/done" % (
             m.cluster_name,
@@ -1149,13 +1149,13 @@ def mon_create(**kwargs):
         path_monmap = os.path.join(tmpd,"monmap")
         _create_monmap(m, path_monmap)
         arguments = [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             "--create-keyring",
             key_path,
             "--import-keyring",
             keyring_path_mon,
             ]
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1164,12 +1164,12 @@ def mon_create(**kwargs):
                 output["stderr"]
                 ))
         arguments = [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             key_path,
             "--import-keyring",
             path_admin_keyring,
             ]
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1184,7 +1184,7 @@ def mon_create(**kwargs):
             os.makedirs(path_mon_dir)
         # now do install
         arguments = [
-                "ceph-mon",
+                constants._path_ceph_mon,
                 "--mkfs",
                 "-i",
                 m.hostname,
@@ -1193,7 +1193,7 @@ def mon_create(**kwargs):
                 '--keyring',
                 key_path
                 ]
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1203,11 +1203,11 @@ def mon_create(**kwargs):
                 ))
         # Now start the service
         arguments = [
-            "systemctl",
+            constants._path_systemctl,
             "restart",
             "ceph-mon@%s" % (m.hostname)
             ]
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1221,11 +1221,11 @@ def mon_create(**kwargs):
              raise Error("Failed to start monitor")
         # Enable the service
         arguments = [
-            "systemctl",
+            constants._path_systemctl,
             "enable",
             "ceph-mon@%s" % (m.hostname)
             ]
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1234,14 +1234,14 @@ def mon_create(**kwargs):
                 output["stderr"])
                 )
         arguments = [
-            "ceph",
+            constants._path_ceph,
             "--cluster=%s" % (m.cluster_name),
             "--admin-daemon",
             "/var/run/ceph/ceph-mon.%s.asok" % (m.hostname),
             "mon_status"
             ]
 
-        output = _excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1275,8 +1275,8 @@ def auth_list(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()
@@ -1285,7 +1285,7 @@ def auth_list(**kwargs):
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     u.auth_list()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.auth_list()
 
 
@@ -1306,8 +1306,8 @@ def pool_list(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()
@@ -1316,7 +1316,7 @@ def pool_list(**kwargs):
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     u.pool_list()
-    p = _mdl_presentor(m)
+    p = presenter.mdl_presentor(m)
     return p.pool_list()
 
 
@@ -1352,8 +1352,8 @@ def pool_add(pool_name, **kwargs):
     crush_ruleset
         Set the crush map rule set
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()
@@ -1383,8 +1383,8 @@ def pool_del(pool_name, **kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = _model(**kwargs)
-    u = _model_updator(m)
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
     u.hostname_refresh()
     try:
         u.defaults_refresh()

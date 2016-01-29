@@ -58,11 +58,11 @@ def _retrive_osd_details(part_details):
     try:
         tmpd = tempfile.mkdtemp()
         try:
-            out_mnt = utils._excuete_local_command(['mount',device_name,tmpd])
+            out_mnt = utils.excuete_local_command(['mount',device_name,tmpd])
             if out_mnt['retcode'] == 0:
                 osd_details = _retrive_osd_details_from_dir(tmpd)
         finally:
-            utils._excuete_local_command(['umount',tmpd])
+            utils.excuete_local_command(['umount',tmpd])
     finally:
         os.rmdir(tmpd)
     return osd_details
@@ -70,7 +70,7 @@ def _retrive_osd_details(part_details):
 
 
 
-class _model_updator():
+class model_updater():
     """
     Basic model updator retrives data and adds to model
     """
@@ -120,7 +120,7 @@ class _model_updator():
         '''
         part_map = {}
         cmd = [ constants._path_lsblk, "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
-        output = utils._excuete_local_command(cmd)
+        output = utils.excuete_local_command(cmd)
         if output['retcode'] != 0:
             raise Error("Failed running: lsblk --ascii --output-all")
         all_parts = {}
@@ -276,7 +276,7 @@ class _model_updator():
             "/var/run/ceph/ceph-mon.%s.asok" % (self.model.hostname),
             "mon_status"
             ]
-        output = utils._excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),
@@ -294,7 +294,7 @@ class _model_updator():
             "auth",
             "list"
             ]
-        output = utils._excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),
@@ -339,7 +339,7 @@ class _model_updator():
             "osd",
             "lspools"
             ]
-        output = utils._excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),
@@ -378,7 +378,7 @@ class _model_updator():
             arguments.append("erasure-code-profile=%s" % (er_profile))
         if crush_ruleset_name != None:
             arguments.append(crush_ruleset_name)
-        output = utils._excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),
@@ -402,7 +402,7 @@ class _model_updator():
             name,
             '--yes-i-really-really-mean-it'
             ]
-        output = utils._excuete_local_command(arguments)
+        output = utils.excuete_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),

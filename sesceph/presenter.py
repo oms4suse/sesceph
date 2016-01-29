@@ -1,4 +1,4 @@
-class _mdl_presentor():
+class mdl_presentor():
     """
     Since presentation should be clean to the end user
     We abstract such functiosn in this class.
