@@ -402,9 +402,6 @@ def _create_monmap(model, path_monmap):
     return True
 
 
-
-
-
 def keyring_admin_create(**kwargs):
     """
     Create admin keyring for cluster
@@ -422,48 +419,10 @@ def keyring_admin_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "admin"
+    return keyobj.create(**kwargs)
 
-    keyring_path_admin = keyring._get_path_keyring_admin(m.cluster_name)
-    if os.path.isfile(keyring_path_admin):
-        return keyring._keying_read(keyring_path_admin)
-    try:
-        tmpd = tempfile.mkdtemp()
-        key_path = os.path.join(tmpd,"keyring")
-        arguments = [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            key_path,
-            "--gen-key",
-            "-n",
-            "client.admin",
-            "--set-uid=0",
-            "--cap",
-            "mon",
-            "allow *",
-            "--cap",
-            "mds",
-            "allow *",
-            "--cap",
-            "osd",
-            "allow *"
-            ]
-        cmd_out = utils.excuete_local_command(arguments)
-        if cmd_out["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                cmd_out["retcode"],
-                cmd_out["stdout"],
-                cmd_out["stderr"])
-                )
-        output = keyring._keying_read(key_path)
-    finally:
-        shutil.rmtree(tmpd)
-    return output
 
 def keyring_admin_write(key_content, **kwargs):
     """
@@ -483,15 +442,34 @@ def keyring_admin_write(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    keyring_path_admin = keyring._get_path_keyring_admin(m.cluster_name)
-    if os.path.isfile(keyring_path_admin):
-        return True
-    keyring._keying_write(keyring_path_admin, key_content)
-    return True
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "admin"
+    return keyobj.write(key_content, **kwargs)
+
+
+def keyring_admin_delete(**kwargs):
+    """
+    Delete Mon keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_admin_delete \
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If no ceph config file is found, this command will fail.
+    """
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "admin"
+    return keyobj.remove(**kwargs)
 
 
 def keyring_mon_create(**kwargs):
@@ -511,38 +489,10 @@ def keyring_mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not a mon server")
-    keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
-    if os.path.isfile(keyring_path_mon):
-        return keyring._keying_read(keyring_path_mon)
-    try:
-        tmpd = tempfile.mkdtemp()
-        key_path = os.path.join(tmpd,"keyring")
-        arguments = [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            key_path,
-            "--gen-key",
-            "-n",
-            "mon.",
-            "--cap",
-            "mon",
-            "allow *"
-            ]
-        cmd_out = utils.excuete_local_command(arguments)
-        output = keyring._keying_read(key_path)
-    finally:
-        shutil.rmtree(tmpd)
-    return output
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mon"
+    return keyobj.create(**kwargs)
+
 
 def keyring_mon_write(key_content, **kwargs):
     """
@@ -562,25 +512,10 @@ def keyring_mon_write(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not a mon server")
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mon"
+    return keyobj.write(key_content, **kwargs)
 
-    keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
-    if os.path.isfile(keyring_path_mon):
-        return True
-    keyring_path_mon_bootstrap = keyring._get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
-    if os.path.isfile(keyring_path_mon_bootstrap):
-        return True
-    keyring._keying_write(keyring_path_mon_bootstrap, key_content)
-    return True
 
 def keyring_mon_delete(**kwargs):
     """
@@ -588,7 +523,7 @@ def keyring_mon_delete(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mds_write \
+        salt '*' sesceph.keyring_mon_delete \
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -602,30 +537,9 @@ def keyring_mon_delete(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    if m.cluster_name == None:
-        u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not a mon server")
-    keyring_path_mon = keyring._get_path_keyring_mon(m.cluster_name, m.hostname)
-    if os.path.isfile(keyring_path_mon):
-        try:
-            os.remove(keyring_path_mon)
-        except:
-            raise Error("Keyring could not be deleted")
-    keyring_path_mon_bootstrap = keyring._get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
-    if os.path.isfile(keyring_path_mon_bootstrap):
-        try:
-            os.remove(keyring_path_mon_bootstrap)
-        except:
-            raise Error("Keyring could not be deleted")
-    return True
-
+    keyobj = keyring.keyring_facard()
+    keyobj.key_type = "mon"
+    return keyobj.remove(**kwargs)
 
 
 def keyring_osd_create(**kwargs):
@@ -649,6 +563,7 @@ def keyring_osd_create(**kwargs):
     keyobj.key_type = "osd"
     return keyobj.create(**kwargs)
 
+
 def keyring_osd_write(key_content, **kwargs):
     """
     Write admin keyring for cluster
@@ -670,6 +585,7 @@ def keyring_osd_write(key_content, **kwargs):
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "osd"
     return keyobj.write(key_content, **kwargs)
+
 
 def keyring_osd_authorise(**kwargs):
     """

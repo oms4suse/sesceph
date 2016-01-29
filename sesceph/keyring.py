@@ -185,6 +185,55 @@ class keyring_implementation_base(object):
                 raise Error("Keyring could not be deleted")
         return True
 
+class keyring_implementation_admin(keyring_implementation_base):
+    def __init__(self):
+        self.cluster_name = None
+        self.keyring_name = "client.admin"
+
+    def get_path_keyring(self):
+        return _get_path_keyring_admin(self.cluster_name)
+
+    def get_arguments_create(self, path):
+        return [
+            constants._path_ceph_authtool,
+            "--create-keyring",
+            path,
+            "--gen-key",
+            "-n",
+            self.keyring_name,
+            "--set-uid=0",
+            "--cap",
+            "mon",
+            "allow *",
+            "--cap",
+            "mds",
+            "allow *",
+            "--cap",
+            "osd",
+            "allow *"
+            ]
+
+class keyring_implementation_mon(keyring_implementation_base):
+    def __init__(self):
+        self.cluster_name = None
+        self.keyring_name = "mon."
+
+    def get_path_keyring(self):
+        return _get_path_keyring_mon_bootstrap(self.cluster_name)
+
+    def get_arguments_create(self, path):
+        return [
+            constants._path_ceph_authtool,
+            "--create-keyring",
+            path,
+            "--gen-key",
+            "-n",
+            self.keyring_name,
+            "--cap",
+            "mon",
+            "allow *"
+            ]
+
 
 
 class keyring_implementation_osd(keyring_implementation_base):
@@ -251,9 +300,14 @@ class keyring_implementation_mds(keyring_implementation_base):
             "allow profile bootstrap-mds"
             ]
 
+
+
+
+
+
 class keyring_facard(object):
     def __init__(self):
-        self._availableKeys = set([ "osd", "mds", "rgw"])
+        self._availableKeys = set(["admin", "mds", "mon", "osd", "rgw"])
         self._clear_implementation()
 
 
@@ -277,10 +331,14 @@ class keyring_facard(object):
                 self._clear_implementation()
                 raise Error("Invalid Value")
             implementation = None
-            if name == "osd":
-                implementation = keyring_implementation_osd()
+            if name == "admin":
+                implementation = keyring_implementation_admin()
             if name == "mds":
                 implementation = keyring_implementation_mds()
+            if name == "mon":
+                implementation = keyring_implementation_mon()
+            if name == "osd":
+                implementation = keyring_implementation_osd()
             if name == "rgw":
                 implementation = keyring_implementation_rgw()
             if implementation == None:
