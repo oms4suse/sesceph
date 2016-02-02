@@ -1050,6 +1050,25 @@ def mon_create(**kwargs):
         )
     if os.path.isfile(path_done_file):
         log.debug("Mon done file exists:%s" % (path_done_file))
+        if q.mon_active():
+            return True
+        arguments = [
+            constants._path_systemctl,
+            "restart",
+            "ceph-mon@%s" % (m.hostname)
+            ]
+        output = utils.excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"])
+                )
+
+        # Error is servcie wont start
+        if not q.mon_active():
+             raise Error("Failed to start monitor")
         return True
 
     if not os.path.isfile(keyring_path_mon):
