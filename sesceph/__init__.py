@@ -361,7 +361,36 @@ def osd_prepare(**kwargs):
     return True
 
 
+def osd_activate(**kwargs):
+    """
+    Activate an OSD
 
+    CLI Example:
+
+        salt '*' sesceph.osd_activate 'osd_dev'='/dev/vdc'
+    """
+    distro_init = "systemd"
+    osd_dev_raw = kwargs.get("osd_dev")
+    m = model.model(**kwargs)
+    u = mdl_updater.model_updater(m)
+    arguments = [
+            'ceph-disk',
+            '-v',
+            'activate',
+            '--mark-init',
+            distro_init,
+            '--mount',
+            osd_dev_raw,
+        ]
+    output = utils.excuete_local_command(arguments)
+    if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"])
+                )
+    return True
 
 
 def _create_monmap(model, path_monmap):
