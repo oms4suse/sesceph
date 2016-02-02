@@ -287,7 +287,8 @@ def osd_prepare(**kwargs):
     bootstrap_path_osd = keyring._get_path_keyring_osd(cluster_name)
     if not os.path.isfile(bootstrap_path_osd):
         raise Error(bootstrap_path_osd)
-
+    if not os.path.isfile(constants._path_ceph_lib_osd):
+        os.makedirs(constants._path_ceph_lib_osd)
     # normalise paths
     osd_dev = os.path.realpath(osd_dev_raw)
     # get existing state and see if action needed
