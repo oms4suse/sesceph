@@ -1331,3 +1331,75 @@ def pool_del(pool_name, **kwargs):
     u.pool_list()
     u.pool_del(pool_name)
     return True
+
+
+def purge():
+    """
+    purge ceph configuration on the node
+
+    CLI Example:
+
+        salt '*' sesceph.purge
+    """
+    arguments = [
+            constants._path_systemctl,
+            "stop",
+            "ceph*",
+            ]
+    output = utils.excuete_local_command(arguments)
+    if output["retcode"] != 0:
+        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+            " ".join(arguments),
+            output["retcode"],
+            output["stdout"],
+            output["stderr"]
+            ))
+    m = model.model()
+    u = mdl_updater.model_updater(m)
+    u.symlinks_refresh()
+    u.partitions_all_refresh()
+    u.discover_partitions_refresh()
+
+    for part in m.partitions_osd:
+        disk = m.part_pairent.get(part)
+        if disk == None:
+            continue
+        disk_details = m.lsblk.get(disk)
+        if disk_details == None:
+            continue
+        all_parts = disk_details.get('PARTITION')
+        if all_parts == None:
+            continue
+        part_details = all_parts.get(part)
+        if part_details == None:
+            continue
+        mountpoint =  part_details.get("MOUNTPOINT")
+        if mountpoint == None:
+            continue
+        arguments = [
+            "umount",
+            mountpoint
+            ]
+        output = utils.excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"]
+                ))
+
+    arguments = [
+            "rm",
+            "-rf",
+            "--one-file-system",
+            "/var/lib/ceph",
+            ]
+    output = utils.excuete_local_command(arguments)
+    if output["retcode"] != 0:
+        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+            " ".join(arguments),
+            output["retcode"],
+            output["stdout"],
+            output["stderr"]
+            ))
