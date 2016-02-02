@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import os.path
 
 import model
 import mdl_updater
@@ -21,21 +22,21 @@ def _get_path_keyring_admin(cluster_name):
     return '/etc/ceph/%s.client.admin.keyring' % (cluster_name)
 
 def _get_path_keyring_mon(cluster_name, host_name):
-    return '/var/lib/ceph/mon/%s-%s/keyring' % (cluster_name, host_name)
+    return os.path.join(constants._path_ceph_lib_mon, '%s-%s/keyring' % (cluster_name, host_name))
 
 def _get_path_keyring_mon_bootstrap(cluster_name, host_name):
-    return '/var/lib/ceph/bootstrap-mon/%s-%s.keyring' % (cluster_name, host_name)
+    return os.path.join(constants._path_ceph_lib, 'bootstrap-mon/%s-%s.keyring' % (cluster_name, host_name))
 
 
 def _get_path_keyring_osd(cluster_name):
-    return '/var/lib/ceph/bootstrap-osd/%s.keyring' % (cluster_name)
+    return os.path.join(constants._path_ceph_lib, 'bootstrap-osd/%s.keyring' % (cluster_name))
 
 def _get_path_keyring_mds(cluster_name):
-    return '/var/lib/ceph/bootstrap-mds/%s.keyring' % (cluster_name)
+    return os.path.join(constants._path_ceph_lib, 'bootstrap-mds/%s.keyring' % (cluster_name))
 
 
 def _get_path_keyring_rgw(cluster_name):
-    return '/var/lib/ceph/bootstrap-rgw/%s.keyring' % (cluster_name)
+    return os.path.join(constants._path_ceph_lib, 'bootstrap-rgw/%s.keyring' % (cluster_name))
 
 
 def _keying_read(key_path):
