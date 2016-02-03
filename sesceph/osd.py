@@ -19,6 +19,19 @@ class Error(Exception):
 
 
 class osd_ctrl(object):
+    def __init__(self, **kwargs):
+        self.model = model.model(**kwargs)
+        self.model.init = "systemd"
+
+
+    def update_model(self):
+        u = mdl_updater.model_updater(self.model)
+        u.symlinks_refresh()
+        u.defaults_refresh()
+        u.partitions_all_refresh()
+        u.discover_partitions_refresh()
+
+
     def _get_dev_name(self, path):
         """
         get device name from path.  e.g.::
@@ -35,13 +48,14 @@ class osd_ctrl(object):
         base = path[5:]
         return base.replace('/', '!')
 
+
     def is_partition(self, dev):
         """
         Check whether a given device path is a partition or a full disk.
         """
         if not os.path.exists(dev):
             raise Error('device not found', dev)
-        
+
         dev = os.path.realpath(dev)
         if not stat.S_ISBLK(os.lstat(dev).st_mode):
             raise Error('not a block device', dev)
@@ -55,7 +69,72 @@ class osd_ctrl(object):
             if os.path.exists(os.path.join('/sys/block', basename, name)):
                 return True
         raise Error('not a disk or partition', dev)
- 
+
+
+    def _get_osd_partitons_by_disk(self, disk):
+        output = set()
+        disk_details = self.model.lsblk.get(disk)
+        if disk_details == None:
+            return output
+        part_details = disk_details.get('PARTITION')
+        if part_details == None:
+            return output
+        for part_name in part_details.keys():
+            if part_name in self.model.partitions_osd:
+                output.add(part_name)
+        return output
+
+
+    def _activate_targets_item(self, osd_dev_raw):
+        activate_list = set()
+        osd_dev_norm = os.path.realpath(osd_dev_raw)
+        if self.is_partition(osd_dev_norm):
+            activate_list.add(osd_dev_norm)
+        else:
+            for partition in self._get_osd_partitons_by_disk(osd_dev_norm):
+                activate_list.add(partition)
+        return activate_list
+
+
+    def activate_partiion(self, partiion):
+        arguments = [
+                'ceph-disk',
+                '-v',
+                'activate',
+                '--mark-init',
+                self.model.init,
+                '--mount',
+                partiion,
+            ]
+        output = utils.excuete_local_command(arguments)
+        if output["retcode"] != 0:
+                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    output["retcode"],
+                    output["stdout"],
+                    output["stderr"])
+                    )
+        return True
+
+
+    def activate_targets(self, **kwargs):
+        osd_dev_raw = kwargs.get("osd_dev")
+        osd_dev_list_raw = kwargs.get("osd_dev_list")
+        if osd_dev_raw == None and osd_dev_list_raw == None:
+            return self.model.partitions_osd
+
+        activate_list = set()
+        if osd_dev_raw != None:
+            for dev_norm in self._activate_targets_item(osd_dev_raw):
+                activate_list.add(dev_norm)
+        if osd_dev_list_raw != None:
+            for dev_raw in osd_dev_list_raw:
+                for dev_norm in self._activate_targets_item(dev_raw):
+                    activate_list.add(dev_norm)
+        for part in activate_list:
+            self.activate_partiion(part)
+        return True
+
 
 def osd_prepare(**kwargs):
     osd_dev_raw = kwargs.get("osd_dev")
@@ -156,29 +235,7 @@ def osd_prepare(**kwargs):
     return True
 
 
-
-
-
 def osd_activate(**kwargs):
-    distro_init = "systemd"
-    osd_dev_raw = kwargs.get("osd_dev")
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    arguments = [
-            'ceph-disk',
-            '-v',
-            'activate',
-            '--mark-init',
-            distro_init,
-            '--mount',
-            osd_dev_raw,
-        ]
-    output = utils.excuete_local_command(arguments)
-    if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-    return True
+    osdc = osd_ctrl(**kwargs)
+    osdc.update_model()
+    return osdc.activate_targets(**kwargs)
