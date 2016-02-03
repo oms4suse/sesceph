@@ -25,7 +25,7 @@ class Error(Exception):
         return ': '.join([doc] + [str(a) for a in self.args])
 
 def _retrive_osd_details_from_dir(directory):
-    osd_required_files = set(["ceph_fsid","fsid"])
+    osd_required_files = set(["ceph_fsid", "fsid", "magic"])
     osd_details = {}
     dir_content = os.listdir(directory)
     if not osd_required_files.issubset(dir_content):
@@ -34,10 +34,14 @@ def _retrive_osd_details_from_dir(directory):
         osd_details["ceph_fsid"] = infile.read().strip()
     with open('%s/fsid' % (directory), 'r') as infile:
         osd_details["fsid"] = infile.read().strip()
-    with open('%s/journal_uuid' % (directory), 'r') as infile:
-        osd_details["journal_uuid"] = infile.read().strip()
     with open('%s/magic' % (directory), 'r') as infile:
         osd_details["magic"] = infile.read().strip()
+    # Journel uuid may not exist when partition reused.
+    path_journal_uuid = '%s/journal_uuid' % (directory)
+    if os.path.isfile(path_journal_uuid):
+        with open('%s/journal_uuid' % (directory), 'r') as infile:
+            osd_details["journal_uuid"] = infile.read().strip()
+    # whoami may not exist when OSD has never been activated.
     path_whoami = '%s/whoami' % (directory)
     if os.path.isfile(path_whoami):
         with open('%s/whoami' % (directory), 'r') as infile:
@@ -45,9 +49,7 @@ def _retrive_osd_details_from_dir(directory):
     path_link = '%s/journal' % (directory)
     if os.path.islink(path_link):
         osd_details["dev_journal"] = os.path.realpath(path_link)
-
     return osd_details
-
 
 
 def _retrive_osd_details(part_details):
