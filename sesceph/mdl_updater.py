@@ -155,8 +155,31 @@ class model_updater():
         self.model.part_pairent = part_map
 
 
-
-
+    def partition_table_refresh(self):
+        for disk_name in self.model.lsblk.keys():
+            arguments = [
+                'parted',
+                disk_name,
+                'print'
+                ]
+            log.debug("Running:%s" % (" ".join(arguments)))
+            output = utils.excuete_local_command(arguments)
+            if output["retcode"] != 0:
+                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    output["retcode"],
+                    output["stdout"],
+                    output["stderr"]
+                    ))
+            part_type = None
+            for line in output["stdout"].split('\n'):
+                split_line = line.split(':')
+                if split_line[0] != 'Partition Table':
+                    continue
+                part_type = ":".join(split_line[1:]).strip()
+            if part_type == None:
+                continue
+            self.model.lsblk[disk_name]["PARTTABLE"] = part_type
 
 
     def discover_partitions_refresh(self):

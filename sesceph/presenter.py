@@ -55,12 +55,13 @@ class mdl_presentor():
         if symlinks != None:
             output["LINK"] = symlinks
         wanted_keys = set([
-                'SIZE',
                 'NAME',
-                'VENDOR',
+                'PARTTABLE',
                 'ROTA',
+                'RQ-SIZE',
                 'SCHED',
-                'RQ-SIZE'
+                'SIZE',
+                'VENDOR'
             ])
         for key in disk_details:
             if key == 'PARTITION':
