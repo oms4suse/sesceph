@@ -136,103 +136,175 @@ class osd_ctrl(object):
         return True
 
 
-def osd_prepare(**kwargs):
-    osd_dev_raw = kwargs.get("osd_dev")
-    journal_dev = kwargs.get("journal_dev")
-    cluster_name = kwargs.get("cluster_name")
-    cluster_uuid = kwargs.get("cluster_uuid")
-    fs_type = kwargs.get("osd_fs_type")
-    osd_uuid = kwargs.get("osd_uuid")
-    journal_uuid = kwargs.get("journal_uuid")
-    # Default cluster name / uuid values
-    if cluster_name == None and cluster_uuid == None:
-        cluster_name = "ceph"
-    if cluster_name != None and cluster_uuid == None:
-        cluster_uuid = utils._get_cluster_uuid_from_name(cluster_name)
-    if cluster_name == None and cluster_uuid != None:
-        cluster_name = utils._get_cluster_name_from_uuid(cluster_name)
-
-    fs_type = kwargs.get("fs_type","xfs")
-    # Check required variables are set
-    if osd_dev_raw == None:
-        raise Error("osd_dev not specified")
-
-    # Check boot strap key exists
-    bootstrap_path_osd = keyring._get_path_keyring_osd(cluster_name)
-    if not os.path.isfile(bootstrap_path_osd):
-        raise Error(bootstrap_path_osd)
-    if not os.path.isdir(constants._path_ceph_lib_osd):
-        os.makedirs(constants._path_ceph_lib_osd)
-    # normalise paths
-    osd_dev = os.path.realpath(osd_dev_raw)
-    # get existing state and see if action needed
-
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.defaults_refresh()
-    u.partitions_all_refresh()
-    u.discover_partitions_refresh()
-
-    # Validate the osd_uuid and journal_uuid dont already exist
-
-    osd_list_existing = m.discovered_osd.get(cluster_uuid)
-    if osd_list_existing != None:
-        for osd_existing in osd_list_existing:
-            if osd_uuid != None:
-                osd_existing_fsid = osd_existing.get("fsid")
-                if osd_existing_fsid == osd_uuid:
-                    log.debug("osd_uuid already exists:%s" % (osd_uuid))
-                    return True
-
-            if journal_uuid != None:
-                journal_existing_uuid = osd_existing.get("journal_uuid")
-                if journal_existing_uuid == journal_uuid:
-                    log.debug("journal_uuid already exists:%s" % (journal_uuid))
-                    return True
+    def _get_part_details(self,partition):
+        disk_name = self.model.part_pairent.get(partition)
+        if disk_name == None:
+            raise Error("Programming error")
+        disk_details = self.model.lsblk.get(disk_name)
+        if disk_details == None:
+            raise Error("Programming error")
+        disk_parts = disk_details.get('PARTITION')
+        if disk_parts == None:
+            raise Error("Programming error")
+        return disk_parts.get(partition)
 
 
-    block_details_osd = m.lsblk.get(osd_dev)
-    if block_details_osd == None:
-        raise Error("Not a block device")
+    def _get_part_type(self,partition):
+        part_details = self._get_part_details(partition)
+        if part_details == None:
+            raise Error("Programming error")
+        return part_details.get("PARTTYPE")
 
-    part_table = block_details_osd.get("PARTITION")
-    if part_table != None:
-        if len(part_table.keys()) > 0:
+
+    def _get_part_table_type(self,disk_name):
+        disk_details = self.model.lsblk.get(disk_name)
+        return disk_details.get("PARTTABLE")
+
+
+    def _prepare_check_partition_type_data(self, partition):
+        import json
+        part_type = self._get_part_type(partition)
+        if part_type == constants.OSD_UUID:
             return True
+        # Ok so its wrong type Now we check if we can fix it.
+        disk_name = self.model.part_pairent.get(partition)
+        part_table_type = self._get_part_table_type(disk_name)
+        if part_table_type != "gpt":
+            raise Error("Unsupported partition table type:'%s' for '%s'",
+                (part_table_type, disk_name))
+        return True
 
 
-    if not constants._path_ceph_disk:
-        raise Error("Error 'ceph-disk' command not find")
-    arguments = [
-        constants._path_ceph_disk,
-        '-v',
-        'prepare',
-        '--fs-type',
-        fs_type
-        ]
-    if osd_dev != None:
-        arguments.append("--data-dev")
-        arguments.append(osd_dev)
-    if journal_dev != None:
-        arguments.append("--journal-dev")
-        arguments.append(journal_dev)
-    if cluster_name != None:
-        arguments.append("--cluster")
-        arguments.append(cluster_name)
-    if cluster_uuid != None:
-        arguments.append("--cluster-uuid")
-        arguments.append(cluster_uuid)
-    if osd_uuid != None:
-        arguments.append("--osd-uuid")
-        arguments.append(osd_uuid)
-    if journal_uuid != None:
-        arguments.append("--journal-uuid")
-        arguments.append(journal_uuid)
+    def _prepare_check_partition_type_journel(self, partition):
+        # Make go away
+        part_type = self._get_part_type(partition)
+        if part_type == constants.JOURNAL_UUID:
+            return True
+        # Ok so its wrong type Now we check if we can fix it.
+        disk_name = self.model.part_pairent.get(partition)
+        part_table_type = self._get_part_table_type(disk_name)
+        if part_table_type != "gpt":
+            raise Error("Unsupported partition table type:'%s' for '%s'",
+                (part_table_type, disk_name))
+        return True
 
-    output = utils.excuete_local_command(arguments)
-    if output["retcode"] != 0:
-        raise Error("Error rc=%s, stdout=%s stderr=%s" % (output["retcode"], output["stdout"], output["stderr"]))
-    return True
+
+    def prepare(self, **kwargs):
+        osd_dev_raw = kwargs.get("osd_dev")
+        journal_dev = kwargs.get("journal_dev")
+        cluster_name = kwargs.get("cluster_name")
+        cluster_uuid = kwargs.get("cluster_uuid")
+        fs_type = kwargs.get("osd_fs_type")
+        osd_uuid = kwargs.get("osd_uuid")
+        journal_uuid = kwargs.get("journal_uuid")
+        # Default cluster name / uuid values
+        if cluster_name == None and cluster_uuid == None:
+            cluster_name = "ceph"
+        if cluster_name != None and cluster_uuid == None:
+            cluster_uuid = utils._get_cluster_uuid_from_name(cluster_name)
+        if cluster_name == None and cluster_uuid != None:
+            cluster_name = utils._get_cluster_name_from_uuid(cluster_name)
+
+        fs_type = kwargs.get("fs_type","xfs")
+        # Check required variables are set
+        if osd_dev_raw == None:
+            raise Error("osd_dev not specified")
+
+        # Check boot strap key exists
+        bootstrap_path_osd = keyring._get_path_keyring_osd(cluster_name)
+        if not os.path.isfile(bootstrap_path_osd):
+            raise Error(bootstrap_path_osd)
+        if not os.path.isdir(constants._path_ceph_lib_osd):
+            os.makedirs(constants._path_ceph_lib_osd)
+        # normalise paths
+        osd_dev = os.path.realpath(osd_dev_raw)
+        # get existing state and see if action needed
+        u = mdl_updater.model_updater(self.model)
+        u.partition_table_refresh()
+
+        # Validate the osd_uuid and journal_uuid dont already exist
+
+        osd_list_existing = self.model.discovered_osd.get(cluster_uuid)
+        if osd_list_existing != None:
+            for osd_existing in osd_list_existing:
+                if osd_uuid != None:
+                    osd_existing_fsid = osd_existing.get("fsid")
+                    if osd_existing_fsid == osd_uuid:
+                        log.debug("osd_uuid already exists:%s" % (osd_uuid))
+                        return True
+
+                if journal_uuid != None:
+                    journal_existing_uuid = osd_existing.get("journal_uuid")
+                    if journal_existing_uuid == journal_uuid:
+                        log.debug("journal_uuid already exists:%s" % (journal_uuid))
+                        return True
+        if self.is_partition(osd_dev):
+            if osd_dev in self.model.partitions_journal:
+                return True
+            partion_details = self._get_part_details(osd_dev)
+            osd_mountpoint = partion_details.get("MOUNTPOINT")
+            if osd_mountpoint != None:
+                return True
+            if journal_dev == None:
+                # We could try and default journal_dev if a journel disk is found.
+                raise Error("Journel device must be specified")
+            self._prepare_check_partition_type_data(osd_dev)
+            self._prepare_check_partition_type_journel(journal_dev)
+        else:
+            # If partions exist on osd_dev disk assume its used
+            block_details_osd = self.model.lsblk.get(osd_dev)
+            if block_details_osd == None:
+                raise Error("Not a block device")
+            part_table = block_details_osd.get("PARTITION")
+            if part_table != None:
+                if len(part_table.keys()) > 0:
+                    return True
+
+
+        if not constants._path_ceph_disk:
+            raise Error("Error 'ceph-disk' command not find")
+        arguments = [
+            constants._path_ceph_disk,
+            '-v',
+            'prepare',
+            '--fs-type',
+            fs_type
+            ]
+        if osd_dev != None:
+            arguments.append("--data-dev")
+        if journal_dev != None:
+            arguments.append("--journal-dev")
+        if cluster_name != None:
+            arguments.append("--cluster")
+            arguments.append(cluster_name)
+        if cluster_uuid != None:
+            arguments.append("--cluster-uuid")
+            arguments.append(cluster_uuid)
+        if osd_uuid != None:
+            arguments.append("--osd-uuid")
+            arguments.append(osd_uuid)
+        if journal_uuid != None:
+            arguments.append("--journal-uuid")
+            arguments.append(journal_uuid)
+        if osd_dev != None:
+            arguments.append(osd_dev)
+        if journal_dev != None:
+            arguments.append(journal_dev)
+        output = utils.excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    output["retcode"],
+                    output["stdout"],
+                    output["stderr"])
+                    )
+        return True
+
+
+def osd_prepare(**kwargs):
+    osdc = osd_ctrl(**kwargs)
+    osdc.update_model()
+    return osdc.prepare(**kwargs)
 
 
 def osd_activate(**kwargs):
