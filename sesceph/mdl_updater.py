@@ -52,9 +52,8 @@ def _retrive_osd_details_from_dir(directory):
     return osd_details
 
 
-def _retrive_osd_details(part_details):
+def retrive_osd_details(device_name):
     osd_details = {}
-    device_name = part_details.get("NAME")
     if device_name == None:
         return None
     try:
@@ -170,6 +169,7 @@ class model_updater():
         '''
         osd_all = set()
         journal_all = set()
+        osd_details = {}
         for diskname in self.model.lsblk.keys():
             disk = self.model.lsblk.get(diskname)
             if disk == None:
@@ -180,48 +180,61 @@ class model_updater():
             for partname in part_struct.keys():
                 part_details = part_struct.get(partname)
                 if part_details == None:
-
                     continue
+                mount_point = part_details.get("MOUNTPOINT")
+                if mount_point == '[SWAP]':
+                    continue
+                if mount_point != None:
+                    osd_md = _retrive_osd_details_from_dir(mount_point)
+                    if osd_md != None:
+                        osd_details[partname] = osd_md
                 part_type = part_details.get("PARTTYPE")
                 if part_type == constants.OSD_UUID:
                     osd_all.add(partname)
+                    if mount_point != None:
+                        continue
+                    osd_md = retrive_osd_details(partname)
+                    if osd_md != None:
+                        osd_details[partname] = osd_md
+                    continue
                 if part_type == constants.JOURNAL_UUID:
                     journal_all.add(partname)
-        self.model.partitions_osd = osd_all
-        self.model.partitions_journal = journal_all
-
-
-
-    def discover_osd_refresh(self):
+                    continue
+                if mount_point != None:
+                    continue
+                fs_type = part_details.get("FSTYPE")
+                if fs_type == None:
+                    continue
+                if not fs_type in ['xfs', 'btrfs', 'ext4']:
+                    continue
+                osd_md = retrive_osd_details(partname)
+                if osd_md != None:
+                    osd_details[partname] = osd_md
+        # Now we combine our data to find incorrectly labeled OSD's
+        # and build osd data structure discovered_osd
         discovered_osd = {}
-        # now we map UUID to NAME for both osd and journal
-        unmounted_parts = set()
-        for part_name in self.model.partitions_osd:
-            diskname = self.model.part_pairent.get(part_name)
-            if diskname == None:
+        for osd_dev_data in osd_details.keys():
+            # Agregate data into osd_all.
+            osd_all.add(osd_dev_data)
+            osd_md = osd_details.get(osd_dev_data)
+            if osd_md == None:
                 continue
-            disk = self.model.lsblk.get(diskname)
-            if disk == None:
-                continue
-            part_struct = disk.get("PARTITION")
-            if part_struct == None:
-                continue
-            part_details = part_struct.get(part_name)
-            output = _retrive_osd_details(part_details)
-            if output == None:
-                continue
-            output["dev"] = part_details.get("NAME")
-            output["dev_parent"] = part_details.get("PKNAME")
-            ceph_fsid = output.get("ceph_fsid")
+            # Agregate data into journal_all.
+            osd_dev_journel_raw = osd_md.get("dev_journal")
+            if osd_dev_journel_raw != None:
+                journal_all.add(osd_dev_journel_raw)
+            osd_md["dev"] = osd_dev_data
+            disk_name = self.model.part_pairent.get(osd_dev_data)
+            if disk_name != None:
+                osd_md["dev_parent"] = disk_name
+            ceph_fsid = osd_md.get("ceph_fsid")
             if not ceph_fsid in discovered_osd.keys():
                 discovered_osd[ceph_fsid] = []
-            discovered_osd[ceph_fsid].append(output)
-        for cluser_id in discovered_osd.keys():
-            osd_data_list = discovered_osd.get(cluser_id)
-            for osd_data in osd_data_list:
-                fsid = osd_data.get("fsid")
-                journal_uuid = osd_data.get("journal_uuid")
+            discovered_osd[ceph_fsid].append(osd_md)
+        self.model.partitions_osd = osd_all
+        self.model.partitions_journal = journal_all
         self.model.discovered_osd = discovered_osd
+
 
     def load_confg(self, cluster_name):
         configfile = "/etc/ceph/%s.conf" % (cluster_name)

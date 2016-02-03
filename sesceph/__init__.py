@@ -118,7 +118,6 @@ def discover_osd():
     u.symlinks_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    u.discover_osd_refresh()
     p = presenter.mdl_presentor(m)
     return p.discover_osd()
 
@@ -298,7 +297,6 @@ def osd_prepare(**kwargs):
     u.defaults_refresh()
     u.partitions_all_refresh()
     u.discover_partitions_refresh()
-    u.discover_osd_refresh()
 
     # Validate the osd_uuid and journal_uuid dont already exist
 
