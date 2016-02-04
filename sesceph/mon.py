@@ -4,6 +4,7 @@ import os
 import platform
 import pwd
 import tempfile
+import shutil
 
 # Local imports
 import keyring
@@ -20,6 +21,15 @@ log = logging.getLogger(__name__)
 
 def Property(func):
     return property(**func())
+
+class Error(Exception):
+    """
+    Error
+    """
+
+    def __str__(self):
+        doc = self.__doc__.strip()
+        return ': '.join([doc] + [str(a) for a in self.args])
 
 
 class mon_implementation_base(object):
