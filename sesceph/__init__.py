@@ -805,6 +805,22 @@ def mon_quorum(**kwargs):
 
 
 def mon_active(**kwargs):
+    """
+    Is mon deamon running
+
+    CLI Example:
+
+        salt '*' sesceph.mon_active
+                'cluster_name'='ceph' \
+                'cluster_uuid'='cluster_uuid' \
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
     ctrl_mon = mon.mon_facard()
     ctrl_mon.ceph_version = "root"
     return ctrl_mon.active(**kwargs)
