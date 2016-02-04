@@ -19,6 +19,7 @@ import mdl_query
 import utils
 import keyring
 import osd
+import mon
 
 log = logging.getLogger(__name__)
 
@@ -249,44 +250,6 @@ def osd_activate(**kwargs):
     """
     return osd.osd_activate(**kwargs)
 
-
-def _create_monmap(model, path_monmap):
-    """
-    create_monmap file
-    """
-    if not os.path.isfile(path_monmap):
-        arguments = [
-            "monmaptool",
-            "--create",
-            "--fsid",
-            model.cluster_uuid,
-            path_monmap
-            ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                    " ".join(arguments),
-                    output["retcode"],
-                    output["stdout"],
-                    output["stderr"])
-                    )
-        for name, addr in model.mon_members:
-            arguments = [
-                    "monmaptool",
-                    "--add",
-                    name,
-                    addr,
-                    path_monmap
-                    ]
-            output = utils.excuete_local_command(arguments)
-            if output["retcode"] != 0:
-                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                    " ".join(arguments),
-                    output["retcode"],
-                    output["stdout"],
-                    output["stderr"])
-                    )
-    return True
 
 
 def keyring_create_admin(**kwargs):
@@ -781,7 +744,7 @@ def mon_is(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keys_create
+        salt '*' sesceph.mon_is
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -792,17 +755,9 @@ def mon_is(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        return False
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = mdl_query.mdl_query(m)
-    return q.mon_is()
+    ctrl_mon = mon.mon_facard()
+    ctrl_mon.ceph_version = "root"
+    return ctrl_mon.is_mon(**kwargs)
 
 
 def mon_status(**kwargs):
@@ -811,7 +766,7 @@ def mon_status(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.prepare
+        salt '*' sesceph.mon_status
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -822,24 +777,9 @@ def mon_status(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-
-    hostname = platform.node()
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        return {}
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not a mon node")
-    u.mon_status()
-    p = presenter.mdl_presentor(m)
-    return p.mon_status()
-
+    ctrl_mon = mon.mon_facard()
+    ctrl_mon.ceph_version = "root"
+    return ctrl_mon.status(**kwargs)
 
 def mon_quorum(**kwargs):
     """
@@ -847,7 +787,7 @@ def mon_quorum(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.prepare
+        salt '*' sesceph.mon_quorum
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -858,29 +798,16 @@ def mon_quorum(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-
-    hostname = platform.node()
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        raise Error("Could not get cluster details")
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    u.mon_status()
-    q = mdl_query.mdl_query(m)
-    return q.mon_quorum()
+    ctrl_mon = mon.mon_facard()
+    ctrl_mon.ceph_version = "root"
+    return ctrl_mon.quorum(**kwargs)
 
 
 
 def mon_active(**kwargs):
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    q = mdl_query.mdl_query(m)
-    return q.mon_active()
+    ctrl_mon = mon.mon_facard()
+    ctrl_mon.ceph_version = "root"
+    return ctrl_mon.active(**kwargs)
 
 
 def mon_create(**kwargs):
@@ -889,7 +816,7 @@ def mon_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.prepare
+        salt '*' sesceph.mon_create
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -900,184 +827,9 @@ def mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not a mon node")
-    p = presenter.mdl_presentor(m)
-
-    path_done_file = "/var/lib/ceph/mon/%s-%s/done" % (
-            m.cluster_name,
-            m.hostname
-        )
-    keyring_path_mon = keyring._get_path_keyring_mon_bootstrap(m.cluster_name, m.hostname)
-    path_adm_sock = "/var/run/ceph/%s-mon.%s.asok" % (
-            m.cluster_name,
-            m.hostname
-        )
-    path_mon_dir = "/var/lib/ceph/mon/%s-%s" % (
-            m.cluster_name,
-            m.hostname
-        )
-
-    path_admin_keyring = keyring._get_path_keyring_admin(m.cluster_name)
-
-    path_monmap = "/var/lib/ceph/tmp/%s.monmap" % (
-            m.cluster_name
-        )
-    path_tmp_keyring = "/var/lib/ceph/tmp/%s.keyring" % (
-            m.cluster_name
-        )
-    if os.path.isfile(path_done_file):
-        log.debug("Mon done file exists:%s" % (path_done_file))
-        if q.mon_active():
-            return True
-        arguments = [
-            constants._path_systemctl,
-            "restart",
-            "ceph-mon@%s" % (m.hostname)
-            ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-
-        # Error is servcie wont start
-        if not q.mon_active():
-             raise Error("Failed to start monitor")
-        return True
-
-    if not os.path.isfile(keyring_path_mon):
-        raise Error("Mon keyring missing")
-    if not os.path.isfile(path_admin_keyring):
-        raise Error("Admin keyring missing")
-
-
-
-    try:
-        tmpd = tempfile.mkdtemp()
-        # In 'tmpd' we make the monmap and keyring.
-        key_path = os.path.join(tmpd,"keyring")
-        path_monmap = os.path.join(tmpd,"monmap")
-        _create_monmap(m, path_monmap)
-        arguments = [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            key_path,
-            "--import-keyring",
-            keyring_path_mon,
-            ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"]
-                ))
-        arguments = [
-            constants._path_ceph_authtool,
-            key_path,
-            "--import-keyring",
-            path_admin_keyring,
-            ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"]
-                ))
-        # Now clean the install area
-        if os.path.isdir(path_mon_dir):
-            shutil.rmtree(path_mon_dir)
-        if not os.path.isdir(path_mon_dir):
-            os.makedirs(path_mon_dir)
-        # now do install
-        arguments = [
-                constants._path_ceph_mon,
-                "--mkfs",
-                "-i",
-                m.hostname,
-                "--monmap",
-                path_monmap,
-                '--keyring',
-                key_path
-                ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"]
-                ))
-        # Now start the service
-        arguments = [
-            constants._path_systemctl,
-            "restart",
-            "ceph-mon@%s" % (m.hostname)
-            ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-
-        # Error is servcie wont start
-        if not q.mon_active():
-             raise Error("Failed to start monitor")
-        # Enable the service
-        arguments = [
-            constants._path_systemctl,
-            "enable",
-            "ceph-mon@%s" % (m.hostname)
-            ]
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-        arguments = [
-            constants._path_ceph,
-            "--cluster=%s" % (m.cluster_name),
-            "--admin-daemon",
-            "/var/run/ceph/ceph-mon.%s.asok" % (m.hostname),
-            "mon_status"
-            ]
-
-        output = utils.excuete_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-        open(path_done_file, 'a').close()
-    finally:
-        shutil.rmtree(tmpd)
-    return True
-
-
-
+    ctrl_mon = mon.mon_facard()
+    ctrl_mon.ceph_version = "root"
+    return ctrl_mon.create(**kwargs)
 
 
 def keyring_auth_list(**kwargs):
