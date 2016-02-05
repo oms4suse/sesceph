@@ -33,8 +33,8 @@ class Error(Exception):
 
 
 class mon_implementation_base(object):
-    def __init__(self, **kwargs):
-        self.model = model.model(**kwargs)
+    def __init__(self, mdl):
+        self.model = mdl
 
 
     def _execute(self, arguments):
@@ -97,16 +97,15 @@ class mon_implementation_base(object):
         cluster_uuid
             Set the cluster UUID. Defaults to value found in ceph config file.
         """
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
+        u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
         try:
             u.defaults_refresh()
         except:
             return False
-        u.load_confg(m.cluster_name)
+        u.load_confg(self.model.cluster_name)
         u.mon_members_refresh()
-        q = mdl_query.mdl_query(m)
+        q = mdl_query.mdl_query(self.model)
         return q.mon_is()
 
 
@@ -129,20 +128,19 @@ class mon_implementation_base(object):
         """
 
         hostname = platform.node()
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
+        u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
         try:
             u.defaults_refresh()
         except:
             return {}
-        u.load_confg(m.cluster_name)
+        u.load_confg(self.model.cluster_name)
         u.mon_members_refresh()
-        q = mdl_query.mdl_query(m)
+        q = mdl_query.mdl_query(self.model)
         if not q.mon_is():
             raise Error("Not a mon node")
         u.mon_status()
-        p = presenter.mdl_presentor(m)
+        p = presenter.mdl_presentor(self.model)
         return p.mon_status()
 
 
@@ -165,26 +163,17 @@ class mon_implementation_base(object):
         """
 
         hostname = platform.node()
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
+        u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
         try:
             u.defaults_refresh()
         except:
             raise Error("Could not get cluster details")
-        u.load_confg(m.cluster_name)
+        u.load_confg(self.model.cluster_name)
         u.mon_members_refresh()
         u.mon_status()
-        q = mdl_query.mdl_query(m)
+        q = mdl_query.mdl_query(self.model)
         return q.mon_quorum()
-
-
-    def mon_active(self, **kwargs):
-        m = model.model(**kwargs)
-        u = mdl_updater.model_updater(m)
-        u.hostname_refresh()
-        q = mdl_query.mdl_query(m)
-        return q.mon_active()
 
 
     def create(self, **kwargs):
@@ -391,15 +380,15 @@ class mon_implementation_base(object):
 
 
 class mod_user_root(mon_implementation_base):
-    def __init__(self, **kwargs):
-        mon_implementation_base.__init__(self, **kwargs)
+    def __init__(self, mdl):
+        mon_implementation_base.__init__(self, mdl)
         self.uid = 0
         self.gid = 0
 
 
 class mod_user_ceph(mon_implementation_base):
-    def __init__(self, **kwargs):
-        mon_implementation_base.__init__(self, **kwargs)
+    def __init__(self, mdl):
+        mon_implementation_base.__init__(self, mdl)
         pwd_struct = pwd.getpwnam("ceph")
         self.uid = pwd_struct.pw_uid
         self.gid = pwd_struct.pw_gid
@@ -407,7 +396,7 @@ class mod_user_ceph(mon_implementation_base):
     
     def _execute(self,arguments):
         prefix = [
-            "sudo"
+            "sudo",
             "-u",
             "ceph"
             ]
@@ -415,30 +404,41 @@ class mod_user_ceph(mon_implementation_base):
 
 
 class mon_facard(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self.model = model.model(**kwargs)
         self._clear_implementation()
+        u = mdl_updater.model_updater(self.model)
+        u.ceph_version_refresh()
+        q = mdl_query.mdl_query(self.model)
+        self.ceph_daemon_user = q.ceph_daemon_user()
 
 
     def _clear_implementation(self):
-        self._monVersion = None
+        self._ceph_daemon_user = None
         self._monImp = None
 
 
     @Property
-    def ceph_version():
+    def ceph_daemon_user():
         doc = "key_type"
 
         def fget(self):
-            return self._monVersion
+            return self._ceph_daemon_user
 
 
-        def fset(self, version):
-            if version == None:
+        def fset(self, user):
+            if user == None:
                 self._clear_implementation()
-            implementation = mod_user_root()
+            implementation = None
+            if user == "root":
+                implementation = mod_user_root(self.model)
+            if user == "ceph":
+                implementation = mod_user_ceph(self.model)
+            if implementation == None:
+                raise Error("Invalid ceph_daemon_user")
             self._monImp = implementation
-            self._monVersion = version
-            return self._monVersion
+            self._ceph_daemon_user = user
+            return self._ceph_daemon_user
 
 
         def fdel(self):

@@ -475,7 +475,7 @@ class model_updater():
         version_public = version_public_raw.split(".")
         if len(version_public) < 3:
             raise Error("ceph returned an invalid version second value is not 'version':'%s' " % (version_raw))
-        self.model.ceph_version.major = version_public[0]
-        self.model.ceph_version.minor = version_public[1]
+        self.model.ceph_version.major = int(version_public[0])
+        self.model.ceph_version.minor = int(version_public[1])
         self.model.ceph_version.revision = ".".join(version_public[2:])
         self.model.ceph_version.uuid = version_raw_split[3].strip("()")

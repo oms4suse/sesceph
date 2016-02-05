@@ -733,7 +733,6 @@ def keyring_rgw_purge(**kwargs):
     If no ceph config file is found, this command will fail.
     """
     keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
     return keyobj.remove(**kwargs)
 
 
@@ -755,9 +754,8 @@ def mon_is(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    ctrl_mon = mon.mon_facard()
-    ctrl_mon.ceph_version = "root"
-    return ctrl_mon.is_mon(**kwargs)
+    ctrl_mon = mon.mon_facard(**kwargs)
+    return ctrl_mon.is_mon()
 
 
 def mon_status(**kwargs):
@@ -777,9 +775,8 @@ def mon_status(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard()
-    ctrl_mon.ceph_version = "root"
-    return ctrl_mon.status(**kwargs)
+    ctrl_mon = mon.mon_facard(**kwargs)
+    return ctrl_mon.status()
 
 def mon_quorum(**kwargs):
     """
@@ -798,9 +795,8 @@ def mon_quorum(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard()
-    ctrl_mon.ceph_version = "root"
-    return ctrl_mon.quorum(**kwargs)
+    ctrl_mon = mon.mon_facard(**kwargs)
+    return ctrl_mon.quorum()
 
 
 
@@ -821,9 +817,8 @@ def mon_active(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard()
-    ctrl_mon.ceph_version = "root"
-    return ctrl_mon.active(**kwargs)
+    ctrl_mon = mon.mon_facard(**kwargs)
+    return ctrl_mon.active()
 
 
 def mon_create(**kwargs):
@@ -843,9 +838,8 @@ def mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard()
-    ctrl_mon.ceph_version = "root"
-    return ctrl_mon.create(**kwargs)
+    ctrl_mon = mon.mon_facard(**kwargs)
+    return ctrl_mon.create()
 
 
 def keyring_auth_list(**kwargs):

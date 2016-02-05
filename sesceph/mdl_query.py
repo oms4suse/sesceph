@@ -71,3 +71,8 @@ class mdl_query():
         if running == None:
             raise Error("failed to get ActiveState from %s" % (systemctl_name))
         return running
+    def ceph_daemon_user(self):
+        if self.model.ceph_version.major == 0:
+            if self.model.ceph_version.minor < 81:
+                return "root"
+        return "ceph"
