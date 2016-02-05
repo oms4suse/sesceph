@@ -57,7 +57,7 @@ def __virtual__():
     return __virtualname__
 
 
-def partitions_all():
+def partition_list():
     '''
     List partitions by disk
 
@@ -73,7 +73,7 @@ def partitions_all():
     p = presenter.mdl_presentor(m)
     return p.partitions_all()
 
-def partitions_osd():
+def partition_list_osd():
     '''
     List all OSD data partitions by partition
 
@@ -90,7 +90,7 @@ def partitions_osd():
     return p.discover_osd_partitions()
 
 
-def partitions_journal():
+def partition_list_journal():
     '''
     List all OSD journal partitions by partition
 
