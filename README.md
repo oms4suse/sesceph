@@ -9,7 +9,7 @@ to be done for all state applying commands.
 
 So far I have mainly developed it as a CLI. For example:
 
-    salt 'ceph-node*' sesceph.discover_osd
+    salt 'ceph-node*' sesceph.osd_discover
 
 Will query all nodes who's name starts with 'ceph-node*' and return all OSD's
 by  cluster for example:
@@ -109,11 +109,11 @@ Example
 Get a list of potential mon keys:
 
 
-    # salt "*ceph-node*" sesceph.keyring_create_admin
+    # salt "*ceph-node*" sesceph.keyring_admin_create
 
 Use one output to write the keyring to admin nodes:
 
-    # salt "*ceph-node*" sesceph.keyring_save_admin '[client.admin]
+    # salt "*ceph-node*" sesceph.keyring_admin_save '[client.admin]
     > key = AQDHYqZWkGHiEhAA5T+214L5CiIeek5o3zGZtQ==
     > auid = 0
     > caps mds = "allow *"
@@ -123,12 +123,12 @@ Use one output to write the keyring to admin nodes:
 
 Repeat the process for mon keyring
 
-    # salt "*ceph-node*" sesceph.keyring_create_mon
+    # salt "*ceph-node*" sesceph.keyring_mon_create
 
 Use one output to write the keyring to mon nodes:
 
 
-    # salt "*ceph-node*" sesceph.keyring_save_mon '[mon.]
+    # salt "*ceph-node*" sesceph.keyring_mon_save '[mon.]
     > key = AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ==
     > caps mon = "allow *"
     > '
@@ -147,18 +147,18 @@ List authorised keys
 
 Get a list of potential osd keys:
 
-    # salt "*ceph-node*" sesceph.keyring_create_osd
+    # salt "*ceph-node*" sesceph.keyring_osd_create
 
 Use one output to write the keyring to osd nodes:
 
-    # salt "*ceph-node*" sesceph.keyring_save_osd '[client.bootstrap-osd]
+    # salt "*ceph-node*" sesceph.keyring_osd_save '[client.bootstrap-osd]
     > key = AQAFNKZWaByNLxAAmIx9CbAaN+9L5KvZunmo2w==
     > caps mon = "allow profile bootstrap-osd"
     > '
 
 Authorise the OSD boot strap
 
-    # salt "*ceph-node*" sesceph.keyring_auth_add_osd
+    # salt "*ceph-node*" sesceph.keyring_osd_auth_add
 
 Create some OSD's
 
@@ -174,9 +174,9 @@ An example SLS file. After the writing of all keys:
       module.run:
         - name:  sesceph.mon_create
 
-    keyring_auth_add_osd:
+    keyring_osd_auth_add:
       module.run:
-        - name:  sesceph.keyring_auth_add_osd
+        - name:  sesceph.keyring_osd_auth_add
 
     prepare:
       module.run:
