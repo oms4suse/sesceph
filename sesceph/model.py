@@ -1,6 +1,14 @@
 import ConfigParser
 
 
+class ceph_version:
+    def __init__(self, **kwargs):
+        self.major = kwargs.get("major")
+        self.minor = kwargs.get("minor")
+        self.revision = kwargs.get("revision")
+        self.uuid = kwargs.get("uuid")
+
+
 class model:
     """
     Basic model class to store detrived data
@@ -18,9 +26,9 @@ class model:
         self.mon_members = []
         self.hostname = None
         self.kargs_apply(**kwargs)
+        self.ceph_version = ceph_version()
 
 
     def kargs_apply(self, **kwargs):
         self.cluster_name = kwargs.get("cluster_name")
         self.cluster_uuid = kwargs.get("cluster_uuid")
-

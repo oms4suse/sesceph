@@ -192,3 +192,12 @@ class mdl_presentor():
     def pool_list(self):
         return self.model.pool_list
 
+
+    def ceph_version(self):
+        output = {
+            "major" : self.model.ceph_version.major,
+            "minor" : self.model.ceph_version.minor,
+            "revision" : self.model.ceph_version.revision,
+            "uuid" : self.model.ceph_version.uuid
+        }
+        return output

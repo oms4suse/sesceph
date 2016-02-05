@@ -1057,3 +1057,14 @@ def purge():
             output["stdout"],
             output["stderr"]
             ))
+
+
+def ceph_version():
+    """
+    Get the version of ceph installed
+    """
+    m = model.model()
+    u = mdl_updater.model_updater(m)
+    u.ceph_version_refresh()
+    p = presenter.mdl_presentor(m)
+    return p.ceph_version()

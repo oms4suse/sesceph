@@ -450,3 +450,32 @@ class model_updater():
         return True
 
 
+    def ceph_version_refresh(self):
+        arguments = [
+            "ceph",
+            "--version"
+            ]
+        output = utils.excuete_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                        " ".join(arguments),
+                        output["retcode"],
+                        output["stdout"],
+                        output["stderr"]))
+        version_raw = output["stdout"].strip()
+        version_raw_split = shlex.split(version_raw)
+        if len(version_raw_split) != 4:
+            raise Error("ceph returned an invalid version:'%s' " % (version_raw))
+        if version_raw_split[0] != "ceph":
+            raise Error("ceph returned an invalid version first value is not ceph:'%s' " % (version_raw))
+        if version_raw_split[1] != "version":
+            raise Error("ceph returned an invalid version second value is not 'version':'%s' " % (version_raw))
+        version_public_raw = version_raw_split[2]
+        version_git_raw = version_raw_split[2]
+        version_public = version_public_raw.split(".")
+        if len(version_public) < 3:
+            raise Error("ceph returned an invalid version second value is not 'version':'%s' " % (version_raw))
+        self.model.ceph_version.major = version_public[0]
+        self.model.ceph_version.minor = version_public[1]
+        self.model.ceph_version.revision = ".".join(version_public[2:])
+        self.model.ceph_version.uuid = version_raw_split[3].strip("()")
