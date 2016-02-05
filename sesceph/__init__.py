@@ -196,10 +196,9 @@ def zap(dev):
 
 
         _update_partition('-d', dev, 'zapped')
-        return 0
     except subprocess.CalledProcessError as e:
         raise Error(e)
-    return 0
+    return True
 
 
 def osd_prepare(**kwargs):
