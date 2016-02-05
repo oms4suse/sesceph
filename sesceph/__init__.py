@@ -162,7 +162,8 @@ def zap(dev):
     Destroy the partition table and content of a given disk.
     """
     dmode = os.stat(dev).st_mode
-    if not stat.S_ISBLK(dmode) or is_partition(dev):
+    osdc = osd.osd_ctrl()
+    if not stat.S_ISBLK(dmode) or osdc.is_partition(dev):
         raise Error('not full block device; cannot zap', dev)
     try:
         log.debug('Zapping partition table on %s', dev)
