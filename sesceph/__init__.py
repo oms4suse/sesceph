@@ -73,13 +73,13 @@ def partitions_all():
     p = presenter.mdl_presentor(m)
     return p.partitions_all()
 
-def osd_partitions():
+def partitions_osd():
     '''
     List all OSD data partitions by partition
 
     CLI Example:
 
-        salt '*' sesceph.osd_partitions
+        salt '*' sesceph.partitions_osd
     '''
     m = model.model()
     u = mdl_updater.model_updater(m)
@@ -90,13 +90,13 @@ def osd_partitions():
     return p.discover_osd_partitions()
 
 
-def journal_partitions():
+def partitions_journal():
     '''
     List all OSD journal partitions by partition
 
     CLI Example:
 
-        salt '*' sesceph.journal_partitions
+        salt '*' sesceph.partitions_journal
     '''
     m = model.model()
     u = mdl_updater.model_updater(m)
@@ -106,13 +106,13 @@ def journal_partitions():
     p = presenter.mdl_presentor(m)
     return p.discover_journal_partitions()
 
-def discover_osd():
+def osd_discover():
     """
     List all OSD by cluster
 
     CLI Example:
 
-        salt '*' sesceph.discover_osd
+        salt '*' sesceph.osd_discover
 
     """
     m = model.model()
@@ -125,14 +125,14 @@ def discover_osd():
     return p.discover_osd()
 
 
-def is_partition(dev):
+def partition_is(dev):
     """
     Check whether a given device path is a partition or a full disk.
 
     CLI Example:
 
     .. code-block:: bash
-    salt '*' sesceph.is_partition /dev/sdc1
+    salt '*' sesceph.partition_is /dev/sdc1
 
     """
     osdc = osd.osd_ctrl()
@@ -252,13 +252,13 @@ def osd_activate(**kwargs):
 
 
 
-def keyring_create_admin(**kwargs):
+def keyring_admin_create(**kwargs):
     """
     Create admin keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_create_admin
+        salt '*' sesceph.keyring_admin_create
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -274,13 +274,13 @@ def keyring_create_admin(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_save_admin(key_content, **kwargs):
+def keyring_admin_save(key_content, **kwargs):
     """
     Write admin keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_save_admin \
+        salt '*' sesceph.keyring_admin_save \
                 '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -297,13 +297,13 @@ def keyring_save_admin(key_content, **kwargs):
     return keyobj.write(key_content, **kwargs)
 
 
-def keyring_purge_admin(**kwargs):
+def keyring_admin_purge(**kwargs):
     """
     Delete Mon keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_purge_admin \
+        salt '*' sesceph.keyring_admin_purge \
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -322,13 +322,13 @@ def keyring_purge_admin(**kwargs):
     return keyobj.remove(**kwargs)
 
 
-def keyring_create_mon(**kwargs):
+def keyring_mon_create(**kwargs):
     """
     Create mon keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_create_mon
+        salt '*' sesceph.keyring_mon_create
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -344,13 +344,13 @@ def keyring_create_mon(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_save_mon(key_content, **kwargs):
+def keyring_mon_save(key_content, **kwargs):
     """
     Write admin keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_save_mon \
+        salt '*' sesceph.keyring_mon_save \
                 '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -367,13 +367,13 @@ def keyring_save_mon(key_content, **kwargs):
     return keyobj.write(key_content, **kwargs)
 
 
-def keyring_purge_mon(**kwargs):
+def keyring_mon_purge(**kwargs):
     """
     Delete Mon keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_purge_mon \
+        salt '*' sesceph.keyring_mon_purge \
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -392,13 +392,13 @@ def keyring_purge_mon(**kwargs):
     return keyobj.remove(**kwargs)
 
 
-def keyring_create_osd(**kwargs):
+def keyring_osd_create(**kwargs):
     """
     Create osd keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_create_osd
+        salt '*' sesceph.keyring_osd_create
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -414,13 +414,13 @@ def keyring_create_osd(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_save_osd(key_content, **kwargs):
+def keyring_osd_save(key_content, **kwargs):
     """
     Write admin keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_save_osd \
+        salt '*' sesceph.keyring_osd_save \
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -437,13 +437,13 @@ def keyring_save_osd(key_content, **kwargs):
     return keyobj.write(key_content, **kwargs)
 
 
-def keyring_auth_add_osd(**kwargs):
+def keyring_osd_auth_add(**kwargs):
     """
     Write admin keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_auth_add_osd \
+        salt '*' sesceph.keyring_osd_auth_add \
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -460,13 +460,13 @@ def keyring_auth_add_osd(**kwargs):
     return keyobj.auth_add(**kwargs)
 
 
-def keyring_auth_del_osd(**kwargs):
+def keyring_osd_auth_del(**kwargs):
     """
     Write rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_auth_del_osd \
+        salt '*' sesceph.keyring_osd_auth_del \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -482,13 +482,13 @@ def keyring_auth_del_osd(**kwargs):
     return keyobj.auth_del(**kwargs)
 
 
-def keyring_purge_osd(**kwargs):
+def keyring_osd_purge(**kwargs):
     """
     Write admin keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_purge_osd \
+        salt '*' sesceph.keyring_osd_purge \
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -506,13 +506,13 @@ def keyring_purge_osd(**kwargs):
 
 
 
-def keyring_create_mds(**kwargs):
+def keyring_mds_create(**kwargs):
     """
     Create mds keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_create_mds
+        salt '*' sesceph.keyring_mds_create
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -527,13 +527,13 @@ def keyring_create_mds(**kwargs):
     keyobj.key_type = "mds"
     return keyobj.create(**kwargs)
 
-def keyring_save_mds(key_content, **kwargs):
+def keyring_mds_save(key_content, **kwargs):
     """
     Write mds keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_save_mds \
+        salt '*' sesceph.keyring_mds_save \
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -551,13 +551,13 @@ def keyring_save_mds(key_content, **kwargs):
     keyobj.key_type = "mds"
     return keyobj.write(key_content, **kwargs)
 
-def keyring_auth_add_mds(**kwargs):
+def keyring_mds_auth_add(**kwargs):
     """
     Write mds keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_auth_add_mds \
+        salt '*' sesceph.keyring_mds_auth_add \
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -574,13 +574,13 @@ def keyring_auth_add_mds(**kwargs):
     return keyobj.auth_add(**kwargs)
 
 
-def keyring_auth_del_mds(**kwargs):
+def keyring_mds_auth_del(**kwargs):
     """
     Write rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_auth_del_mds \
+        salt '*' sesceph.keyring_mds_auth_del \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -596,13 +596,13 @@ def keyring_auth_del_mds(**kwargs):
     return keyobj.auth_del(**kwargs)
 
 
-def keyring_purge_mds(**kwargs):
+def keyring_mds_purge(**kwargs):
     """
     Delete MDS keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_purge_mds \
+        salt '*' sesceph.keyring_mds_purge \
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -621,13 +621,13 @@ def keyring_purge_mds(**kwargs):
     return keyobj.remove(**kwargs)
 
 
-def keyring_create_rgw(**kwargs):
+def keyring_rgw_create(**kwargs):
     """
     Create rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_create_rgw
+        salt '*' sesceph.keyring_rgw_create
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -643,13 +643,13 @@ def keyring_create_rgw(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_save_rgw(key_content, **kwargs):
+def keyring_rgw_save(key_content, **kwargs):
     """
     Write rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_save_rgw \
+        salt '*' sesceph.keyring_rgw_save \
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -667,13 +667,13 @@ def keyring_save_rgw(key_content, **kwargs):
     keyobj.key_type = "rgw"
     return keyobj.write(key_content, **kwargs)
 
-def keyring_auth_add_rgw(**kwargs):
+def keyring_rgw_auth_add(**kwargs):
     """
     Write rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_auth_add_rgw \
+        salt '*' sesceph.keyring_rgw_auth_add \
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
@@ -690,13 +690,13 @@ def keyring_auth_add_rgw(**kwargs):
     return keyobj.auth_add(**kwargs)
 
 
-def keyring_auth_del_rgw(**kwargs):
+def keyring_rgw_auth_del(**kwargs):
     """
     Write rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_auth_del_rgw \
+        salt '*' sesceph.keyring_rgw_auth_del \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
     Notes:
@@ -712,13 +712,13 @@ def keyring_auth_del_rgw(**kwargs):
     return keyobj.auth_del(**kwargs)
 
 
-def keyring_purge_rgw(**kwargs):
+def keyring_rgw_purge(**kwargs):
     """
     Delete rgw keyring for cluster
 
     CLI Example:
 
-        salt '*' sesceph.keyring_purge_rgw \
+        salt '*' sesceph.keyring_rgw_purge \
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
                 'cluster_name'='ceph' \
                 'cluster_uuid'='cluster_uuid' \
