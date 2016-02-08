@@ -5,6 +5,7 @@ import platform
 import pwd
 import tempfile
 import shutil
+import time
 
 # Local imports
 import keyring
@@ -176,6 +177,44 @@ class mon_implementation_base(object):
         return q.mon_quorum()
 
 
+    def _create_check_responding(self):
+        """
+        Check the mon service is runnign and responding.
+        """
+        q = mdl_query.mdl_query(self.model)
+        if not q.mon_active():
+            raise Error("mon service has died.")
+        u = mdl_updater.model_updater(self.model)
+        try:
+            u.mon_status()
+        except mdl_updater.Error:
+            return False
+        return True
+
+
+    def _create_check_retry(self):
+        """
+        Check the mon service is started and responding with time out.
+
+        On heavily overloaded hardware it can takes a while for the mon service
+        to start
+        """
+        # Number of seconds before a time out.
+        timeout = 60
+        time_start = time.clock()
+        time_end = time_start + timeout
+        running = True
+        if self._create_check_responding():
+            return True
+        while time.clock() < time_end:
+            log.info("Mon service did not start up, waiting.")
+            time.sleep(5)
+            log.info("Retrying mon service.")
+            if self._create_check_responding():
+                return True
+        raise Error("Failed to get mon service status after '%s' seconds." % (retry_max * retry_sleep))
+
+
     def create(self, **kwargs):
         """
         Create a mon node
@@ -331,38 +370,7 @@ class mon_implementation_base(object):
                     output["stderr"])
                     )
 
-            # Error is servcie wont start
-            if not q.mon_active():
-                 raise Error("Failed to start monitor")
-            # Enable the service
-            arguments = [
-                constants._path_systemctl,
-                "enable",
-                "ceph-mon@%s" % (self.model.hostname)
-                ]
-            output = utils.excuete_local_command(arguments)
-            if output["retcode"] != 0:
-                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                    " ".join(arguments),
-                    output["retcode"],
-                    output["stdout"],
-                    output["stderr"])
-                    )
-            arguments = [
-                constants._path_ceph,
-                "--cluster=%s" % (self.model.cluster_name),
-                "--admin-daemon",
-                "/var/run/ceph/ceph-mon.%s.asok" % (self.model.hostname),
-                "mon_status"
-                ]
-            output = self._execute(arguments)
-            if output["retcode"] != 0:
-                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                    " ".join(arguments),
-                    output["retcode"],
-                    output["stdout"],
-                    output["stderr"])
-                    )
+            self._create_check_retry()
             open(path_done_file, 'a').close()
         finally:
             shutil.rmtree(tmpd)
@@ -393,7 +401,7 @@ class mod_user_ceph(mon_implementation_base):
         self.uid = pwd_struct.pw_uid
         self.gid = pwd_struct.pw_gid
 
-    
+
     def _execute(self,arguments):
         prefix = [
             "sudo",
