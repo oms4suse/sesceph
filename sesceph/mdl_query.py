@@ -5,6 +5,15 @@ import utils
 log = logging.getLogger(__name__)
 
 
+class Error(Exception):
+    """
+    Error
+    """
+
+    def __str__(self):
+        doc = self.__doc__.strip()
+        return ': '.join([doc] + [str(a) for a in self.args])
+
 
 class mdl_query():
     """
