@@ -27,6 +27,8 @@ class model:
         self.hostname = None
         self.kargs_apply(**kwargs)
         self.ceph_version = ceph_version()
+        # Result of local query of mon status
+        self.mon_status = None
 
 
     def kargs_apply(self, **kwargs):
