@@ -82,6 +82,6 @@ class mdl_query():
         return running
     def ceph_daemon_user(self):
         if self.model.ceph_version.major == 0:
-            if self.model.ceph_version.minor < 81:
+            if self.model.ceph_version.minor < 95:
                 return "root"
         return "ceph"
