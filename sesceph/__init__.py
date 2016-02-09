@@ -148,7 +148,7 @@ def _update_partition(action, dev, description):
     # server. Since we are not resizing partitons so we rely on calling
     # partx
 
-    utils.excuete_local_command(
+    utils.execute_local_command(
         [
              constants._path_partprobe,
              dev,
@@ -176,7 +176,7 @@ def zap(dev):
             dev_file.seek(-size, os.SEEK_END)
             dev_file.write(size*'\0')
 
-        utils.excuete_local_command(
+        utils.execute_local_command(
             [
                 constants._path_sgdisk,
                 '--zap-all',
@@ -184,7 +184,7 @@ def zap(dev):
                 dev,
             ],
         )
-        utils.excuete_local_command(
+        utils.execute_local_command(
             [
                 constants._path_sgdisk,
                 '--clear',
@@ -994,7 +994,7 @@ def purge():
             "stop",
             "ceph*",
             ]
-    output = utils.excuete_local_command(arguments)
+    output = utils.execute_local_command(arguments)
     if output["retcode"] != 0:
         raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
             " ".join(arguments),
@@ -1028,7 +1028,7 @@ def purge():
             "umount",
             mountpoint
             ]
-        output = utils.excuete_local_command(arguments)
+        output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
@@ -1043,7 +1043,7 @@ def purge():
             "--one-file-system",
             "/var/lib/ceph",
             ]
-    output = utils.excuete_local_command(arguments)
+    output = utils.execute_local_command(arguments)
     if output["retcode"] != 0:
         raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
             " ".join(arguments),

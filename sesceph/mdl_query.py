@@ -54,7 +54,7 @@ class mdl_query():
             systemctl_name,
             ]
         log.debug("Running:%s" % (" ".join(arguments)))
-        output = utils.excuete_local_command(arguments)
+        output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
