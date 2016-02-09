@@ -106,7 +106,7 @@ class osd_ctrl(object):
                 '--mount',
                 partiion,
             ]
-        output = utils.excuete_local_command(arguments)
+        output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -290,7 +290,7 @@ class osd_ctrl(object):
             arguments.append(osd_dev)
         if journal_dev != None:
             arguments.append(journal_dev)
-        output = utils.excuete_local_command(arguments)
+        output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),

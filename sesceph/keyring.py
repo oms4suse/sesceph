@@ -86,7 +86,7 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            cmd_out = utils.excuete_local_command(self.get_arguments_create(key_path))
+            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path))
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
@@ -135,7 +135,7 @@ class keyring_implementation_base(object):
                 "-i",
                 keyring_path
                 ]
-        cmd_out = utils.excuete_local_command(arguments)
+        cmd_out = utils.execute_local_command(arguments)
         return True
 
 
@@ -164,7 +164,7 @@ class keyring_implementation_base(object):
                 "del",
                 self.keyring_name
                 ]
-        cmd_out = utils.excuete_local_command(arguments)
+        cmd_out = utils.execute_local_command(arguments)
         return True
 
 

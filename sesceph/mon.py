@@ -39,7 +39,7 @@ class mon_implementation_base(object):
 
 
     def _execute(self, arguments):
-        return utils.excuete_local_command(arguments)
+        return utils.execute_local_command(arguments)
 
 
     def _create_monmap(self, model, path_monmap):
@@ -54,7 +54,7 @@ class mon_implementation_base(object):
                 model.cluster_uuid,
                 path_monmap
                 ]
-            output = utils.excuete_local_command(arguments)
+            output = utils.execute_local_command(arguments)
             if output["retcode"] != 0:
                     raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),
@@ -70,7 +70,7 @@ class mon_implementation_base(object):
                         addr,
                         path_monmap
                         ]
-                output = utils.excuete_local_command(arguments)
+                output = utils.execute_local_command(arguments)
                 if output["retcode"] != 0:
                     raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                         " ".join(arguments),
@@ -274,7 +274,7 @@ class mon_implementation_base(object):
                 "restart",
                 "ceph-mon@%s" % (self.model.hostname)
                 ]
-            output = utils.excuete_local_command(arguments)
+            output = utils.execute_local_command(arguments)
             if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -361,7 +361,7 @@ class mon_implementation_base(object):
                 "restart",
                 "ceph-mon@%s" % (self.model.hostname)
                 ]
-            output = utils.excuete_local_command(arguments)
+            output = utils.execute_local_command(arguments)
             if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -408,7 +408,7 @@ class mod_user_ceph(mon_implementation_base):
             "-u",
             "ceph"
             ]
-        return utils.excuete_local_command(prefix + arguments)
+        return utils.execute_local_command(prefix + arguments)
 
 
 class mon_facard(object):
