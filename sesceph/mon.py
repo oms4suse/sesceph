@@ -42,7 +42,7 @@ class mon_implementation_base(object):
         return utils.execute_local_command(arguments)
 
 
-    def _create_monmap(self, model, path_monmap):
+    def _create_monmap(self, path_monmap):
         """
         create_monmap file
         """
@@ -51,7 +51,7 @@ class mon_implementation_base(object):
                 "monmaptool",
                 "--create",
                 "--fsid",
-                model.cluster_uuid,
+                self.model.cluster_uuid,
                 path_monmap
                 ]
             output = utils.execute_local_command(arguments)
@@ -62,7 +62,7 @@ class mon_implementation_base(object):
                         output["stdout"],
                         output["stderr"])
                         )
-            for name, addr in model.mon_members:
+            for name, addr in self.model.mon_members:
                 arguments = [
                         "monmaptool",
                         "--add",
@@ -299,7 +299,7 @@ class mon_implementation_base(object):
             # In 'tmpd' we make the monmap and keyring.
             key_path = os.path.join(tmpd,"keyring")
             path_monmap = os.path.join(tmpd,"monmap")
-            self._create_monmap(self.model, path_monmap)
+            self._create_monmap(path_monmap)
             os.chown(path_monmap, self.uid, self.gid)
             arguments = [
                 constants._path_ceph_authtool,
