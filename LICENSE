@@ -1,0 +1,11 @@
+Copyright 2016 SUSE LINUX GmbH
+
+This software will finalize its license in the near future.
+
+It will be licensed as LGPL 2.1 or Apache License, Version 2.0
+
+This is because the code is intended to be included in either the ceph project
+or salt.
+
+We expect all contributions to accept the code will be released under either of
+these licenses until this has been finalized.
