@@ -5,6 +5,7 @@ import logging
 import shlex
 import tempfile
 import json
+import ConfigParser
 
 # local modules
 import constants
