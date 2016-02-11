@@ -270,7 +270,7 @@ class model_updater():
         try:
             mon_initial_members_name_raw = self.model.ceph_conf.get("global","mon_initial_members")
         except ConfigParser.NoOptionError:
-            raise Error("Cluster confg file does not set mon_initial_members")
+            raise Error("Cluster config file does not set mon_initial_members")
         mon_initial_members_name_cleaned = []
 
         for mon_split in mon_initial_members_name_raw.split(","):
@@ -286,7 +286,7 @@ class model_updater():
         try:
             mon_initial_members_addr_raw = self.model.ceph_conf.get("global","mon_host")
         except ConfigParser.NoOptionError:
-            raise Error("Cluster confg file does not set mon_host")
+            raise Error("Cluster config file does not set mon_host")
         mon_initial_members_addr_cleaned = []
         for mon_split in mon_initial_members_addr_raw.split(","):
             mon_initial_members_addr_cleaned.append(mon_split.strip())
