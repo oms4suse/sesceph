@@ -111,6 +111,65 @@ class model_updater():
                 paths[real_path].append(file_path)
         self.model.symlinks = paths
 
+
+    def lsblk_version_refresh(self):
+        """
+        Get lsblk version as this is older on RHEL 7.2
+        """
+        arguments = [ constants._path_lsblk, "--version" ]
+        output = utils.execute_local_command(arguments)
+        if output["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                output["retcode"],
+                output["stdout"],
+                output["stderr"]
+                ))
+        version_str = output["stdout"].strip()
+        version_list = shlex.split(version_str)
+        if len(version_list) < 4:
+            raise Error("Failed processing lsblk version string '%s'" % (version_str))
+        version_split = version_list[3].split(".")
+        self.model.lsblk_version.major = int(version_split[0])
+        if len(version_split) > 1:
+            self.model.lsblk_version.minor = int(version_split[1])
+        if len(version_split) > 2:
+            self.model.lsblk_version.revision = int(version_split[2])
+        else:
+            self.model.lsblk_version.revision = 0
+
+
+    def _lsblk_arguements(self):
+        """
+        Utility function for lsblk
+        """
+        if self.model.lsblk_version.major == None:
+            self.lsblk_version_refresh()
+
+        if self.model.lsblk_version.major < 2:
+            raise Error("lsblk version too old '%s'" % (self.model.lsblk_version))
+        if self.model.lsblk_version.major == 2 and self.model.lsblk_version.minor < 23:
+            raise Error("lsblk version maybe too old '%s'" % (self.model.lsblk_version))
+        # RHEL 7.2 uses version 2.23.2
+        if self.model.lsblk_version.major == 2 and self.model.lsblk_version.minor < 25:
+            # Note we dont have "PARTTYPE"
+            return [
+                "--ascii",
+                "--output",
+                "NAME,FSTYPE,MOUNTPOINT,PARTLABEL,PARTUUID,PKNAME,ROTA,RQ-SIZE,SCHED,SIZE,TYPE,UUID,VENDOR",
+                "--pairs",
+                "--paths",
+                "--bytes"
+                ]
+        return [
+            "--ascii",
+            "--output-all",
+            "--pairs",
+            "--paths",
+            "--bytes"
+            ]
+
+
     def partitions_all_refresh(self):
         '''
         List all partition details
@@ -120,7 +179,7 @@ class model_updater():
             salt '*' sesceph.partitions_all
         '''
         part_map = {}
-        cmd = [ constants._path_lsblk, "--ascii", "--output-all", "--pairs", "--paths", "--bytes"]
+        cmd = [ constants._path_lsblk] + self._lsblk_arguements()
         output = utils.execute_local_command(cmd)
         if output['retcode'] != 0:
             raise Error("Failed running: lsblk --ascii --output-all")

@@ -1,12 +1,24 @@
 import ConfigParser
 
 
-class ceph_version:
+class version:
     def __init__(self, **kwargs):
         self.major = kwargs.get("major")
         self.minor = kwargs.get("minor")
         self.revision = kwargs.get("revision")
         self.uuid = kwargs.get("uuid")
+
+
+    def __repr__(self):
+        if self.major == None:
+            return "<version(None)>"
+        if self.minor == None:
+            return "<version(%s)>" % (self.major)
+        if self.revision == None:
+            return "<version(%s,%s)>" % (self.major, self.minor)
+        if self.uuid == None:
+            return "<version(%s,%s,%s)>" % (self.major, self.minor, self.revision)
+        return "<version(%s,%s,%s,%s)>" % (self.major, self.minor, self.revision, self.uuid)
 
 
 class model:
@@ -26,7 +38,8 @@ class model:
         self.mon_members = []
         self.hostname = None
         self.kargs_apply(**kwargs)
-        self.ceph_version = ceph_version()
+        self.ceph_version = version()
+        self.lsblk_version = version()
         # Result of local query of mon status
         self.mon_status = None
 
