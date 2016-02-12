@@ -207,12 +207,12 @@ def osd_prepare(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.osd_prepare 'osd_dev'='/dev/vdc' \
-                'journal_dev'='device' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
-                'osd_fs_type'='xfs' \
-                'osd_uuid'='2a143b73-6d85-4389-a9e9-b8a78d9e1e07' \
+        salt '*' sesceph.osd_prepare 'osd_dev'='/dev/vdc' \\
+                'journal_dev'='device' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid' \\
+                'osd_fs_type'='xfs' \\
+                'osd_uuid'='2a143b73-6d85-4389-a9e9-b8a78d9e1e07' \\
                 'journal_uuid'='4562a5db-ff6f-4268-811d-12fd4a09ae98'
     Notes:
 
@@ -258,9 +258,9 @@ def keyring_admin_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_admin_create
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_admin_create \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -280,10 +280,10 @@ def keyring_admin_save(key_content, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_admin_save \
-                '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_admin_save \\
+                '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -303,10 +303,10 @@ def keyring_admin_purge(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_admin_purge \
-                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_admin_purge \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -328,9 +328,9 @@ def keyring_mon_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mon_create
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mon_create \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -350,10 +350,10 @@ def keyring_mon_save(key_content, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mon_save \
-                '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mon_save \\
+                '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -373,10 +373,10 @@ def keyring_mon_purge(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mon_purge \
-                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mon_purge \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -398,9 +398,9 @@ def keyring_osd_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_osd_create
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_osd_create \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -420,10 +420,10 @@ def keyring_osd_save(key_content, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_osd_save \
-                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_osd_save \\
+                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -443,10 +443,10 @@ def keyring_osd_auth_add(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_osd_auth_add \
-                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_osd_auth_add \\
+                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -466,9 +466,9 @@ def keyring_osd_auth_del(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_osd_auth_del \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_osd_auth_del \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -488,10 +488,10 @@ def keyring_osd_purge(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_osd_purge \
-                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_osd_purge \\
+                '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -512,9 +512,9 @@ def keyring_mds_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mds_create
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mds_create \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -533,10 +533,10 @@ def keyring_mds_save(key_content, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mds_save \
-                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mds_save \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -557,10 +557,10 @@ def keyring_mds_auth_add(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mds_auth_add \
-                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mds_auth_add \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -580,9 +580,9 @@ def keyring_mds_auth_del(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mds_auth_del \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mds_auth_del \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -602,10 +602,10 @@ def keyring_mds_purge(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mds_purge \
-                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_mds_purge \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -627,9 +627,9 @@ def keyring_rgw_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_rgw_create
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_rgw_create \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -649,10 +649,10 @@ def keyring_rgw_save(key_content, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_rgw_save \
-                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_rgw_save \\
+                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -673,10 +673,10 @@ def keyring_rgw_auth_add(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_rgw_auth_add \
-                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_rgw_auth_add \\
+                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -696,9 +696,9 @@ def keyring_rgw_auth_del(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_rgw_auth_del \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_rgw_auth_del \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -718,10 +718,10 @@ def keyring_rgw_purge(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_rgw_purge \
-                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.keyring_rgw_purge \\
+                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -744,9 +744,9 @@ def mon_is(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.mon_is
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.mon_is \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_name
@@ -765,9 +765,9 @@ def mon_status(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.mon_status
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.mon_status \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -785,9 +785,9 @@ def mon_quorum(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.mon_quorum
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.mon_quorum \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -807,9 +807,9 @@ def mon_active(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.mon_active
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.mon_active \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -828,9 +828,9 @@ def mon_create(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.mon_create
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.mon_create \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_uuid
@@ -849,9 +849,9 @@ def keyring_auth_list(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.auth_list
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.auth_list \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_name
@@ -880,9 +880,9 @@ def pool_list(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.pool_list
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.pool_list \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_name
@@ -911,9 +911,9 @@ def pool_add(pool_name, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.pool_add pool_name \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.pool_add pool_name \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_name
@@ -957,9 +957,9 @@ def pool_del(pool_name, **kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.pool_del pool_name \
-                'cluster_name'='ceph' \
-                'cluster_uuid'='cluster_uuid' \
+        salt '*' sesceph.pool_del pool_name \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
     Notes:
 
     cluster_name
