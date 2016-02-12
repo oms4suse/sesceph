@@ -237,9 +237,9 @@ class keyring_implementation_mon(keyring_implementation_base):
             key_opts="--add-key %s" %key
         return [
             constants._path_ceph_authtool,
-            key_opts,
+            "--create-keyring",
             path,
-            "--gen-key",
+            key_opts,
             "-n",
             self.keyring_name,
             "--cap",
