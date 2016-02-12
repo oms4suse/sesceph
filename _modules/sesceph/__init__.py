@@ -367,6 +367,27 @@ def keyring_mon_save(key_content, **kwargs):
     return keyobj.write(key_content, **kwargs)
 
 
+def keyring_mon_create_and_save(key, **kwargs):
+   """
+    Write mon keyring for cluster using given key
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mon_create_and_save 'some-base66-key'
+
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+   keyobj = keyring.keyring_facard()
+   keyobj.key_type = "mon"
+   return keyobj.create_and_save(key, **kwargs)
+
+
 def keyring_mon_purge(**kwargs):
     """
     Delete Mon keyring for cluster
