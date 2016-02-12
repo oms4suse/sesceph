@@ -231,10 +231,11 @@ class keyring_implementation_mon(keyring_implementation_base):
                 self.model.hostname)
 
     def get_arguments_create(self, path, key=None):
-        if key is None:
-            key_opts="--create-keyring"
+        if not key:
+            key_opts="--gen-key"
         else:
-            key_opts="--add-key %s" %key
+            key_opts="--add-key %s" % key
+
         return [
             constants._path_ceph_authtool,
             "--create-keyring",
