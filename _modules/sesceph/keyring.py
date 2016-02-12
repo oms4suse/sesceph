@@ -252,7 +252,7 @@ class keyring_implementation_mon(keyring_implementation_base):
         # TODO: also we don't right now check for failures
         kwargs['key'] = key
         keyring = self.create(**kwargs)
-        self.write(keyring,**kwargs)
+        return self.write(keyring,**kwargs)
 
 class keyring_implementation_osd(keyring_implementation_base):
     def __init__(self):
