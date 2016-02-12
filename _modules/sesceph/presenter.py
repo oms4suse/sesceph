@@ -9,13 +9,13 @@ class mdl_presentor():
     def lsblk_partition_by_disk_part(self, part):
         output = {}
         disk = self.model.part_pairent.get(part)
-        if disk == None:
+        if disk is None:
             return None
         disk_details = self.model.lsblk.get(disk)
-        if disk_details == None:
+        if disk_details is None:
             return None
         symlinks = self.model.symlinks.get(part)
-        if symlinks != None:
+        if symlinks is not None:
             output["LINK"] = symlinks
         wanted_keys = set([
                 'SIZE',
@@ -34,10 +34,10 @@ class mdl_presentor():
             ])
 
         all_parts = disk_details.get('PARTITION')
-        if all_parts == None:
+        if all_parts is None:
             return None
         part_details = all_parts.get(part)
-        if part_details == None:
+        if part_details is None:
             return None
         for key in part_details:
             if not key in wanted_keys:
@@ -49,10 +49,10 @@ class mdl_presentor():
     def lsblk_disk_by_disk(self, disk):
         output = {}
         disk_details = self.model.lsblk.get(disk)
-        if disk_details == None:
+        if disk_details is None:
             return None
         symlinks = self.model.symlinks.get(disk)
-        if symlinks != None:
+        if symlinks is not None:
             output["LINK"] = symlinks
         wanted_keys = set([
                 'NAME',
@@ -68,7 +68,7 @@ class mdl_presentor():
                 part_list = []
                 for part in disk_details['PARTITION'].keys():
                     part_info = self.lsblk_partition_by_disk_part(part)
-                    if part_info == None:
+                    if part_info is None:
                         continue
                     part_list.append(part_info)
                 output["PARTITION"] = part_list
@@ -100,7 +100,7 @@ class mdl_presentor():
     def discover_osd_by_cluster_uuid(self,cluster_uuid):
         osd_out_list = []
         osd_in_list = self.model.discovered_osd.get(cluster_uuid)
-        if osd_in_list == None:
+        if osd_in_list is None:
             return osd_out_list
         for osd_in in osd_in_list:
             osd_out = {}
@@ -131,7 +131,7 @@ class mdl_presentor():
         output = []
         for part_name in self.model.partitions_osd:
             part_info = self.lsblk_partition_by_disk_part(part_name)
-            if part_info == None:
+            if part_info is None:
                 continue
             output.append(part_info)
         return output
@@ -147,7 +147,7 @@ class mdl_presentor():
         output = []
         for part_name in self.model.partitions_journal:
             part_info = self.lsblk_partition_by_disk_part(part_name)
-            if part_info == None:
+            if part_info is None:
                 continue
             output.append(part_info)
         return output
@@ -172,7 +172,7 @@ class mdl_presentor():
                 output[key] = monmap_out
                 continue
             output[key] = self.model.mon_status.get(key)
-        if fsid == None:
+        if fsid is None:
             return {}
         return {fsid : output}
 

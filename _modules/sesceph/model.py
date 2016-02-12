@@ -10,13 +10,13 @@ class version:
 
 
     def __repr__(self):
-        if self.major == None:
+        if self.major is None:
             return "<version(None)>"
-        if self.minor == None:
+        if self.minor is None:
             return "<version(%s)>" % (self.major)
-        if self.revision == None:
+        if self.revision is None:
             return "<version(%s,%s)>" % (self.major, self.minor)
-        if self.uuid == None:
+        if self.uuid is None:
             return "<version(%s,%s,%s)>" % (self.major, self.minor, self.revision)
         return "<version(%s,%s,%s,%s)>" % (self.major, self.minor, self.revision, self.uuid)
 
