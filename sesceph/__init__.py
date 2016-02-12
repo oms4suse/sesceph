@@ -733,6 +733,7 @@ def keyring_rgw_purge(**kwargs):
     If no ceph config file is found, this command will fail.
     """
     keyobj = keyring.keyring_facard()
+    keyobj.key_type = "rgw"
     return keyobj.remove(**kwargs)
 
 
