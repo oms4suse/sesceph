@@ -403,7 +403,7 @@ class keyring_facard(object):
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.create_and_save(key_content, **kwargs)
+        return self._keyImp.create_and_save(key, **kwargs)
 
     def auth_add(self, **kwargs):
         """
