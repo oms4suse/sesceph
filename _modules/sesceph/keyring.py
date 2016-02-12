@@ -402,7 +402,7 @@ class keyring_facard(object):
         Create keyring from given secret
         """
         if self._keyImp is None:
-            raise Error("Programmine error: key type unset")
+            raise Error("Programming error: key type unset")
         return self._keyImp.create_and_save(key_content, **kwargs)
 
     def auth_add(self, **kwargs):
