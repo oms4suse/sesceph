@@ -220,7 +220,7 @@ class keyring_implementation_admin(keyring_implementation_base):
 class keyring_implementation_mon(keyring_implementation_base):
     def __init__(self):
         keyring_implementation_base.__init__(self)
-        self.keyring_name = "mon." + self.model.hostname
+        self.keyring_name = "mon."
 
     def get_path_keyring(self):
         if self.model.cluster_name == None:
