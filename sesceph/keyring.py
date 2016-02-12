@@ -108,6 +108,7 @@ class keyring_implementation_base(object):
         _keying_write(keyring_path, key_content)
         return True
 
+
     def auth_add(self, **kwargs):
         """
         Authorise keyring
@@ -139,20 +140,18 @@ class keyring_implementation_base(object):
         return True
 
 
-
     def auth_del(self, **kwargs):
         """
         Remove Authorised keyring
         """
         self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(m)
+        u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
-        if m.cluster_name == None:
+        if self.model.cluster_name == None:
             u.defaults_refresh()
-        self.cluster_name = m.cluster_name
-        u.load_confg(m.cluster_name)
+        u.load_confg(self.model.cluster_name)
         u.mon_members_refresh()
-        q = mdl_query.mdl_query(m)
+        q = mdl_query.mdl_query(self.model)
         if not q.mon_is():
             raise Error("Not ruining a mon daemon")
         u.mon_status()
@@ -173,10 +172,9 @@ class keyring_implementation_base(object):
         Delete keyring
         """
         self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(m)
-        if m.cluster_name == None:
+        u = mdl_updater.model_updater(self.model)
+        if self.model.cluster_name == None:
             u.defaults_refresh()
-        self.cluster_name = m.cluster_name
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             try:
@@ -184,6 +182,7 @@ class keyring_implementation_base(object):
             except:
                 raise Error("Keyring could not be deleted")
         return True
+
 
 class keyring_implementation_admin(keyring_implementation_base):
     def __init__(self):
