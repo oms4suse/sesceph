@@ -232,21 +232,31 @@ class keyring_implementation_mon(keyring_implementation_base):
 
     def get_arguments_create(self, path, key=None):
         if not key:
-            key_opts="--gen-key"
-        else:
-            key_opts="--add-key %s" % key
-
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            key_opts,
-            "-n",
-            self.keyring_name,
-            "--cap",
-            "mon",
-            "allow *"
+            return [
+                constants._path_ceph_authtool,
+                "--create-keyring",
+                path,
+                "--gen-key",
+                "-n",
+                self.keyring_name,
+                "--cap",
+                "mon",
+                "allow *"
             ]
+        else:
+            return [
+                constants._path_ceph_authtool,
+                "--create-keyring",
+                path,
+                "--add-key",
+                key
+                "-n",
+                self.keyring_name,
+                "--cap",
+                "mon",
+                "allow *"
+            ]
+
 
     def create_and_save(self, key, **kwargs):
         # TODO: fix the base class
