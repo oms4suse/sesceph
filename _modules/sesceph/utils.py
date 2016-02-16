@@ -63,7 +63,7 @@ def _get_cluster_name_from_uuid(cluster_uuid):
         config.read(fullpath)
         try:
             fsid = config.get("global","fsid")
-            if fsid != None:
+            if fsid is not None:
                 output = file_name[:-5]
         except:
             continue

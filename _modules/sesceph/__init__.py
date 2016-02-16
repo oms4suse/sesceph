@@ -1011,19 +1011,19 @@ def purge():
 
     for part in m.partitions_osd:
         disk = m.part_pairent.get(part)
-        if disk == None:
+        if disk is None:
             continue
         disk_details = m.lsblk.get(disk)
-        if disk_details == None:
+        if disk_details is None:
             continue
         all_parts = disk_details.get('PARTITION')
-        if all_parts == None:
+        if all_parts is None:
             continue
         part_details = all_parts.get(part)
-        if part_details == None:
+        if part_details is None:
             continue
         mountpoint =  part_details.get("MOUNTPOINT")
-        if mountpoint == None:
+        if mountpoint is None:
             continue
         arguments = [
             "umount",

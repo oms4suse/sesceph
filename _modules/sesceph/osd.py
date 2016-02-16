@@ -74,10 +74,10 @@ class osd_ctrl(object):
     def _get_osd_partitons_by_disk(self, disk):
         output = set()
         disk_details = self.model.lsblk.get(disk)
-        if disk_details == None:
+        if disk_details is None:
             return output
         part_details = disk_details.get('PARTITION')
-        if part_details == None:
+        if part_details is None:
             return output
         for part_name in part_details.keys():
             if part_name in self.model.partitions_osd:
@@ -120,14 +120,14 @@ class osd_ctrl(object):
     def activate_targets(self, **kwargs):
         osd_dev_raw = kwargs.get("osd_dev")
         osd_dev_list_raw = kwargs.get("osd_dev_list")
-        if osd_dev_raw == None and osd_dev_list_raw == None:
+        if osd_dev_raw is None and osd_dev_list_raw is None:
             return self.model.partitions_osd
 
         activate_list = set()
-        if osd_dev_raw != None:
+        if osd_dev_raw is not None:
             for dev_norm in self._activate_targets_item(osd_dev_raw):
                 activate_list.add(dev_norm)
-        if osd_dev_list_raw != None:
+        if osd_dev_list_raw is not None:
             for dev_raw in osd_dev_list_raw:
                 for dev_norm in self._activate_targets_item(dev_raw):
                     activate_list.add(dev_norm)
@@ -138,20 +138,20 @@ class osd_ctrl(object):
 
     def _get_part_details(self,partition):
         disk_name = self.model.part_pairent.get(partition)
-        if disk_name == None:
+        if disk_name is None:
             raise Error("Programming error")
         disk_details = self.model.lsblk.get(disk_name)
-        if disk_details == None:
+        if disk_details is None:
             raise Error("Programming error")
         disk_parts = disk_details.get('PARTITION')
-        if disk_parts == None:
+        if disk_parts is None:
             raise Error("Programming error")
         return disk_parts.get(partition)
 
 
     def _get_part_type(self,partition):
         part_details = self._get_part_details(partition)
-        if part_details == None:
+        if part_details is None:
             raise Error("Programming error")
         return part_details.get("PARTTYPE")
 
@@ -198,16 +198,16 @@ class osd_ctrl(object):
         osd_uuid = kwargs.get("osd_uuid")
         journal_uuid = kwargs.get("journal_uuid")
         # Default cluster name / uuid values
-        if cluster_name == None and cluster_uuid == None:
+        if cluster_name is None and cluster_uuid is None:
             cluster_name = "ceph"
-        if cluster_name != None and cluster_uuid == None:
+        if cluster_name is not None and cluster_uuid is None:
             cluster_uuid = utils._get_cluster_uuid_from_name(cluster_name)
-        if cluster_name == None and cluster_uuid != None:
+        if cluster_name is None and cluster_uuid is not None:
             cluster_name = utils._get_cluster_name_from_uuid(cluster_name)
 
         fs_type = kwargs.get("fs_type","xfs")
         # Check required variables are set
-        if osd_dev_raw == None:
+        if osd_dev_raw is None:
             raise Error("osd_dev not specified")
 
         # Check boot strap key exists
@@ -225,15 +225,15 @@ class osd_ctrl(object):
         # Validate the osd_uuid and journal_uuid dont already exist
 
         osd_list_existing = self.model.discovered_osd.get(cluster_uuid)
-        if osd_list_existing != None:
+        if osd_list_existing is not None:
             for osd_existing in osd_list_existing:
-                if osd_uuid != None:
+                if osd_uuid is not None:
                     osd_existing_fsid = osd_existing.get("fsid")
                     if osd_existing_fsid == osd_uuid:
                         log.debug("osd_uuid already exists:%s" % (osd_uuid))
                         return True
 
-                if journal_uuid != None:
+                if journal_uuid is not None:
                     journal_existing_uuid = osd_existing.get("journal_uuid")
                     if journal_existing_uuid == journal_uuid:
                         log.debug("journal_uuid already exists:%s" % (journal_uuid))
@@ -243,9 +243,9 @@ class osd_ctrl(object):
                 return True
             partion_details = self._get_part_details(osd_dev)
             osd_mountpoint = partion_details.get("MOUNTPOINT")
-            if osd_mountpoint != None:
+            if osd_mountpoint is not None:
                 return True
-            if journal_dev == None:
+            if journal_dev is None:
                 # We could try and default journal_dev if a journel disk is found.
                 raise Error("Journel device must be specified")
             self._prepare_check_partition_type_data(osd_dev)
@@ -253,10 +253,10 @@ class osd_ctrl(object):
         else:
             # If partions exist on osd_dev disk assume its used
             block_details_osd = self.model.lsblk.get(osd_dev)
-            if block_details_osd == None:
+            if block_details_osd is None:
                 raise Error("Not a block device")
             part_table = block_details_osd.get("PARTITION")
-            if part_table != None:
+            if part_table is not None:
                 if len(part_table.keys()) > 0:
                     return True
 
@@ -270,25 +270,25 @@ class osd_ctrl(object):
             '--fs-type',
             fs_type
             ]
-        if osd_dev != None:
+        if osd_dev is not None:
             arguments.append("--data-dev")
-        if journal_dev != None:
+        if journal_dev is not None:
             arguments.append("--journal-dev")
-        if cluster_name != None:
+        if cluster_name is not None:
             arguments.append("--cluster")
             arguments.append(cluster_name)
-        if cluster_uuid != None:
+        if cluster_uuid is not None:
             arguments.append("--cluster-uuid")
             arguments.append(cluster_uuid)
-        if osd_uuid != None:
+        if osd_uuid is not None:
             arguments.append("--osd-uuid")
             arguments.append(osd_uuid)
-        if journal_uuid != None:
+        if journal_uuid is not None:
             arguments.append("--journal-uuid")
             arguments.append(journal_uuid)
-        if osd_dev != None:
+        if osd_dev is not None:
             arguments.append(osd_dev)
-        if journal_dev != None:
+        if journal_dev is not None:
             arguments.append(journal_dev)
         output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:

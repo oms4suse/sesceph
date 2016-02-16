@@ -24,7 +24,7 @@ class mdl_query():
         self.model = model
 
     def mon_is(self):
-        if self.model.hostname == None:
+        if self.model.hostname is None:
             raise Error("Programming error: Hostname not detected")
         for hostname, addr in self.model.mon_members:
             if hostname == self.model.hostname:
@@ -77,7 +77,7 @@ class mdl_query():
                     running = True
                 else:
                     running = False
-        if running == None:
+        if running is None:
             raise Error("failed to get ActiveState from %s" % (systemctl_name))
         return running
     def ceph_daemon_user(self):

@@ -55,7 +55,7 @@ def _retrive_osd_details_from_dir(directory):
 
 def retrive_osd_details(device_name):
     osd_details = {}
-    if device_name == None:
+    if device_name is None:
         return None
     try:
         tmpd = tempfile.mkdtemp()
@@ -85,11 +85,11 @@ class model_updater():
 
     def defaults_refresh(self):
         # Default cluster name / uuid values
-        if self.model.cluster_name == None and self.model.cluster_uuid == None:
+        if self.model.cluster_name is None and self.model.cluster_uuid is None:
             self.model.cluster_name = "ceph"
-        if self.model.cluster_name != None and self.model.cluster_uuid == None:
+        if self.model.cluster_name is not None and self.model.cluster_uuid is None:
             self.model.cluster_uuid = utils._get_cluster_uuid_from_name(self.model.cluster_name)
-        if self.model.cluster_name == None and self.model.cluster_uuid != None:
+        if self.model.cluster_name is None and self.model.cluster_uuid is not None:
             self.model.cluster_name = utils._get_cluster_name_from_uuid(self.model.cluster_uuid)
 
     def symlinks_refresh(self):
@@ -144,7 +144,7 @@ class model_updater():
         """
         Utility function for lsblk
         """
-        if self.model.lsblk_version.major == None:
+        if self.model.lsblk_version.major is None:
             self.lsblk_version_refresh()
 
         if self.model.lsblk_version.major < 2:
@@ -198,7 +198,7 @@ class model_updater():
                 partition[key] = value
 
             part_name = partition.get("NAME")
-            if part_name == None:
+            if part_name is None:
                 continue
             part_type = partition.get("TYPE")
             if part_type == "disk":
@@ -237,7 +237,7 @@ class model_updater():
                 if split_line[0] != 'Partition Table':
                     continue
                 part_type = ":".join(split_line[1:]).strip()
-            if part_type == None:
+            if part_type is None:
                 continue
             self.model.lsblk[disk_name]["PARTTABLE"] = part_type
 
@@ -255,43 +255,43 @@ class model_updater():
         osd_details = {}
         for diskname in self.model.lsblk.keys():
             disk = self.model.lsblk.get(diskname)
-            if disk == None:
+            if disk is None:
                 continue
             part_struct = disk.get("PARTITION")
-            if part_struct == None:
+            if part_struct is None:
                 continue
             for partname in part_struct.keys():
                 part_details = part_struct.get(partname)
-                if part_details == None:
+                if part_details is None:
                     continue
                 mount_point = part_details.get("MOUNTPOINT")
                 if mount_point == '[SWAP]':
                     continue
-                if mount_point != None:
+                if mount_point is not None:
                     osd_md = _retrive_osd_details_from_dir(mount_point)
-                    if osd_md != None:
+                    if osd_md is not None:
                         osd_details[partname] = osd_md
                 part_type = part_details.get("PARTTYPE")
                 if part_type == constants.OSD_UUID:
                     osd_all.add(partname)
-                    if mount_point != None:
+                    if mount_point is not None:
                         continue
                     osd_md = retrive_osd_details(partname)
-                    if osd_md != None:
+                    if osd_md is not None:
                         osd_details[partname] = osd_md
                     continue
                 if part_type == constants.JOURNAL_UUID:
                     journal_all.add(partname)
                     continue
-                if mount_point != None:
+                if mount_point is not None:
                     continue
                 fs_type = part_details.get("FSTYPE")
-                if fs_type == None:
+                if fs_type is None:
                     continue
                 if not fs_type in ['xfs', 'btrfs', 'ext4']:
                     continue
                 osd_md = retrive_osd_details(partname)
-                if osd_md != None:
+                if osd_md is not None:
                     osd_details[partname] = osd_md
         # Now we combine our data to find incorrectly labeled OSD's
         # and build osd data structure discovered_osd
@@ -300,15 +300,15 @@ class model_updater():
             # Agregate data into osd_all.
             osd_all.add(osd_dev_data)
             osd_md = osd_details.get(osd_dev_data)
-            if osd_md == None:
+            if osd_md is None:
                 continue
             # Agregate data into journal_all.
             osd_dev_journel_raw = osd_md.get("dev_journal")
-            if osd_dev_journel_raw != None:
+            if osd_dev_journel_raw is not None:
                 journal_all.add(osd_dev_journel_raw)
             osd_md["dev"] = osd_dev_data
             disk_name = self.model.part_pairent.get(osd_dev_data)
-            if disk_name != None:
+            if disk_name is not None:
                 osd_md["dev_parent"] = disk_name
             ceph_fsid = osd_md.get("ceph_fsid")
             if not ceph_fsid in discovered_osd.keys():
@@ -363,9 +363,9 @@ class model_updater():
 
 
     def mon_status(self):
-        if self.model.hostname == None:
+        if self.model.hostname is None:
             raise Error("Hostname not set")
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             raise Error("cluster_name not set")
         arguments = [
             "ceph",
@@ -407,7 +407,7 @@ class model_updater():
                 continue
             if line[0] != '\t':
                 prev_sec_name = section.get("name")
-                if prev_sec_name != None:
+                if prev_sec_name is not None:
                     auth_list_out[prev_sec_name] = section
                 section = { "name" : line }
                 continue
@@ -424,7 +424,7 @@ class model_updater():
 
 
         prev_sec_name = section.get("name")
-        if prev_sec_name != None:
+        if prev_sec_name is not None:
             auth_list_out[prev_sec_name] = section
         self.model.auth_list = auth_list_out
 
@@ -467,14 +467,14 @@ class model_updater():
             name,
             str(pg_num)
             ]
-        if pgp_num != None:
+        if pgp_num is not None:
             arguments.append(str(pgp_num))
         if pool_type == "replicated":
             arguments.append("replicated")
         if pool_type == "erasure":
             arguments.append("erasure")
             arguments.append("erasure-code-profile=%s" % (er_profile))
-        if crush_ruleset_name != None:
+        if crush_ruleset_name is not None:
             arguments.append(crush_ruleset_name)
         output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:

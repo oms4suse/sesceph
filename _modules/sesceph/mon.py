@@ -435,14 +435,14 @@ class mon_facard(object):
 
 
         def fset(self, user):
-            if user == None:
+            if user is None:
                 self._clear_implementation()
             implementation = None
             if user == "root":
                 implementation = mod_user_root(self.model)
             if user == "ceph":
                 implementation = mod_user_ceph(self.model)
-            if implementation == None:
+            if implementation is None:
                 raise Error("Invalid ceph_daemon_user")
             self._monImp = implementation
             self._ceph_daemon_user = user
@@ -460,30 +460,30 @@ class mon_facard(object):
         """
         Create mon
         """
-        if self._monImp == None:
+        if self._monImp is None:
             raise Error("Programming error: key type unset")
         return self._monImp.create(**kwargs)
 
 
     def quorum(self, **kwargs):
-        if self._monImp == None:
+        if self._monImp is None:
             raise Error("Programming error: key type unset")
         return self._monImp.quorum(**kwargs)
 
 
     def status(self, **kwargs):
-        if self._monImp == None:
+        if self._monImp is None:
             raise Error("Programming error: key type unset")
         return self._monImp.status(**kwargs)
 
 
     def is_mon(self, **kwargs):
-        if self._monImp == None:
+        if self._monImp is None:
             raise Error("Programming error: key type unset")
         return self._monImp.mon_is(**kwargs)
 
 
     def active(self, **kwargs):
-        if self._monImp == None:
+        if self._monImp is None:
             raise Error("Programming error: key type unset")
         return self._monImp.active(**kwargs)

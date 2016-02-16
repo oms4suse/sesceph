@@ -78,7 +78,7 @@ class keyring_implementation_base(object):
         self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
@@ -100,7 +100,7 @@ class keyring_implementation_base(object):
         self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
@@ -116,7 +116,7 @@ class keyring_implementation_base(object):
         self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if not os.path.isfile(keyring_path):
@@ -147,7 +147,7 @@ class keyring_implementation_base(object):
         self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             u.defaults_refresh()
         u.load_confg(self.model.cluster_name)
         u.mon_members_refresh()
@@ -173,7 +173,7 @@ class keyring_implementation_base(object):
         """
         self.model.kargs_apply(**kwargs)
         u = mdl_updater.model_updater(self.model)
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
@@ -218,9 +218,9 @@ class keyring_implementation_mon(keyring_implementation_base):
         self.keyring_name = "mon."
 
     def get_path_keyring(self):
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             raise  Error("Cluster name not found")
-        if self.model.hostname == None:
+        if self.model.hostname is None:
             raise  Error("Cluster name not found")
         return _get_path_keyring_mon_bootstrap(self.model.cluster_name,
                 self.model.hostname)
@@ -246,7 +246,7 @@ class keyring_implementation_osd(keyring_implementation_base):
         self.keyring_name = "client.bootstrap-osd"
 
     def get_path_keyring(self):
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             raise  Error("Cluster name not found")
         return _get_path_keyring_osd(self.model.cluster_name)
 
@@ -269,7 +269,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
         self.keyring_name = "client.bootstrap-rgw"
 
     def get_path_keyring(self):
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             raise  Error("Cluster name not found")
         return _get_path_keyring_rgw(self.model.cluster_name)
 
@@ -293,7 +293,7 @@ class keyring_implementation_mds(keyring_implementation_base):
         self.keyring_name = "client.bootstrap-mds"
 
     def get_path_keyring(self):
-        if self.model.cluster_name == None:
+        if self.model.cluster_name is None:
             raise  Error("Cluster name not found")
         return _get_path_keyring_mds(self.model.cluster_name)
 
@@ -335,7 +335,7 @@ class keyring_facard(object):
 
 
         def fset(self, name):
-            if name == None:
+            if name is None:
                 self._clear_implementation()
             if not name in self._availableKeys:
                 self._clear_implementation()
@@ -351,7 +351,7 @@ class keyring_facard(object):
                 implementation = keyring_implementation_osd()
             if name == "rgw":
                 implementation = keyring_implementation_rgw()
-            if implementation == None:
+            if implementation is None:
                 self._clear_implementation()
                 raise Error("Invalid Value")
             self._keyImp = implementation
@@ -370,7 +370,7 @@ class keyring_facard(object):
         Create keyring
         """
         self.key_type == 'osd'
-        if self._keyImp == None:
+        if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.create(**kwargs)
 
@@ -379,7 +379,7 @@ class keyring_facard(object):
         """
         Persist keyring
         """
-        if self._keyImp == None:
+        if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.write(key_content, **kwargs)
 
@@ -388,7 +388,7 @@ class keyring_facard(object):
         """
         Authorise keyring
         """
-        if self._keyImp == None:
+        if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.auth_add(**kwargs)
 
@@ -396,7 +396,7 @@ class keyring_facard(object):
         """
         Authorise keyring
         """
-        if self._keyImp == None:
+        if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.auth_del(**kwargs)
 
@@ -404,6 +404,6 @@ class keyring_facard(object):
         """
         Remove keyring
         """
-        if self._keyImp == None:
+        if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.remove(**kwargs)
