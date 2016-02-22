@@ -1,13 +1,150 @@
-This is a basic salt api for ceph configuration management.
+This is a basic salt module for ceph configuration and deployment.
 
-This API is very early stages, and I still think all the function names need to
-possibly be changed. Please do not expect production stability yet.
+Please do not expect production stability yet. Function names may still change.
 
-To support text based APIs "sesceph.osd_prepare" can be run many times, and
-will not error if the command has already been run once before. This is intended
-to be done for all state applying commands.
+All methods in this module are intended to be atomic and idempotent. Some state
+changes are in practice made up of many steps, but will verify that all stages
+have succeeded before presenting the result to the caller. Most functions are 
+fully idempotent in operation so can be repeated or retried as often as 
+necessary without causing unintended effects. This is so clients of this module
+do not need to keep track of whether the operation was already performed or not.
+Some methods do depend upon the successful completion of other methods. While 
+not strictly idempotent, this is considered acceptable modules having 
+dependencies on other methods operation should present clear error messages.
 
-So far I have mainly developed it as a CLI. For example:
+Installation
+------------
+
+Copy the content of "_modules/sesceph" to
+
+    /srv/salt/_modules/sesceph
+
+and run:
+
+    salt '*' saltutil.sync_modules
+
+This will distribute the runner to all salt minions. To verify this process has
+succeeded, on a specific node it is best to try and access the online
+documentation.
+
+Documentation
+-------------
+
+To show sesceph method:
+
+    salt "ceph-node*" sesceph -d
+
+All API methods should provide documentation. To list all runners methods
+available in your salt system please run:
+
+    salt-run doc.execution
+
+Execution
+---------
+
+All functions in this application are under the sesceph namespace.
+
+Example
+~~~~~~~
+
+Get a list of potential MON keys:
+
+    # salt "*ceph-node*" sesceph.keyring_admin_create
+
+This will not persist the created key, but if a persistent key already exists 
+this function will return the persistent key.
+
+Use one output to write the keyring to admin nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_admin_save '[client.admin]
+    > key = AQDHYqZWkGHiEhAA5T+214L5CiIeek5o3zGZtQ==
+    > auid = 0
+    > caps mds = "allow *"
+    > caps mon = "allow *"
+    > caps osd = "allow *"
+    > '
+
+Repeat the process for the MON keyring:
+
+    # salt "*ceph-node*" sesceph.keyring_mon_create
+
+Use one output to write the keyring to MON nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_mon_save '[mon.]
+    > key = AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ==
+    > caps mon = "allow *"
+    > '
+
+Create the monitor daemons:
+
+    # salt "*ceph-node*" sesceph.mon_create
+
+The sesceph.mon_create function requires both the admin and the mon keyring to
+exist before this function can be successful.
+
+Get monitor status:
+
+    # salt "*ceph-node*" sesceph.mon_status
+
+The sesceph.mon_status function requires the sesceph.mon_create function to have
+completed successfully.
+
+List authorized keys:
+
+    # salt "*ceph-node*" sesceph.auth_list
+
+The sesceph.auth_list function will only execute successfully on nodes running 
+mon daemons which are in quorum.
+
+Get a list of potential OSD keys:
+
+    # salt "*ceph-node*" sesceph.keyring_osd_create
+
+Use one output to write the keyring to OSD nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_osd_save '[client.bootstrap-osd]
+    > key = AQAFNKZWaByNLxAAmIx9CbAaN+9L5KvZunmo2w==
+    > caps mon = "allow profile bootstrap-osd"
+    > '
+
+Authorise the OSD boot strap:
+
+    # salt "*ceph-node*" sesceph.keyring_osd_auth_add
+
+The sesceph.keyring_osd_auth_add function will only execute successfully on nodes
+running mon daemons which are in quorum.
+
+Create some OSDs
+
+    # salt "*ceph-node*" sesceph.osd_prepare  osd_dev=/dev/vdb
+
+The sesceph.osd_prepare function will only execute successfully on nodes
+with OSD boot strap keys writern.
+
+SLS example
+~~~~~~~~~~~
+
+An example SLS file. After the writing of all keys:
+
+    mon_create:
+      module.run:
+        - name:  sesceph.mon_create
+
+    keyring_osd_auth_add:
+      module.run:
+        - name:  sesceph.keyring_osd_auth_add
+
+    prepare:
+      module.run:
+        - name: sesceph.osd_prepare
+        - kwargs: {
+            osd_dev: /dev/vdb
+            }
+
+Common Use cases
+----------------
+
+To discover OSD's
 
     salt 'ceph-node*' sesceph.osd_discover
 
@@ -52,36 +189,6 @@ by cluster for example:
 
 This allowed me to easily identify orphaned OSDs :)
 
-Installation
-------------
-
-Copy the content of "sesceph" to
-
-    /srv/salt/_modules/sesceph
-
-and run:
-
-    salt '*' saltutil.sync_modules
-
-This will distribute the runner to all salt minions.
-
-Documentation
--------------
-
-All API methods should provide documentation. To list all runners methods
-available in your salt system please run:
-
-    salt-run doc.execution
-
-To show sesceph method:
-
-    salt "ceph-node*" sesceph -d
-
-Execution
----------
-
-All functions in this application are under the sesceph namespace.
-
 Code layout
 -----------
 
@@ -98,83 +205,3 @@ These objects are used to update the Model.
 3. Presenters
 
 These objects are used to present the data in the model to the API users.
-
-Example
-~~~~~~~
-
-Get a list of potential MON keys:
-
-    # salt "*ceph-node*" sesceph.keyring_admin_create
-
-Use one output to write the keyring to admin nodes:
-
-    # salt "*ceph-node*" sesceph.keyring_admin_save '[client.admin]
-    > key = AQDHYqZWkGHiEhAA5T+214L5CiIeek5o3zGZtQ==
-    > auid = 0
-    > caps mds = "allow *"
-    > caps mon = "allow *"
-    > caps osd = "allow *"
-    > '
-
-Repeat the process for the MON keyring:
-
-    # salt "*ceph-node*" sesceph.keyring_mon_create
-
-Use one output to write the keyring to MON nodes:
-
-    # salt "*ceph-node*" sesceph.keyring_mon_save '[mon.]
-    > key = AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ==
-    > caps mon = "allow *"
-    > '
-
-Create the monitor deamons:
-
-    # salt "*ceph-node*" sesceph.mon_create
-
-Get monitor status:
-
-    # salt "*ceph-node*" sesceph.mon_status
-
-List authorised keys:
-
-    # salt "*ceph-node*" sesceph.auth_list
-
-Get a list of potential OSD keys:
-
-    # salt "*ceph-node*" sesceph.keyring_osd_create
-
-Use one output to write the keyring to OSD nodes:
-
-    # salt "*ceph-node*" sesceph.keyring_osd_save '[client.bootstrap-osd]
-    > key = AQAFNKZWaByNLxAAmIx9CbAaN+9L5KvZunmo2w==
-    > caps mon = "allow profile bootstrap-osd"
-    > '
-
-Authorise the OSD boot strap:
-
-    # salt "*ceph-node*" sesceph.keyring_osd_auth_add
-
-Create some OSDs
-
-    # salt "*ceph-node*" sesceph.osd_prepare  osd_dev=/dev/vdb
-
-SLS example
-~~~~~~~~~~~
-
-An example SLS file. After the writing of all keys:
-
-    mon_create:
-      module.run:
-        - name:  sesceph.mon_create
-
-    keyring_osd_auth_add:
-      module.run:
-        - name:  sesceph.keyring_osd_auth_add
-
-    prepare:
-      module.run:
-        - name: sesceph.osd_prepare
-        - kwargs: {
-            osd_dev: /dev/vdb
-            }
-
