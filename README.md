@@ -3,7 +3,7 @@ This is a basic salt api for ceph configuration management.
 This API is very early stages, and I still think all the function names need to
 possibly be changed. Please do not expect production stability yet.
 
-To support text based API's "sesceph.osd_prepare" can be run many times, and
+To support text based APIs "sesceph.osd_prepare" can be run many times, and
 will not error if the command has already been run once before. This is intended
 to be done for all state applying commands.
 
@@ -11,9 +11,8 @@ So far I have mainly developed it as a CLI. For example:
 
     salt 'ceph-node*' sesceph.osd_discover
 
-Will query all nodes who's name starts with 'ceph-node*' and return all OSD's
-by  cluster for example:
-
+Will query all nodes whose name starts with 'ceph-node*' and return all OSDs
+by cluster for example:
 
     ceph-node2.example.org:
         ----------
@@ -51,12 +50,12 @@ by  cluster for example:
               whoami:
                   0
 
-This allowed me to easily identify orphaned OSD's :)
+This allowed me to easily identify orphaned OSDs :)
 
 Installation
------------
+------------
 
-copy the content of "sesceph" to
+Copy the content of "sesceph" to
 
     /srv/salt/_modules/sesceph
 
@@ -66,10 +65,10 @@ and run:
 
 This will distribute the runner to all salt minions.
 
-Docuemntation
+Documentation
 -------------
 
-All API methods shoudl provide documentation, to list all runners methods
+All API methods should provide documentation. To list all runners methods
 available in your salt system please run:
 
     salt-run doc.execution
@@ -78,16 +77,15 @@ To show sesceph method:
 
     salt "ceph-node*" sesceph -d
 
-
-Exectution
-----------
+Execution
+---------
 
 All functions in this application are under the sesceph namespace.
 
 Code layout
 -----------
 
-The code is structured with basic methods calling 3 main classes types.
+The code is structured with basic methods calling 3 main class types.
 
 1. Models
 
@@ -101,13 +99,10 @@ These objects are used to update the Model.
 
 These objects are used to present the data in the model to the API users.
 
-
-
 Example
 ~~~~~~~
 
-Get a list of potential mon keys:
-
+Get a list of potential MON keys:
 
     # salt "*ceph-node*" sesceph.keyring_admin_create
 
@@ -121,49 +116,47 @@ Use one output to write the keyring to admin nodes:
     > caps osd = "allow *"
     > '
 
-Repeat the process for mon keyring
+Repeat the process for the MON keyring:
 
     # salt "*ceph-node*" sesceph.keyring_mon_create
 
-Use one output to write the keyring to mon nodes:
-
+Use one output to write the keyring to MON nodes:
 
     # salt "*ceph-node*" sesceph.keyring_mon_save '[mon.]
     > key = AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ==
     > caps mon = "allow *"
     > '
 
-Create the monitor deamons
+Create the monitor deamons:
 
     # salt "*ceph-node*" sesceph.mon_create
 
-Get moinitor status
+Get monitor status:
 
     # salt "*ceph-node*" sesceph.mon_status
 
-List authorised keys
+List authorised keys:
 
     # salt "*ceph-node*" sesceph.auth_list
 
-Get a list of potential osd keys:
+Get a list of potential OSD keys:
 
     # salt "*ceph-node*" sesceph.keyring_osd_create
 
-Use one output to write the keyring to osd nodes:
+Use one output to write the keyring to OSD nodes:
 
     # salt "*ceph-node*" sesceph.keyring_osd_save '[client.bootstrap-osd]
     > key = AQAFNKZWaByNLxAAmIx9CbAaN+9L5KvZunmo2w==
     > caps mon = "allow profile bootstrap-osd"
     > '
 
-Authorise the OSD boot strap
+Authorise the OSD boot strap:
 
     # salt "*ceph-node*" sesceph.keyring_osd_auth_add
 
-Create some OSD's
+Create some OSDs
 
     # salt "*ceph-node*" sesceph.osd_prepare  osd_dev=/dev/vdb
-
 
 SLS example
 ~~~~~~~~~~~
