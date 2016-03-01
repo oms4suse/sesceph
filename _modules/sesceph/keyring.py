@@ -252,7 +252,7 @@ class keyring_implementation_osd(keyring_implementation_base):
 
     def get_arguments_create(self, path):
         return [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             "--create-keyring",
             path,
             "--gen-key",
@@ -275,7 +275,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
 
     def get_arguments_create(self, path):
         return [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             "--create-keyring",
             path,
             "--gen-key",
@@ -299,7 +299,7 @@ class keyring_implementation_mds(keyring_implementation_base):
 
     def get_arguments_create(self, path):
         return [
-            "ceph-authtool",
+            constants._path_ceph_authtool,
             "--create-keyring",
             path,
             "--gen-key",
