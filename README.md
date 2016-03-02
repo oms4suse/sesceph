@@ -91,7 +91,7 @@ completed successfully.
 
 List authorized keys:
 
-    # salt "*ceph-node*" sesceph.auth_list
+    # salt "*ceph-node*" sesceph.keyring_auth_list
 
 The sesceph.auth_list function will only execute successfully on nodes running 
 mon daemons which are in quorum.
