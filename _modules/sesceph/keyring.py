@@ -86,7 +86,12 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path))
+            # TODO: We can do better than this hack!
+            if kwargs.get("key") is not None:
+                cmd = self.get_arguments_create(key_path,kwargs.get("key"))
+            else:
+                cmd = self.get_arguments_create(key_path)
+            cmd_out = utils.execute_local_command(cmd)
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
@@ -225,20 +230,40 @@ class keyring_implementation_mon(keyring_implementation_base):
         return _get_path_keyring_mon_bootstrap(self.model.cluster_name,
                 self.model.hostname)
 
-    def get_arguments_create(self, path):
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            "--gen-key",
-            "-n",
-            self.keyring_name,
-            "--cap",
-            "mon",
-            "allow *"
+    def get_arguments_create(self, path, key=None):
+        if not key:
+            return [
+                constants._path_ceph_authtool,
+                "--create-keyring",
+                path,
+                "--gen-key",
+                "-n",
+                self.keyring_name,
+                "--cap",
+                "mon",
+                "allow *"
+            ]
+        else:
+            return [
+                constants._path_ceph_authtool,
+                "--create-keyring",
+                path,
+                "--add-key",
+                key,
+                "-n",
+                self.keyring_name,
+                "--cap",
+                "mon",
+                "allow *"
             ]
 
 
+    def create_and_save(self, key, **kwargs):
+        # TODO: fix the base class
+        # TODO: also we don't right now check for failures
+        kwargs['key'] = key
+        keyring = self.create(**kwargs)
+        return self.write(keyring,**kwargs)
 
 class keyring_implementation_osd(keyring_implementation_base):
     def __init__(self):
@@ -383,6 +408,13 @@ class keyring_facard(object):
             raise Error("Programming error: key type unset")
         return self._keyImp.write(key_content, **kwargs)
 
+    def create_and_save(self, key, **kwargs):
+        """
+        Create keyring from given secret
+        """
+        if self._keyImp is None:
+            raise Error("Programming error: key type unset")
+        return self._keyImp.create_and_save(key, **kwargs)
 
     def auth_add(self, **kwargs):
         """

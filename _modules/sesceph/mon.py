@@ -290,8 +290,6 @@ class mon_implementation_base(object):
 
         if not os.path.isfile(keyring_path_mon):
             raise Error("Mon keyring missing")
-        if not os.path.isfile(path_admin_keyring):
-            raise Error("Admin keyring missing")
 
         try:
             tmpd = tempfile.mkdtemp()
@@ -307,20 +305,6 @@ class mon_implementation_base(object):
                 key_path,
                 "--import-keyring",
                 keyring_path_mon,
-                ]
-            output = self._execute(arguments)
-            if output["retcode"] != 0:
-                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                    " ".join(arguments),
-                    output["retcode"],
-                    output["stdout"],
-                    output["stderr"]
-                    ))
-            arguments = [
-                constants._path_ceph_authtool,
-                key_path,
-                "--import-keyring",
-                path_admin_keyring,
                 ]
             output = self._execute(arguments)
             if output["retcode"] != 0:
