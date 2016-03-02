@@ -72,6 +72,18 @@ class keyring_implementation_base(object):
         self.model = model.model(**kwargs)
 
     def invoke_ceph_authtool(keyring_name, keyring_path, caps, secret=None, extra_args=[]):
+        """create arguments for invoking the ceph authtool, this simplifies most of
+        the ways that ceph authtool could be invoked.
+
+        Args:
+            keyring_name: The name of keyring to be created
+            keyring_path: path where keyring is to be created
+            caps: A dictionary containing various k-v pairs of components and their respective auth
+                  permission eg:
+                  {'mon':'allow *'}
+            secret: The base64 secret to create keyring from, if this is set we will use this secret
+                    instead to create the keyring, otherwise authtool itself will generate one
+            extra_args: any other extra arguments to be passed to ceph authtool"""
         args=[constants.path_ceph_authtool, "-n", keyring_name, "--create-keyring", keyring_path]
 
         if secret:
