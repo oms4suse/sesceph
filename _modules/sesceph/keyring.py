@@ -71,16 +71,13 @@ class keyring_implementation_base(object):
     def __init__(self,**kwargs):
         self.model = model.model(**kwargs)
 
-    def invoke_ceph_authtool(keyring_name, caps, keyring_path=None, secret=None, extra_args=[]):
-        args=[constants.path_ceph_authtool, "-n", keyring_name]
-        # We should either have path or secret
-        if bool(keyring_path) ^ bool(secret):
-            raise Error("Programming Error: only one of secret or path needs to be set")
+    def invoke_ceph_authtool(keyring_name, keyring_path, caps, secret=None, extra_args=[]):
+        args=[constants.path_ceph_authtool, "-n", keyring_name, "--create-keyring", keyring_path]
 
-        if path:
-            args += ["--gen-key", "-n", keyring_path]
-        elif secret:
+        if secret:
             args += ["--add-key", secret]
+        else:
+            args.append("--gen-key")
 
         args += extra_args
 
@@ -217,7 +214,7 @@ class keyring_implementation_admin(keyring_implementation_base):
             "mds":"allow *"
         }
 
-        return self.invoke_ceph_authtool(self.keyring_name, caps, keyring_path=path)
+        return self.invoke_ceph_authtool(self.keyring_name, path, caps)
 
 class keyring_implementation_mon(keyring_implementation_base):
     def __init__(self):
@@ -234,8 +231,8 @@ class keyring_implementation_mon(keyring_implementation_base):
 
     def get_arguments_create(self, path):
         caps = {"mon": "allow *"}
-        return self.invoke_ceph_authtool(self.keyring_name, caps, keyring_path=path)
-
+        extra_args=["--set-uid=0"]
+        return self.invoke_ceph_authtool(self.keyring_name, path, caps, extra_args=extra_args)
 
 
 class keyring_implementation_osd(keyring_implementation_base):
@@ -250,7 +247,7 @@ class keyring_implementation_osd(keyring_implementation_base):
 
     def get_arguments_create(self, path):
         caps = {"mon": "allow profile bootstrap-osd"}
-        return self.invoke_ceph_authtool(self.keyring_name, caps, keyring_path=path)
+        return invoke_ceph_authtool(self.keyring_name, path, caps)
 
 class keyring_implementation_rgw(keyring_implementation_base):
     def __init__(self):
@@ -264,7 +261,8 @@ class keyring_implementation_rgw(keyring_implementation_base):
 
     def get_arguments_create(self, path):
         caps = {"mon": "allow profile bootstrap-rgw"}
-        return self.invoke_ceph_authtool(self.keyring_name, caps, keyring_path=path)
+        return invoke_ceph_authtool(self.keyring_name, path, caps)
+
 
 
 class keyring_implementation_mds(keyring_implementation_base):
