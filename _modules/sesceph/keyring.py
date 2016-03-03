@@ -71,7 +71,7 @@ class keyring_implementation_base(object):
     def __init__(self,**kwargs):
         self.model = model.model(**kwargs)
 
-    def invoke_ceph_authtool(keyring_name, keyring_path, caps, secret=None, extra_args=[]):
+    def invoke_ceph_authtool(self, keyring_name, keyring_path, caps, secret=None, extra_args=[]):
         """create arguments for invoking the ceph authtool, this simplifies most of
         the ways that ceph authtool could be invoked.
 
@@ -84,7 +84,7 @@ class keyring_implementation_base(object):
             secret: The base64 secret to create keyring from, if this is set we will use this secret
                     instead to create the keyring, otherwise authtool itself will generate one
             extra_args: any other extra arguments to be passed to ceph authtool"""
-        args=[constants.path_ceph_authtool, "-n", keyring_name, "--create-keyring", keyring_path]
+        args=[constants._path_ceph_authtool, "-n", keyring_name, "--create-keyring", keyring_path]
 
         if secret:
             args += ["--add-key", secret]
@@ -254,7 +254,7 @@ class keyring_implementation_osd(keyring_implementation_base):
         return _get_path_keyring_osd(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return invoke_ceph_authtool(self.keyring_name, path, self.caps)
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
 
 class keyring_implementation_rgw(keyring_implementation_base):
     def __init__(self):
@@ -268,7 +268,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
         return _get_path_keyring_rgw(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return invoke_ceph_authtool(self.keyring_name, path, self.caps)
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
 
 
 
