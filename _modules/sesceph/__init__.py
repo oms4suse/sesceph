@@ -20,6 +20,7 @@ import utils
 import keyring
 import osd
 import mon
+import rgw
 
 log = logging.getLogger(__name__)
 
@@ -841,6 +842,37 @@ def mon_create(**kwargs):
     """
     ctrl_mon = mon.mon_facard(**kwargs)
     return ctrl_mon.create()
+
+
+def rgw_pools_create(**kwargs):
+    """
+    Create pools for rgw
+    """
+    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    return ctrl_rgw.rgw_pools_create()
+
+def rgw_pools_missing(**kwargs):
+    """
+    Show pools missing for rgw
+    """
+    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    return ctrl_rgw.rgw_pools_missing()
+
+
+def rgw_create(**kwargs):
+    """
+    Create a rgw
+    """
+    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    return ctrl_rgw.create(**kwargs)
+
+
+def rgw_destroy(**kwargs):
+    """
+    Remove a rgw
+    """
+    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    return ctrl_rgw.destroy(**kwargs)
 
 
 def keyring_auth_list(**kwargs):
