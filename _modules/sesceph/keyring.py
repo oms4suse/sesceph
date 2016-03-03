@@ -71,6 +71,33 @@ class keyring_implementation_base(object):
     def __init__(self,**kwargs):
         self.model = model.model(**kwargs)
 
+    def invoke_ceph_authtool(keyring_name, keyring_path, caps, secret=None, extra_args=[]):
+        """create arguments for invoking the ceph authtool, this simplifies most of
+        the ways that ceph authtool could be invoked.
+
+        Args:
+            keyring_name: The name of keyring to be created
+            keyring_path: path where keyring is to be created
+            caps: A dictionary containing various k-v pairs of components and their respective auth
+                  permission eg:
+                  {'mon':'allow *'}
+            secret: The base64 secret to create keyring from, if this is set we will use this secret
+                    instead to create the keyring, otherwise authtool itself will generate one
+            extra_args: any other extra arguments to be passed to ceph authtool"""
+        args=[constants.path_ceph_authtool, "-n", keyring_name, "--create-keyring", keyring_path]
+
+        if secret:
+            args += ["--add-key", secret]
+        else:
+            args.append("--gen-key")
+
+        args += extra_args
+
+        for component,permission in caps.items():
+            args += ["--cap", component, permission]
+        return args
+
+
     def create(self, **kwargs):
         """
         Create keyring
@@ -188,34 +215,19 @@ class keyring_implementation_admin(keyring_implementation_base):
     def __init__(self):
         keyring_implementation_base.__init__(self)
         self.keyring_name = "client.admin"
+        self.caps = {"mon":"allow *", "osd":"allow *", "mds":"allow *"}
 
     def get_path_keyring(self):
         return _get_path_keyring_admin(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            "--gen-key",
-            "-n",
-            self.keyring_name,
-            "--set-uid=0",
-            "--cap",
-            "mon",
-            "allow *",
-            "--cap",
-            "mds",
-            "allow *",
-            "--cap",
-            "osd",
-            "allow *"
-            ]
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
 
 class keyring_implementation_mon(keyring_implementation_base):
     def __init__(self):
         keyring_implementation_base.__init__(self)
         self.keyring_name = "mon."
+        self.caps = {"mon": "allow *"}
 
     def get_path_keyring(self):
         if self.model.cluster_name is None:
@@ -226,24 +238,15 @@ class keyring_implementation_mon(keyring_implementation_base):
                 self.model.hostname)
 
     def get_arguments_create(self, path):
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            "--gen-key",
-            "-n",
-            self.keyring_name,
-            "--cap",
-            "mon",
-            "allow *"
-            ]
-
+        extra_args=["--set-uid=0"]
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args)
 
 
 class keyring_implementation_osd(keyring_implementation_base):
     def __init__(self):
         keyring_implementation_base.__init__(self)
         self.keyring_name = "client.bootstrap-osd"
+        self.caps = {"mon": "allow profile bootstrap-osd"}
 
     def get_path_keyring(self):
         if self.model.cluster_name is None:
@@ -251,22 +254,13 @@ class keyring_implementation_osd(keyring_implementation_base):
         return _get_path_keyring_osd(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            "--gen-key",
-            "-n",
-            self.keyring_name,
-            "--cap",
-            "mon",
-            "allow profile bootstrap-osd"
-            ]
+        return invoke_ceph_authtool(self.keyring_name, path, self.caps)
 
 class keyring_implementation_rgw(keyring_implementation_base):
     def __init__(self):
         keyring_implementation_base.__init__(self)
         self.keyring_name = "client.bootstrap-rgw"
+        self.caps = {"mon": "allow profile bootstrap-rgw"}
 
     def get_path_keyring(self):
         if self.model.cluster_name is None:
@@ -274,23 +268,15 @@ class keyring_implementation_rgw(keyring_implementation_base):
         return _get_path_keyring_rgw(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            "--gen-key",
-            "-n",
-            self.keyring_name,
-            "--cap",
-            "mon",
-            "allow profile bootstrap-rgw"
-            ]
+        return invoke_ceph_authtool(self.keyring_name, path, self.caps)
+
 
 
 class keyring_implementation_mds(keyring_implementation_base):
     def __init__(self):
         keyring_implementation_base.__init__(self)
         self.keyring_name = "client.bootstrap-mds"
+        self.caps = {"mon": "allow profile bootstrap-mds"}
 
     def get_path_keyring(self):
         if self.model.cluster_name is None:
@@ -298,21 +284,7 @@ class keyring_implementation_mds(keyring_implementation_base):
         return _get_path_keyring_mds(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return [
-            constants._path_ceph_authtool,
-            "--create-keyring",
-            path,
-            "--gen-key",
-            "-n",
-            self.keyring_name,
-            "--cap",
-            "mon",
-            "allow profile bootstrap-mds"
-            ]
-
-
-
-
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
 
 
 class keyring_facard(object):
