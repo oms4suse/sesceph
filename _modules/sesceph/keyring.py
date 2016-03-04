@@ -296,7 +296,12 @@ class keyring_implementation_mds(keyring_implementation_base):
         return _get_path_keyring_mds(self.model.cluster_name)
 
     def get_arguments_create(self, path):
-        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
+        # TODO ideally remove extra_args when we understand permisons better.
+        extra_args=[
+            "--cap", "osd", "allow *",
+            "--cap", "mon", "allow *"
+            ]
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args)
 
 
 class keyring_facard(object):
