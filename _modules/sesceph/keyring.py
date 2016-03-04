@@ -70,6 +70,11 @@ def Property(func):
 class keyring_implementation_base(object):
     def __init__(self,**kwargs):
         self.model = model.model(**kwargs)
+        u = mdl_updater.model_updater(self.model)
+        u.hostname_refresh()
+        u.defaults_refresh()
+        u.load_confg(self.model.cluster_name)
+        u.mon_members_refresh()
 
     def invoke_ceph_authtool(self, keyring_name, keyring_path, caps, secret=None, extra_args=[]):
         """create arguments for invoking the ceph authtool, this simplifies most of
