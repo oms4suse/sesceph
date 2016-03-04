@@ -21,6 +21,7 @@ import keyring
 import osd
 import mon
 import rgw
+import mds
 
 log = logging.getLogger(__name__)
 
@@ -873,6 +874,23 @@ def rgw_destroy(**kwargs):
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
     return ctrl_rgw.destroy(**kwargs)
+
+
+
+def mds_create(**kwargs):
+    """
+    Create a mds
+    """
+    ctrl_mds = mds.mds_ctrl(**kwargs)
+    return ctrl_mds.create(**kwargs)
+
+
+def mds_destroy(**kwargs):
+    """
+    Remove a mds
+    """
+    ctrl_mds = mds.mds_ctrl(**kwargs)
+    return ctrl_mds.destroy(**kwargs)
 
 
 def keyring_auth_list(**kwargs):
