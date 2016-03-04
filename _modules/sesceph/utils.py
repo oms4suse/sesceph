@@ -1,3 +1,4 @@
+import logging
 import os
 import ConfigParser
 
@@ -8,6 +9,8 @@ try:
     import salt.config
 except :
     __has_salt = False
+
+log = logging.getLogger(__name__)
 
 
 class Error(Exception):
@@ -20,9 +23,9 @@ class Error(Exception):
         return ': '.join([doc] + [str(a) for a in self.args])
 
 def execute_local_command(command_attrib_list):
+    log.info("executing " + " ".join(command_attrib_list))
     if '__salt__' in locals():
         return __salt__['cmd.run_all'](command_attrib_list,
-                                      output_loglevel='trace',
                                       python_shell=False)
 
     # if we cant exute subprocess with salt, use python
