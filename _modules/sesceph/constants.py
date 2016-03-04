@@ -23,5 +23,6 @@ _path_ceph_lib = "/var/lib/ceph/"
 _path_ceph_lib_osd = os.path.join(_path_ceph_lib,"osd")
 _path_ceph_lib_mon = os.path.join(_path_ceph_lib,"mon")
 _path_ceph_lib_rgw = os.path.join(_path_ceph_lib,"radosgw")
+_path_ceph_lib_mds = os.path.join(_path_ceph_lib,"mds")
 
 
