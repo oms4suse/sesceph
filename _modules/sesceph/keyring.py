@@ -278,7 +278,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
             raise  Error("Cluster name not found")
         return _get_path_keyring_rgw(self.model.cluster_name)
 
-    def get_arguments_create(self, path, secret=secret):
+    def get_arguments_create(self, path, secret=None):
         # TODO ideally remove extra_args when we understand permisons better.
         extra_args=["--cap",
             "osd",
@@ -301,7 +301,7 @@ class keyring_implementation_mds(keyring_implementation_base):
             raise  Error("Cluster name not found")
         return _get_path_keyring_mds(self.model.cluster_name)
 
-    def get_arguments_create(self, path):
+    def get_arguments_create(self, path, secret=None):
         # TODO ideally remove extra_args when we understand permisons better.
         extra_args=[
             "--cap", "osd", "allow *",
