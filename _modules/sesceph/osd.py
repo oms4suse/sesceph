@@ -1,12 +1,19 @@
+# Python imports
+import logging
 import os
 import stat
 
+# Local imports
 import utils
 import keyring
 import constants
 import model
 import mdl_updater
 import mdl_query
+
+
+log = logging.getLogger(__name__)
+
 
 class Error(Exception):
     """
@@ -215,9 +222,11 @@ class osd_ctrl(object):
         if not os.path.isfile(bootstrap_path_osd):
             raise Error(bootstrap_path_osd)
         if not os.path.isdir(constants._path_ceph_lib_osd):
+            log.info("mkdir %s")
             os.makedirs(constants._path_ceph_lib_osd)
         # normalise paths
         osd_dev = os.path.realpath(osd_dev_raw)
+        log.debug("Transfromed from '%s' to '%s'" % (osd_dev_raw, osd_dev))
         # get existing state and see if action needed
         u = mdl_updater.model_updater(self.model)
         u.partition_table_refresh()
