@@ -103,7 +103,7 @@ class keyring_implementation_base(object):
         return args
 
 
-    def create(self, secret=None, **kwargs):
+    def create(self, **kwargs):
         """
         Create keyring
         """
@@ -118,14 +118,14 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path,secret))
+            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path,self.model.secret))
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
         return output
 
 
-    def write(self, key_content=None, secret=None, **kwargs):
+    def write(self, key_content=None, **kwargs):
         """
         Persist keyring
         """
@@ -141,7 +141,7 @@ class keyring_implementation_base(object):
         # We only check for secret, as init itself catches the case if
         # key_content is already set
         if secret:
-            key_content=self.create(secret=secret,**kwargs)
+            key_content=self.create(**kwargs)
 
         _keying_write(keyring_path, key_content)
         return True
@@ -360,23 +360,23 @@ class keyring_facard(object):
 
         return locals()
 
-    def create(self, secret=None, **kwargs):
+    def create(self, **kwargs):
         """
         Create keyring
         """
         self.key_type == 'osd'
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.create(secret, **kwargs)
+        return self._keyImp.create(**kwargs)
 
 
-    def write(self, key_content=None,secret=None, **kwargs):
+    def write(self, key_content=None, **kwargs):
         """
         Persist keyring
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.write(key_content,secret, **kwargs)
+        return self._keyImp.write(key_content,**kwargs)
 
 
     def auth_add(self, **kwargs):
