@@ -1,3 +1,4 @@
+# Python imports
 import os
 import os.path
 import platform
@@ -15,7 +16,6 @@ import utils
 log = logging.getLogger(__name__)
 
 
-
 class Error(Exception):
     """
     Error
@@ -30,7 +30,9 @@ def _retrive_osd_details_from_dir(directory):
     osd_details = {}
     dir_content = os.listdir(directory)
     if not osd_required_files.issubset(dir_content):
+        log.debug("osd details not found in:%s" % (directory))
         return None
+    log.debug("Reading osd details from '%s'" % (directory))
     with open('%s/ceph_fsid' % (directory), 'r') as infile:
         osd_details["ceph_fsid"] = infile.read().strip()
     with open('%s/fsid' % (directory), 'r') as infile:
@@ -40,15 +42,18 @@ def _retrive_osd_details_from_dir(directory):
     # Journel uuid may not exist when partition reused.
     path_journal_uuid = '%s/journal_uuid' % (directory)
     if os.path.isfile(path_journal_uuid):
+        log.debug("Reading '%s'" % (path_journal_uuid))
         with open('%s/journal_uuid' % (directory), 'r') as infile:
             osd_details["journal_uuid"] = infile.read().strip()
     # whoami may not exist when OSD has never been activated.
     path_whoami = '%s/whoami' % (directory)
     if os.path.isfile(path_whoami):
+        log.debug("Reading '%s'" % (path_whoami))
         with open('%s/whoami' % (directory), 'r') as infile:
             osd_details["whoami"] = infile.read().strip()
     path_link = '%s/journal' % (directory)
     if os.path.islink(path_link):
+        log.debug("Reading '%s'" % (path_link))
         osd_details["dev_journal"] = os.path.realpath(path_link)
     return osd_details
 
@@ -59,6 +64,7 @@ def retrive_osd_details(device_name):
         return None
     try:
         tmpd = tempfile.mkdtemp()
+        log.info("Create temp directory %s" %(tmpd))
         try:
             out_mnt = utils.execute_local_command(['mount',device_name,tmpd])
             if out_mnt['retcode'] == 0:
@@ -66,6 +72,7 @@ def retrive_osd_details(device_name):
         finally:
             utils.execute_local_command(['umount',tmpd])
     finally:
+        log.info("Destroy temp directory %s" %(tmpd))
         os.rmdir(tmpd)
     return osd_details
 
@@ -86,11 +93,14 @@ class model_updater():
     def defaults_refresh(self):
         # Default cluster name / uuid values
         if self.model.cluster_name is None and self.model.cluster_uuid is None:
+            log.info("Defaulting cluster name to 'ceph'")
             self.model.cluster_name = "ceph"
         if self.model.cluster_name is not None and self.model.cluster_uuid is None:
             self.model.cluster_uuid = utils._get_cluster_uuid_from_name(self.model.cluster_name)
+            log.info("From cluster name '%s' got cluster uuid '%s'" % (self.model.cluster_name, self.model.cluster_uuid))
         if self.model.cluster_name is None and self.model.cluster_uuid is not None:
             self.model.cluster_name = utils._get_cluster_name_from_uuid(self.model.cluster_uuid)
+            log.info("From cluster uuid '%s' got cluster name '%s'" % (self.model.cluster_uuid, self.model.cluster_name))
 
     def symlinks_refresh(self):
         '''
@@ -154,6 +164,7 @@ class model_updater():
         # RHEL 7.2 uses version 2.23.2
         if self.model.lsblk_version.major == 2 and self.model.lsblk_version.minor < 25:
             # Note we dont have "PARTTYPE"
+            log.warning("Using lsblk is old, results may be incomplete.")
             return [
                 "--ascii",
                 "--output",
@@ -340,7 +351,6 @@ class model_updater():
             index = mon_initial_members_name_cleaned.index(hostname)
         except:
             log.debug("Mon not needed on %s" % (hostname))
-            print "Mon not needed on %s" % (hostname)
             return True
         try:
             mon_initial_members_addr_raw = self.model.ceph_conf.get("global","mon_host")

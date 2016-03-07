@@ -212,6 +212,7 @@ class mon_implementation_base(object):
             log.info("Retrying mon service.")
             if self._create_check_responding():
                 return True
+        log.error("Timed out starting mon service")
         raise Error("Failed to get mon service status after '%s' seconds." % (retry_max * retry_sleep))
 
 
@@ -295,10 +296,12 @@ class mon_implementation_base(object):
 
         try:
             tmpd = tempfile.mkdtemp()
+            log.info("Create temp directory %s" %(tmpd))
             os.chown(tmpd, self.uid, self.gid)
             # In 'tmpd' we make the monmap and keyring.
             key_path = os.path.join(tmpd,"keyring")
             path_monmap = os.path.join(tmpd,"monmap")
+            log.info("Create monmap %s" % (path_monmap))
             self._create_monmap(path_monmap)
             os.chown(path_monmap, self.uid, self.gid)
             arguments = [
@@ -332,8 +335,10 @@ class mon_implementation_base(object):
                     ))
             # Now clean the install area
             if os.path.isdir(path_mon_dir):
+                log.info("Remove directory content %s" %(path_mon_dir))
                 shutil.rmtree(path_mon_dir)
             if not os.path.isdir(path_mon_dir):
+                log.info("Make directory %s" %(path_mon_dir))
                 os.makedirs(path_mon_dir)
                 os.chown(path_mon_dir, self.uid, self.gid)
             # now do install
@@ -373,6 +378,7 @@ class mon_implementation_base(object):
             self._create_check_retry()
             open(path_done_file, 'a').close()
         finally:
+            log.info("Destroy temp directory %s" %(tmpd))
             shutil.rmtree(tmpd)
         return True
 
