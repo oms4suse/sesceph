@@ -103,7 +103,7 @@ class keyring_implementation_base(object):
         return args
 
 
-    def create(self, **kwargs):
+    def create(self, secret=None, **kwargs):
         """
         Create keyring
         """
@@ -118,14 +118,14 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path))
+            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path,secret))
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
         return output
 
 
-    def write(self, key_content, **kwargs):
+    def write(self, key_content=None, secret=None, **kwargs):
         """
         Persist keyring
         """
@@ -137,6 +137,12 @@ class keyring_implementation_base(object):
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             return True
+
+        # We only check for secret, as init itself catches the case if
+        # key_content is already set
+        if secret:
+            key_content=self.create(secret=secret,**kwargs)
+
         _keying_write(keyring_path, key_content)
         return True
 
@@ -225,8 +231,8 @@ class keyring_implementation_admin(keyring_implementation_base):
     def get_path_keyring(self):
         return _get_path_keyring_admin(self.model.cluster_name)
 
-    def get_arguments_create(self, path):
-        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
+    def get_arguments_create(self, path, secret=None):
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, secret=secret)
 
 class keyring_implementation_mon(keyring_implementation_base):
     def __init__(self):
@@ -242,9 +248,9 @@ class keyring_implementation_mon(keyring_implementation_base):
         return _get_path_keyring_mon_bootstrap(self.model.cluster_name,
                 self.model.hostname)
 
-    def get_arguments_create(self, path):
+    def get_arguments_create(self, path, secret=None):
         extra_args=["--set-uid=0"]
-        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args)
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, secret=secret, extra_args=extra_args)
 
 
 class keyring_implementation_osd(keyring_implementation_base):
@@ -258,8 +264,8 @@ class keyring_implementation_osd(keyring_implementation_base):
             raise  Error("Cluster name not found")
         return _get_path_keyring_osd(self.model.cluster_name)
 
-    def get_arguments_create(self, path):
-        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps)
+    def get_arguments_create(self, path, secret=None):
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, secret=secret)
 
 class keyring_implementation_rgw(keyring_implementation_base):
     def __init__(self):
@@ -272,7 +278,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
             raise  Error("Cluster name not found")
         return _get_path_keyring_rgw(self.model.cluster_name)
 
-    def get_arguments_create(self, path):
+    def get_arguments_create(self, path, secret=secret):
         # TODO ideally remove extra_args when we understand permisons better.
         extra_args=["--cap",
             "osd",
@@ -281,7 +287,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
             "mon",
             "allow *"
             ]
-        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args)
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args, secret=secret)
 
 
 class keyring_implementation_mds(keyring_implementation_base):
@@ -301,7 +307,7 @@ class keyring_implementation_mds(keyring_implementation_base):
             "--cap", "osd", "allow *",
             "--cap", "mon", "allow *"
             ]
-        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args)
+        return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, extra_args=extra_args, secret=secret)
 
 
 class keyring_facard(object):
@@ -354,23 +360,23 @@ class keyring_facard(object):
 
         return locals()
 
-    def create(self, **kwargs):
+    def create(self, secret=None, **kwargs):
         """
         Create keyring
         """
         self.key_type == 'osd'
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.create(**kwargs)
+        return self._keyImp.create(secret, **kwargs)
 
 
-    def write(self, key_content, **kwargs):
+    def write(self, key_content=None,secret=None, **kwargs):
         """
         Persist keyring
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.write(key_content, **kwargs)
+        return self._keyImp.write(key_content,secret, **kwargs)
 
 
     def auth_add(self, **kwargs):
