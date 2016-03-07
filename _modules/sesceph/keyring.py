@@ -103,7 +103,7 @@ class keyring_implementation_base(object):
         return args
 
 
-    def create(self, secret=None, **kwargs):
+    def create(self, **kwargs):
         """
         Create keyring
         """
@@ -362,14 +362,14 @@ class keyring_facard(object):
 
         return locals()
 
-    def create(self, secret=None, **kwargs):
+    def create(self, **kwargs):
         """
         Create keyring
         """
         self.key_type == 'osd'
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.create(secret, **kwargs)
+        return self._keyImp.create(**kwargs)
 
 
     def write(self, key_content=None, **kwargs):
@@ -379,7 +379,6 @@ class keyring_facard(object):
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.write(key_content,**kwargs)
-
 
 
     def auth_add(self, **kwargs):
