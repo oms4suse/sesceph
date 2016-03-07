@@ -68,10 +68,14 @@ class rgw_ctrl(object):
 
 
     def rgw_pools_create(self):
+        rc = True
+        u = mdl_updater.model_updater(self.model)
         for name in self.rgw_pools_missing():
-            tmp_rc = u.pool_add(name, pg_num=16)
-            if not tmp_rc:
-                log.error("Failed to add pool:%s" % (name))
+            log.info("Adding missing pool:%s" % (name))
+            try:
+                tmp_rc = u.pool_add(name, pg_num=16)
+            except:
+                log.error("Failed to add pool '%s'" % (name))
                 rc = False
         return rc
 
@@ -85,9 +89,11 @@ class rgw_ctrl(object):
         if not os.path.isfile(path_bootstrap_keyring):
             raise Error("Keyring not found at %s" % (path_bootstrap_keyring))
         if not os.path.isdir(self.rgw_path_lib):
+            log.info("Make missing directory:%s" % (self.rgw_path_lib))
             os.makedirs(self.rgw_path_lib)
         rgw_path_keyring = os.path.join(self.rgw_path_lib, 'keyring')
         if not os.path.isfile(rgw_path_keyring):
+            log.info("Make missing keyring:%s" % (rgw_path_keyring))
             arguments = [
                 'ceph',
                 '--cluster', self.model.cluster_name,
@@ -144,7 +150,9 @@ class rgw_ctrl(object):
             return
         rgw_path_keyring = os.path.join(self.rgw_path_lib, 'keyring')
         if os.path.isfile(rgw_path_keyring):
+            log.info("Remove from auth list keyring:%s" % (rgw_path_keyring))
             self._remove_rgw_keyring(**kwargs)
+        log.info("Remove directory:%s" % (self.rgw_path_lib))
         shutil.rmtree(self.rgw_path_lib)
 
 
