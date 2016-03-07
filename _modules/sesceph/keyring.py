@@ -103,7 +103,7 @@ class keyring_implementation_base(object):
         return args
 
 
-    def create(self, **kwargs):
+    def create(self, secret=None, **kwargs):
         """
         Create keyring
         """
@@ -123,6 +123,7 @@ class keyring_implementation_base(object):
         finally:
             shutil.rmtree(tmpd)
         return output
+
 
 
     def write(self, key_content=None, **kwargs):
@@ -278,6 +279,7 @@ class keyring_implementation_rgw(keyring_implementation_base):
             raise  Error("Cluster name not found")
         return _get_path_keyring_rgw(self.model.cluster_name)
 
+
     def get_arguments_create(self, path, secret=None):
         # TODO ideally remove extra_args when we understand permisons better.
         extra_args=["--cap",
@@ -360,14 +362,14 @@ class keyring_facard(object):
 
         return locals()
 
-    def create(self, **kwargs):
+    def create(self, secret=None, **kwargs):
         """
         Create keyring
         """
         self.key_type == 'osd'
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.create(**kwargs)
+        return self._keyImp.create(secret, **kwargs)
 
 
     def write(self, key_content=None, **kwargs):
@@ -377,6 +379,7 @@ class keyring_facard(object):
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.write(key_content,**kwargs)
+
 
 
     def auth_add(self, **kwargs):
