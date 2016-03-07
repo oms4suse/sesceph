@@ -257,7 +257,6 @@ class mds_ctrl(object):
             raise Error(msg,
                 output["stdout"],
                 output["stderr"])
-                )
 
 
     def create(self, **kwargs):
