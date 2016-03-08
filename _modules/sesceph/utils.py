@@ -1,6 +1,8 @@
 import logging
 import os
 import ConfigParser
+import base64
+import binascii
 
 __has_salt = True
 
@@ -71,3 +73,10 @@ def _get_cluster_name_from_uuid(cluster_uuid):
         except:
             continue
     return output
+
+def is_valid_base64(s):
+    try:
+        base64.decodestring(s)
+    except binascii.Error:
+        return False
+    return True
