@@ -1,6 +1,9 @@
+# Python imports
 import logging
 
+# Local imports
 import utils
+import service
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +25,8 @@ class mdl_query():
     """
     def __init__(self, model):
         self.model = model
+        self.model.init = "systemd"
+
 
     def mon_is(self):
         if self.model.hostname is None:
@@ -45,41 +50,12 @@ class mdl_query():
 
 
     def mon_active(self):
-        systemctl_name = "ceph-mon@%s.service" % (self.model.hostname)
-        arguments = [
-            'systemctl',
-            'show',
-            '--property',
-            'ActiveState',
-            systemctl_name,
-            ]
-        log.debug("Running:%s" % (" ".join(arguments)))
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"]
-                ))
-        running = None
-        for raw_line in output["stdout"].split('\n'):
-            stripline = raw_line.strip()
-            if len(stripline) == 0:
-                continue
-            splitline = stripline.split('=')
-            if len(splitline) < 2:
-                continue
-            key = splitline[0]
-            value = "=".join(splitline[1:])
-            if key == "ActiveState":
-                if value == "active":
-                    running = True
-                else:
-                    running = False
-        if running is None:
-            raise Error("failed to get ActiveState from %s" % (systemctl_name))
-        return running
+        arguments = {
+                'identifier' : self.model.hostname,
+                'service' : "ceph-mon",
+            }
+        init_system = service.init_system(init_type=self.model.init)
+        return init_system.is_running(**arguments)
     def ceph_daemon_user(self):
         if self.model.ceph_version.major == 0:
             if self.model.ceph_version.minor < 95:
