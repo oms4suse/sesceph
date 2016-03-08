@@ -141,7 +141,7 @@ class keyring_implementation_base(object):
 
         # We only check for secret, as init itself catches the case if
         # key_content is already set
-        if secret:
+        if 'secret' in kwargs:
             key_content=self.create(**kwargs)
 
         _keying_write(keyring_path, key_content)
