@@ -278,7 +278,7 @@ def keyring_admin_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_admin_save(key_content, **kwargs):
+def keyring_admin_save(key_content=None, **kwargs):
     """
     Write admin keyring for cluster
 
@@ -296,6 +296,11 @@ def keyring_admin_save(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
+    if (key_content is None) != ('secret' in kwargs):
+        raise Error("Set either the key_content or the key `secret`")
+    if 'secret' in kwargs:
+        utils.is_valid_base64(kwargs['secret'])
+
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "admin"
     return keyobj.write(key_content, **kwargs)
@@ -348,7 +353,7 @@ def keyring_mon_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_mon_save(key_content, **kwargs):
+def keyring_mon_save(key_content=None, **kwargs):
     """
     Write admin keyring for cluster
 
@@ -366,6 +371,11 @@ def keyring_mon_save(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
+    if (key_content is None) != ('secret' in kwargs):
+        raise Error("Set either the key_content or the key `secret`")
+    if 'secret' in kwargs:
+        utils.is_valid_base64(kwargs['secret'])
+
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "mon"
     return keyobj.write(key_content, **kwargs)
@@ -418,7 +428,7 @@ def keyring_osd_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_osd_save(key_content, **kwargs):
+def keyring_osd_save(key_content=None, **kwargs):
     """
     Write admin keyring for cluster
 
@@ -436,6 +446,11 @@ def keyring_osd_save(key_content, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
+    if (key_content is None) != ('secret' in kwargs):
+        raise Error("Set either the key_content or the key `secret`")
+    if 'secret' in kwargs:
+        utils.is_valid_base64(kwargs['secret'])
+
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "osd"
     return keyobj.write(key_content, **kwargs)
@@ -531,7 +546,7 @@ def keyring_mds_create(**kwargs):
     keyobj.key_type = "mds"
     return keyobj.create(**kwargs)
 
-def keyring_mds_save(key_content, **kwargs):
+def keyring_mds_save(key_content=None, **kwargs):
     """
     Write mds keyring for cluster
 
@@ -551,6 +566,11 @@ def keyring_mds_save(key_content, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
+    if (key_content is None) != ('secret' in kwargs):
+        raise Error("Set either the key_content or the key `secret`")
+    if 'secret' in kwargs:
+        utils.is_valid_base64(kwargs['secret'])
+
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "mds"
     return keyobj.write(key_content, **kwargs)
@@ -647,7 +667,7 @@ def keyring_rgw_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_rgw_save(key_content, **kwargs):
+def keyring_rgw_save(key_content=None, **kwargs):
     """
     Write rgw keyring for cluster
 
@@ -667,6 +687,10 @@ def keyring_rgw_save(key_content, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
+    if (key_content is None) != ('secret' in kwargs):
+        raise Error("Set either the key_content or the key `secret`")
+    if 'secret' in kwargs:
+        utils.is_valid_base64(kwargs['secret'])
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "rgw"
     return keyobj.write(key_content, **kwargs)
