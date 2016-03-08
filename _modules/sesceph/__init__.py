@@ -297,7 +297,7 @@ def keyring_admin_save(key_content=None, **kwargs):
     if (key_content is None) != ('secret' in kwargs):
         raise Error("Set either the key_content or the key `secret`")
     if 'secret' in kwargs:
-        utils.validate_base64(kwargs['secret'])
+        utils.is_valid_base64(kwargs['secret'])
 
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "admin"
@@ -372,7 +372,7 @@ def keyring_mon_save(key_content=None, **kwargs):
     if (key_content is None) != ('secret' in kwargs):
         raise Error("Set either the key_content or the key `secret`")
     if 'secret' in kwargs:
-        utils.validate_base64(kwargs['secret'])
+        utils.is_valid_base64(kwargs['secret'])
 
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "mon"
@@ -447,7 +447,7 @@ def keyring_osd_save(key_content=None, **kwargs):
     if (key_content is None) != ('secret' in kwargs):
         raise Error("Set either the key_content or the key `secret`")
     if 'secret' in kwargs:
-        utils.validate_base64(kwargs['secret'])
+        utils.is_valid_base64(kwargs['secret'])
 
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "osd"
@@ -567,7 +567,7 @@ def keyring_mds_save(key_content=None, **kwargs):
     if (key_content is None) != ('secret' in kwargs):
         raise Error("Set either the key_content or the key `secret`")
     if 'secret' in kwargs:
-        utils.validate_base64(kwargs['secret'])
+        utils.is_valid_base64(kwargs['secret'])
 
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "mds"
@@ -688,7 +688,7 @@ def keyring_rgw_save(key_content=None, **kwargs):
     if (key_content is None) != ('secret' in kwargs):
         raise Error("Set either the key_content or the key `secret`")
     if 'secret' in kwargs:
-        utils.validate_base64(kwargs['secret'])
+        utils.is_valid_base64(kwargs['secret'])
     keyobj = keyring.keyring_facard()
     keyobj.key_type = "rgw"
     return keyobj.write(key_content, **kwargs)
