@@ -276,7 +276,7 @@ def keyring_admin_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_admin_save(key_content, **kwargs):
+def keyring_admin_save(key_content=None, **kwargs):
     """
     Write admin keyring for cluster
 
@@ -346,7 +346,7 @@ def keyring_mon_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_mon_save(key_content, **kwargs):
+def keyring_mon_save(key_content=None, **kwargs):
     """
     Write admin keyring for cluster
 
@@ -416,7 +416,7 @@ def keyring_osd_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_osd_save(key_content, **kwargs):
+def keyring_osd_save(key_content=None, **kwargs):
     """
     Write admin keyring for cluster
 
@@ -529,7 +529,7 @@ def keyring_mds_create(**kwargs):
     keyobj.key_type = "mds"
     return keyobj.create(**kwargs)
 
-def keyring_mds_save(key_content, **kwargs):
+def keyring_mds_save(key_content=None, **kwargs):
     """
     Write mds keyring for cluster
 
@@ -645,7 +645,7 @@ def keyring_rgw_create(**kwargs):
     return keyobj.create(**kwargs)
 
 
-def keyring_rgw_save(key_content, **kwargs):
+def keyring_rgw_save(key_content=None, **kwargs):
     """
     Write rgw keyring for cluster
 
