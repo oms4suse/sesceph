@@ -78,5 +78,4 @@ def is_valid_base64(s):
     try:
         base64.decodestring(s)
     except binascii.Error:
-        return False
-    return True
+        raise Error("invalid base64 string supplied %s" % s)
