@@ -163,6 +163,8 @@ def zap(dev):
     """
     Destroy the partition table and content of a given disk.
     """
+    if not os.path.exists(dev):
+        raise Error('Cannot find', dev)
     dmode = os.stat(dev).st_mode
     osdc = osd.osd_ctrl()
     if not stat.S_ISBLK(dmode) or osdc.is_partition(dev):
