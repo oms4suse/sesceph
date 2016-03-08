@@ -96,6 +96,8 @@ class rgw_ctrl(object):
             log.info("Make missing keyring:%s" % (rgw_path_keyring))
             arguments = [
                 'ceph',
+                '--connect-timeout',
+                '5',
                 '--cluster', self.model.cluster_name,
                 '--name', 'client.bootstrap-rgw',
                 '--keyring', path_bootstrap_keyring,
@@ -128,6 +130,8 @@ class rgw_ctrl(object):
         path_bootstrap_keyring = keyring._get_path_keyring_rgw(self.model.cluster_name)
         arguments = [
             'ceph',
+            '--connect-timeout',
+            '5',
             '--cluster', self.model.cluster_name,
             '--name', 'client.bootstrap-rgw',
             '--keyring', path_bootstrap_keyring,
