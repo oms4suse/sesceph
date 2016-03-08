@@ -22,6 +22,7 @@ import osd
 import mon
 import rgw
 import mds
+import purger
 
 log = logging.getLogger(__name__)
 
@@ -1058,7 +1059,7 @@ def pool_del(pool_name, **kwargs):
     return True
 
 
-def purge():
+def purge(**kwargs):
     """
     purge ceph configuration on the node
 
@@ -1066,68 +1067,7 @@ def purge():
 
         salt '*' sesceph.purge
     """
-    arguments = [
-            constants._path_systemctl,
-            "stop",
-            "ceph*",
-            ]
-    output = utils.execute_local_command(arguments)
-    if output["retcode"] != 0:
-        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-            " ".join(arguments),
-            output["retcode"],
-            output["stdout"],
-            output["stderr"]
-            ))
-    m = model.model()
-    u = mdl_updater.model_updater(m)
-    u.symlinks_refresh()
-    u.partitions_all_refresh()
-    u.discover_partitions_refresh()
-
-    for part in m.partitions_osd:
-        disk = m.part_pairent.get(part)
-        if disk is None:
-            continue
-        disk_details = m.lsblk.get(disk)
-        if disk_details is None:
-            continue
-        all_parts = disk_details.get('PARTITION')
-        if all_parts is None:
-            continue
-        part_details = all_parts.get(part)
-        if part_details is None:
-            continue
-        mountpoint =  part_details.get("MOUNTPOINT")
-        if mountpoint is None:
-            continue
-        arguments = [
-            "umount",
-            mountpoint
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"]
-                ))
-
-    arguments = [
-            "rm",
-            "-rf",
-            "--one-file-system",
-            "/var/lib/ceph",
-            ]
-    output = utils.execute_local_command(arguments)
-    if output["retcode"] != 0:
-        raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-            " ".join(arguments),
-            output["retcode"],
-            output["stdout"],
-            output["stderr"]
-            ))
+    purger.purge(**kwargs)
 
 
 def ceph_version():
