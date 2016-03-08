@@ -80,7 +80,7 @@ class rgw_ctrl(object):
         return rc
 
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         missing_pools = self.rgw_pools_missing()
         if len(missing_pools) > 0:
             raise Error("Pools missing: %s" % (", ".join(missing_pools)))
@@ -121,7 +121,7 @@ class rgw_ctrl(object):
                         )
 
 
-    def _remove_rgw_keyring(self, **kwargs):
+    def _remove_rgw_keyring(self):
         self._set_rgw_path_lib()
         if not os.path.isdir(self.rgw_path_lib):
             return
@@ -148,19 +148,19 @@ class rgw_ctrl(object):
                     )
 
 
-    def remove(self, **kwargs):
+    def remove(self):
         self._set_rgw_path_lib()
         if not os.path.isdir(self.rgw_path_lib):
             return
         rgw_path_keyring = os.path.join(self.rgw_path_lib, 'keyring')
         if os.path.isfile(rgw_path_keyring):
             log.info("Remove from auth list keyring:%s" % (rgw_path_keyring))
-            self._remove_rgw_keyring(**kwargs)
+            self._remove_rgw_keyring()
         log.info("Remove directory:%s" % (self.rgw_path_lib))
         shutil.rmtree(self.rgw_path_lib)
 
 
-    def activate(self, **kwargs):
+    def activate(self):
         if self.rgw_name == None:
             raise Error("Name not specified")
         arguments = [
@@ -192,7 +192,7 @@ class rgw_ctrl(object):
                 )
 
 
-    def deactivate(self, **kwargs):
+    def deactivate(self):
         if self.rgw_name == None:
             raise Error("Name not specified")
         arguments = [
@@ -223,11 +223,11 @@ class rgw_ctrl(object):
                 )
 
 
-    def create(self, **kwargs):
-        self.prepare(**kwargs)
-        self.activate(**kwargs)
+    def create(self):
+        self.prepare()
+        self.activate()
 
 
-    def destroy(self, **kwargs):
-        self.deactivate(**kwargs)
-        self.remove(**kwargs)
+    def destroy(self):
+        self.deactivate()
+        self.remove()
