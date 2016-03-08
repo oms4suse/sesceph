@@ -339,6 +339,8 @@ class model_updater():
     def mon_members_refresh(self):
         try:
             mon_initial_members_name_raw = self.model.ceph_conf.get("global","mon_initial_members")
+        except ConfigParser.NoSectionError:
+            raise Error("Cluster config file does not set mon_initial_members")
         except ConfigParser.NoOptionError:
             raise Error("Cluster config file does not set mon_initial_members")
         mon_initial_members_name_cleaned = []
