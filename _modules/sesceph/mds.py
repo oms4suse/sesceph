@@ -83,6 +83,8 @@ class mds_ctrl(object):
             log.info("creating %s" % (mds_path_keyring))
             arguments = [
                 'ceph',
+                '--connect-timeout',
+                '5',
                 '--cluster', self.model.cluster_name,
                 '--name', 'client.bootstrap-mds',
                 '--keyring', path_bootstrap_keyring,
@@ -115,6 +117,8 @@ class mds_ctrl(object):
         path_bootstrap_keyring = keyring._get_path_keyring_mds(self.model.cluster_name)
         arguments = [
             'ceph',
+            '--connect-timeout',
+            '5',
             '--cluster', self.model.cluster_name,
             '--name', 'client.bootstrap-mds',
             '--keyring', path_bootstrap_keyring,

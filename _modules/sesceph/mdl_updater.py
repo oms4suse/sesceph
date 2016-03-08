@@ -444,6 +444,8 @@ class model_updater():
     def pool_list(self):
         arguments = [
             "ceph",
+            '--connect-timeout',
+            '5',
             "-f",
             "json",
             "osd",
@@ -473,6 +475,8 @@ class model_updater():
 
         arguments = [
             'ceph',
+            '--connect-timeout',
+            '5',
             'osd',
             'pool',
             'create',
@@ -505,6 +509,8 @@ class model_updater():
             return True
         arguments = [
             'ceph',
+            '--connect-timeout',
+            '5',
             'osd',
             'pool',
             'delete',
