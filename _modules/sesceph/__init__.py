@@ -877,6 +877,7 @@ def rgw_pools_create(**kwargs):
     Create pools for rgw
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    ctrl_rgw.update()
     return ctrl_rgw.rgw_pools_create()
 
 def rgw_pools_missing(**kwargs):
@@ -884,6 +885,7 @@ def rgw_pools_missing(**kwargs):
     Show pools missing for rgw
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    ctrl_rgw.update()
     return ctrl_rgw.rgw_pools_missing()
 
 
@@ -892,6 +894,7 @@ def rgw_create(**kwargs):
     Create a rgw
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    ctrl_rgw.update()
     return ctrl_rgw.create()
 
 
@@ -900,6 +903,7 @@ def rgw_destroy(**kwargs):
     Remove a rgw
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
+    ctrl_rgw.update()
     return ctrl_rgw.destroy()
 
 
@@ -909,6 +913,7 @@ def mds_create(**kwargs):
     Create a mds
     """
     ctrl_mds = mds.mds_ctrl(**kwargs)
+    ctrl_mds.update()
     return ctrl_mds.create()
 
 
@@ -917,6 +922,7 @@ def mds_destroy(**kwargs):
     Remove a mds
     """
     ctrl_mds = mds.mds_ctrl(**kwargs)
+    ctrl_mds.update()
     return ctrl_mds.destroy()
 
 
