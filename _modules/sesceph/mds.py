@@ -222,45 +222,6 @@ class mds_ctrl(rados_client.ctrl_rados_client):
             return False
 
 
-
-
-
-    def deactivate(self):
-        if self.mds_name == None:
-            log.error("Name not specified")
-            raise Error("Name not specified")
-        arguments = [
-            constants._path_systemctl,
-            "disable",
-            "ceph-mds@%s" % (self.mds_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-
-            log.error(msg)
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-        arguments = [
-            constants._path_systemctl,
-            "stop",
-            "ceph-mds@%s" % (self.mds_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            msg = "Failed executing '%s' Error rc=%s" % (
-                " ".join(arguments),
-                output["retcode"]
-                )
-            log.error(msg)
-            raise Error(msg,
-                output["stdout"],
-                output["stderr"])
-
-
     def create(self):
         self._set_path_systemd_env()
         self._set_mds_path_env()
