@@ -189,8 +189,3 @@ class mds_ctrl(rados_client.ctrl_rados_client):
         self._set_mds_path_env()
         self.prepare()
         self.activate()
-
-
-    def destroy(self):
-        self.deactivate()
-        self.remove()
