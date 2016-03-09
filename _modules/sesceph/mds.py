@@ -29,6 +29,9 @@ class mds_ctrl(object):
         self.mds_name = kwargs.get("name")
         self.port = kwargs.get("port")
         self.addr = kwargs.get("addr")
+
+
+    def update(self):
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
         u.defaults_refresh()
