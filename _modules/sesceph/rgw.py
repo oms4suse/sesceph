@@ -1,13 +1,16 @@
+# Python imports
 import os
 import logging
 import json
 import shutil
 
+# Local imports
 import utils
 import constants
 import keyring
 import model
 import mdl_updater
+import rados_client
 
 
 log = logging.getLogger(__name__)
@@ -22,16 +25,11 @@ class Error(Exception):
         return ': '.join([doc] + [str(a) for a in self.args])
 
 
-class rgw_ctrl(object):
+class rgw_ctrl(rados_client.ctrl_rados_client):
     def __init__(self, **kwargs):
-        self.model = model.model(**kwargs)
-        self.model.init = "systemd"
+        super(rgw_ctrl, self).__init__(**kwargs)
+        self.service_name = "ceph-radosgw"
         self.rgw_name = kwargs.get("name")
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        u.defaults_refresh()
-        u.load_confg(self.model.cluster_name)
-        u.mon_members_refresh()
 
 
     def _set_rgw_path_lib(self):
@@ -162,76 +160,3 @@ class rgw_ctrl(object):
         removetree = "%s/" % (self.rgw_path_lib)
         log.info("Remove directory content:%s" % (removetree))
         shutil.rmtree(removetree)
-
-
-    def activate(self):
-        if self.rgw_name == None:
-            raise Error("Name not specified")
-        arguments = [
-            constants._path_systemctl,
-            "start",
-            "ceph-radosgw@%s" % (self.rgw_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-            raise Error("Name not specified")
-        arguments = [
-            constants._path_systemctl,
-            "enable",
-            "ceph-radosgw@%s" % (self.rgw_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-
-
-    def deactivate(self):
-        if self.rgw_name == None:
-            raise Error("Name not specified")
-        arguments = [
-            constants._path_systemctl,
-            "disable",
-            "ceph-radosgw@%s" % (self.rgw_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-        arguments = [
-            constants._path_systemctl,
-            "stop",
-            "ceph-radosgw@%s" % (self.rgw_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-
-
-    def create(self):
-        self.prepare()
-        self.activate()
-
-
-    def destroy(self):
-        self.deactivate()
-        self.remove()
