@@ -194,37 +194,6 @@ class rgw_ctrl(rados_client.ctrl_rados_client):
                 )
 
 
-    def deactivate(self):
-        if self.rgw_name == None:
-            raise Error("Name not specified")
-        arguments = [
-            constants._path_systemctl,
-            "disable",
-            "ceph-radosgw@%s" % (self.rgw_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-        arguments = [
-            constants._path_systemctl,
-            "stop",
-            "ceph-radosgw@%s" % (self.rgw_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-
-
     def create(self):
         self.prepare()
         self.activate()
