@@ -160,8 +160,3 @@ class rgw_ctrl(rados_client.ctrl_rados_client):
         removetree = "%s/" % (self.rgw_path_lib)
         log.info("Remove directory content:%s" % (removetree))
         shutil.rmtree(removetree)
-
-
-    def create(self):
-        self.prepare()
-        self.activate()
