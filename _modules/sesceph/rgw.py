@@ -1,13 +1,16 @@
+# Python imports
 import os
 import logging
 import json
 import shutil
 
+# Local imports
 import utils
 import constants
 import keyring
 import model
 import mdl_updater
+import rados_client
 
 
 log = logging.getLogger(__name__)
@@ -22,10 +25,10 @@ class Error(Exception):
         return ': '.join([doc] + [str(a) for a in self.args])
 
 
-class rgw_ctrl(object):
+class rgw_ctrl(rados_client.ctrl_rados_client):
     def __init__(self, **kwargs):
-        self.model = model.model(**kwargs)
-        self.model.init = "systemd"
+        super(rgw_ctrl, self).__init__(**kwargs)
+        self.service_name = "ceph-radosgw"
         self.rgw_name = kwargs.get("name")
 
 
