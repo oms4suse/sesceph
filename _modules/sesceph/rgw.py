@@ -165,8 +165,3 @@ class rgw_ctrl(rados_client.ctrl_rados_client):
     def create(self):
         self.prepare()
         self.activate()
-
-
-    def destroy(self):
-        self.deactivate()
-        self.remove()
