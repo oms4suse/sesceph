@@ -181,33 +181,8 @@ class mds_ctrl(rados_client.ctrl_rados_client):
         if not os.path.isfile(self.model.mds_path_env):
             log.info("Making file:%s" % (self.model.mds_path_env))
             self.make_env()
-        arguments = [
-            constants._path_systemctl,
-            "start",
-            "ceph-mds@%s" % (self.mds_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
-            raise Error("Name not specified")
-        arguments = [
-            constants._path_systemctl,
-            "enable",
-            "ceph-mds@%s" % (self.mds_name)
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                " ".join(arguments),
-                output["retcode"],
-                output["stdout"],
-                output["stderr"])
-                )
+        super(mds_ctrl, self).activate()
+
 
     def check_server(address, port):
         # Create a TCP socket
