@@ -15,6 +15,7 @@ import model
 import presenter
 import utils
 import constants
+import service
 
 
 log = logging.getLogger(__name__)
@@ -36,6 +37,8 @@ class Error(Exception):
 class mon_implementation_base(object):
     def __init__(self, mdl):
         self.model = mdl
+        self.model.init = "systemd"
+        self.init_system = service.init_system(init_type=self.model.init)
 
 
     def _execute(self, arguments):
@@ -361,20 +364,11 @@ class mon_implementation_base(object):
                     output["stderr"]
                     ))
             # Now start the service
-            arguments = [
-                constants._path_systemctl,
-                "restart",
-                "ceph-mon@%s" % (self.model.hostname)
-                ]
-            output = utils.execute_local_command(arguments)
-            if output["retcode"] != 0:
-                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                    " ".join(arguments),
-                    output["retcode"],
-                    output["stdout"],
-                    output["stderr"])
-                    )
-
+            arguments = {
+                'identifier' : self.model.hostname,
+                'service' : "ceph-mon",
+            }
+            self.init_system.restart(**arguments)
             self._create_check_retry()
             open(path_done_file, 'a').close()
         finally:

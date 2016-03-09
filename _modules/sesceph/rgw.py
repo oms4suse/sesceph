@@ -155,9 +155,13 @@ class rgw_ctrl(object):
         rgw_path_keyring = os.path.join(self.rgw_path_lib, 'keyring')
         if os.path.isfile(rgw_path_keyring):
             log.info("Remove from auth list keyring:%s" % (rgw_path_keyring))
-            self._remove_rgw_keyring()
-        log.info("Remove directory:%s" % (self.rgw_path_lib))
-        shutil.rmtree(self.rgw_path_lib)
+            try:
+                self._remove_rgw_keyring()
+            except Error,e:
+                log.error("Failed to remote from auth list")
+        removetree = "%s/" % (self.rgw_path_lib)
+        log.info("Remove directory content:%s" % (removetree))
+        shutil.rmtree(removetree)
 
 
     def activate(self):
