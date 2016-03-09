@@ -47,7 +47,7 @@ class mds_ctrl(object):
             cluster=self.model.cluster_name,
             name=self.mds_name
             )
-    
+
     def _set_path_systemd_env(self):
         self.model.path_systemd_env = "{lib_dir}/systemd/".format(
             lib_dir=constants._path_ceph_lib_mds,
@@ -64,8 +64,8 @@ class mds_ctrl(object):
             name=self.mds_name,
             path_systemd_env=self.model.path_systemd_env
             )
-        
-        
+
+
 
     def prepare(self):
         self._set_mds_path_lib()
@@ -80,7 +80,7 @@ class mds_ctrl(object):
         if not os.path.isdir(self.mds_path_lib):
             log.info("mkdir %s" % (self.mds_path_lib))
             os.makedirs(self.mds_path_lib)
-        
+
         mds_path_keyring = os.path.join(self.mds_path_lib, 'keyring')
         if not os.path.isfile(mds_path_keyring):
             log.info("creating %s" % (mds_path_keyring))
@@ -151,10 +151,10 @@ class mds_ctrl(object):
         if os.path.isfile(mds_path_keyring):
             self._remove_mds_keyring()
         shutil.rmtree(self.mds_path_lib)
-    
-    
-    
-    
+
+
+
+
     def make_env(self):
         if os.path.isfile(self.model.mds_path_env):
             return
@@ -165,7 +165,7 @@ class mds_ctrl(object):
         with open(self.model.mds_path_env, 'w+') as f:
             for data in data_list:
                 f.write(data)
-            
+
 
     def activate(self):
         self._set_path_systemd_env()
@@ -182,7 +182,7 @@ class mds_ctrl(object):
             raise Error("self.model.mds_path_env not specified")
         if not os.path.isdir(self.model.path_systemd_env):
             raise Error("self.model.path_systemd_env not specified")
-            
+
         if not os.path.isfile(self.model.mds_path_env):
             log.info("Making file:%s" % (self.model.mds_path_env))
             self.make_env()
@@ -226,7 +226,7 @@ class mds_ctrl(object):
             print "Connection to %s on port %s failed: %s" % (address, port, e)
             return False
 
-        
+
 
 
 
@@ -241,7 +241,7 @@ class mds_ctrl(object):
             ]
         output = utils.execute_local_command(arguments)
         if output["retcode"] != 0:
-            
+
             log.error(msg)
             raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                 " ".join(arguments),
