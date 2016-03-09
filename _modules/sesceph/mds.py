@@ -34,14 +34,6 @@ class mds_ctrl(rados_client.ctrl_rados_client):
         self.addr = kwargs.get("addr")
 
 
-    def update(self):
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        u.defaults_refresh()
-        u.load_confg(self.model.cluster_name)
-        u.mon_members_refresh()
-
-
     def _set_mds_path_lib(self):
         if self.mds_name == None:
             raise Error("mds name not specified")
