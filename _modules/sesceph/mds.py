@@ -60,12 +60,14 @@ class mds_ctrl(rados_client.ctrl_rados_client):
             path_systemd_env=self.model.path_systemd_env
             )
 
-
-
-    def prepare(self):
+    def update(self):
+        super(mds_ctrl, self).update()
         self._set_mds_path_lib()
         self._set_path_systemd_env()
         self._set_mds_path_env()
+
+
+    def prepare(self):
         path_bootstrap_keyring = keyring._get_path_keyring_mds(self.model.cluster_name)
         if not os.path.isfile(path_bootstrap_keyring):
             raise Error("Keyring not found at %s" % (path_bootstrap_keyring))
@@ -107,7 +109,6 @@ class mds_ctrl(rados_client.ctrl_rados_client):
 
 
     def _remove_mds_keyring(self):
-        self._set_mds_path_lib()
         if not os.path.isdir(self.mds_path_lib):
             return
         mds_path_keyring = os.path.join(self.mds_path_lib, 'keyring')
@@ -134,9 +135,6 @@ class mds_ctrl(rados_client.ctrl_rados_client):
 
 
     def remove(self):
-        self._set_mds_path_lib()
-        self._set_path_systemd_env()
-        self._set_mds_path_env()
         if os.path.isfile(self.model.mds_path_env):
             log.info("removing:%s" % (self.model.mds_path_env))
             os.remove(self.model.mds_path_env)
@@ -163,8 +161,6 @@ class mds_ctrl(rados_client.ctrl_rados_client):
 
 
     def activate(self):
-        self._set_path_systemd_env()
-        self._set_mds_path_env()
         if self.mds_name == None:
             raise Error("name not specified")
         if self.port == None:
@@ -182,10 +178,3 @@ class mds_ctrl(rados_client.ctrl_rados_client):
             log.info("Making file:%s" % (self.model.mds_path_env))
             self.make_env()
         super(mds_ctrl, self).activate()
-
-
-    def create(self):
-        self._set_path_systemd_env()
-        self._set_mds_path_env()
-        self.prepare()
-        self.activate()
