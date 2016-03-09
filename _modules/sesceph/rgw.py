@@ -32,14 +32,6 @@ class rgw_ctrl(rados_client.ctrl_rados_client):
         self.rgw_name = kwargs.get("name")
 
 
-    def update(self):
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        u.defaults_refresh()
-        u.load_confg(self.model.cluster_name)
-        u.mon_members_refresh()
-
-
     def _set_rgw_path_lib(self):
         if self.rgw_name == None:
             raise Error("rgw name not specified")
