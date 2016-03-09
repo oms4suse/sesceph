@@ -64,7 +64,7 @@ class mds_ctrl(object):
         
         
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         self._set_mds_path_lib()
         self._set_path_systemd_env()
         self._set_mds_path_env()
@@ -108,7 +108,7 @@ class mds_ctrl(object):
                         )
 
 
-    def _remove_mds_keyring(self, **kwargs):
+    def _remove_mds_keyring(self):
         self._set_mds_path_lib()
         if not os.path.isdir(self.mds_path_lib):
             return
@@ -135,7 +135,7 @@ class mds_ctrl(object):
                     )
 
 
-    def remove(self, **kwargs):
+    def remove(self):
         self._set_mds_path_lib()
         self._set_path_systemd_env()
         self._set_mds_path_env()
@@ -146,7 +146,7 @@ class mds_ctrl(object):
             return
         mds_path_keyring = os.path.join(self.mds_path_lib, 'keyring')
         if os.path.isfile(mds_path_keyring):
-            self._remove_mds_keyring(**kwargs)
+            self._remove_mds_keyring()
         shutil.rmtree(self.mds_path_lib)
     
     
@@ -164,7 +164,7 @@ class mds_ctrl(object):
                 f.write(data)
             
 
-    def activate(self, **kwargs):
+    def activate(self):
         self._set_path_systemd_env()
         self._set_mds_path_env()
         if self.mds_name == None:
@@ -227,7 +227,7 @@ class mds_ctrl(object):
 
 
 
-    def deactivate(self, **kwargs):
+    def deactivate(self):
         if self.mds_name == None:
             log.error("Name not specified")
             raise Error("Name not specified")
@@ -263,13 +263,13 @@ class mds_ctrl(object):
                 output["stderr"])
 
 
-    def create(self, **kwargs):
+    def create(self):
         self._set_path_systemd_env()
         self._set_mds_path_env()
-        self.prepare(**kwargs)
-        self.activate(**kwargs)
+        self.prepare()
+        self.activate()
 
 
-    def destroy(self, **kwargs):
-        self.deactivate(**kwargs)
-        self.remove(**kwargs)
+    def destroy(self):
+        self.deactivate()
+        self.remove()

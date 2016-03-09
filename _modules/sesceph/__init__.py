@@ -891,7 +891,7 @@ def rgw_create(**kwargs):
     Create a rgw
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
-    return ctrl_rgw.create(**kwargs)
+    return ctrl_rgw.create()
 
 
 def rgw_destroy(**kwargs):
@@ -899,7 +899,7 @@ def rgw_destroy(**kwargs):
     Remove a rgw
     """
     ctrl_rgw = rgw.rgw_ctrl(**kwargs)
-    return ctrl_rgw.destroy(**kwargs)
+    return ctrl_rgw.destroy()
 
 
 
@@ -908,7 +908,7 @@ def mds_create(**kwargs):
     Create a mds
     """
     ctrl_mds = mds.mds_ctrl(**kwargs)
-    return ctrl_mds.create(**kwargs)
+    return ctrl_mds.create()
 
 
 def mds_destroy(**kwargs):
@@ -916,7 +916,7 @@ def mds_destroy(**kwargs):
     Remove a mds
     """
     ctrl_mds = mds.mds_ctrl(**kwargs)
-    return ctrl_mds.destroy(**kwargs)
+    return ctrl_mds.destroy()
 
 
 def keyring_auth_list(**kwargs):
