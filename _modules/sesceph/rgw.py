@@ -27,6 +27,9 @@ class rgw_ctrl(object):
         self.model = model.model(**kwargs)
         self.model.init = "systemd"
         self.rgw_name = kwargs.get("name")
+
+
+    def update(self):
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
         u.defaults_refresh()
