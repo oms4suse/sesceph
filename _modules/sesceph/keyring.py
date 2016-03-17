@@ -3,7 +3,6 @@ import shutil
 import tempfile
 import os.path
 
-import model
 import mdl_updater
 import utils
 import mdl_query
@@ -68,8 +67,8 @@ def Property(func):
 
 
 class keyring_implementation_base(object):
-    def __init__(self,**kwargs):
-        self.model = model.model(**kwargs)
+    def __init__(self, mdl, **kwargs):
+        self.model = mdl
         u = mdl_updater.model_updater(self.model)
         u.hostname_refresh()
         u.defaults_refresh()
@@ -224,8 +223,8 @@ class keyring_implementation_base(object):
 
 
 class keyring_implementation_admin(keyring_implementation_base):
-    def __init__(self):
-        keyring_implementation_base.__init__(self)
+    def __init__(self, mdl):
+        keyring_implementation_base.__init__(self, mdl)
         self.keyring_name = "client.admin"
         self.caps = {"mon":"allow *", "osd":"allow *", "mds":"allow *"}
 
@@ -236,8 +235,8 @@ class keyring_implementation_admin(keyring_implementation_base):
         return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, secret=secret)
 
 class keyring_implementation_mon(keyring_implementation_base):
-    def __init__(self):
-        keyring_implementation_base.__init__(self)
+    def __init__(self, mdl):
+        keyring_implementation_base.__init__(self, mdl)
         self.keyring_name = "mon."
         self.caps = {"mon": "allow *"}
 
@@ -255,8 +254,8 @@ class keyring_implementation_mon(keyring_implementation_base):
 
 
 class keyring_implementation_osd(keyring_implementation_base):
-    def __init__(self):
-        keyring_implementation_base.__init__(self)
+    def __init__(self, mdl):
+        keyring_implementation_base.__init__(self, mdl)
         self.keyring_name = "client.bootstrap-osd"
         self.caps = {"mon": "allow profile bootstrap-osd"}
 
@@ -269,8 +268,8 @@ class keyring_implementation_osd(keyring_implementation_base):
         return self.invoke_ceph_authtool(self.keyring_name, path, self.caps, secret=secret)
 
 class keyring_implementation_rgw(keyring_implementation_base):
-    def __init__(self):
-        keyring_implementation_base.__init__(self)
+    def __init__(self, mdl):
+        keyring_implementation_base.__init__(self, mdl)
         self.keyring_name = "client.bootstrap-rgw"
         self.caps = {"mon": "allow profile bootstrap-rgw"}
 
@@ -293,8 +292,8 @@ class keyring_implementation_rgw(keyring_implementation_base):
 
 
 class keyring_implementation_mds(keyring_implementation_base):
-    def __init__(self):
-        keyring_implementation_base.__init__(self)
+    def __init__(self, mdl):
+        keyring_implementation_base.__init__(self, mdl)
         self.keyring_name = "client.bootstrap-mds"
         self.caps = {"mon": "allow profile bootstrap-mds"}
 
@@ -313,7 +312,8 @@ class keyring_implementation_mds(keyring_implementation_base):
 
 
 class keyring_facard(object):
-    def __init__(self):
+    def __init__(self, mdl):
+        self.model = mdl
         self._availableKeys = set(["admin", "mds", "mon", "osd", "rgw"])
         self._clear_implementation()
 
@@ -339,15 +339,15 @@ class keyring_facard(object):
                 raise Error("Invalid Value")
             implementation = None
             if name == "admin":
-                implementation = keyring_implementation_admin()
+                implementation = keyring_implementation_admin(self.model)
             if name == "mds":
-                implementation = keyring_implementation_mds()
+                implementation = keyring_implementation_mds(self.model)
             if name == "mon":
-                implementation = keyring_implementation_mon()
+                implementation = keyring_implementation_mon(self.model)
             if name == "osd":
-                implementation = keyring_implementation_osd()
+                implementation = keyring_implementation_osd(self.model)
             if name == "rgw":
-                implementation = keyring_implementation_rgw()
+                implementation = keyring_implementation_rgw(self.model)
             if implementation is None:
                 self._clear_implementation()
                 raise Error("Invalid Value")
