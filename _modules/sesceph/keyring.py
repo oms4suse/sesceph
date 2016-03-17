@@ -117,7 +117,8 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path,self.model.secret))
+            secret = kwargs.get("secret", None)
+            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path, secret))
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
