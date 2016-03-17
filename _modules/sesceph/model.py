@@ -47,4 +47,3 @@ class model:
     def kargs_apply(self, **kwargs):
         self.cluster_name = kwargs.get("cluster_name")
         self.cluster_uuid = kwargs.get("cluster_uuid")
-        self.secret = kwargs.get("secret", None)
