@@ -56,6 +56,17 @@ class mdl_query():
             }
         init_system = service.init_system(init_type=self.model.init)
         return init_system.is_running(**arguments)
+
+    def cluster_quorum(self):
+        """
+        Present the cluster quorum status
+        """
+        if self.model.cluster_status is None:
+            log.debug("self.model.cluster_status is None")
+            return False
+        return True
+
+
     def ceph_daemon_user(self):
         if self.model.ceph_version.major == 0:
             if self.model.ceph_version.minor < 95:
