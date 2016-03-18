@@ -397,50 +397,6 @@ class model_updater():
         self.model.mon_status = json.loads(output['stdout'])
 
 
-
-    def auth_list(self):
-        arguments = [
-            "ceph",
-            "auth",
-            "list"
-            ]
-        output = utils.execute_local_command(arguments)
-        if output["retcode"] != 0:
-            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
-                        " ".join(arguments),
-                        output["retcode"],
-                        output["stdout"],
-                        output["stderr"])
-                        )
-        auth_list_out = {}
-        section = {}
-        for line in output["stdout"].split('\n'):
-            if len(line) == 0:
-                continue
-            if line[0] != '\t':
-                prev_sec_name = section.get("name")
-                if prev_sec_name is not None:
-                    auth_list_out[prev_sec_name] = section
-                section = { "name" : line }
-                continue
-            tokenised_line = shlex.split(line)
-            if len(tokenised_line) == 0:
-                continue
-            if tokenised_line[0] == 'key:':
-                section['key'] = tokenised_line[1]
-            if tokenised_line[0] == 'caps:':
-                if not 'caps' in section:
-                    section['caps'] = []
-                cap_details = tokenised_line[1:]
-                section["caps"].append(cap_details)
-
-
-        prev_sec_name = section.get("name")
-        if prev_sec_name is not None:
-            auth_list_out[prev_sec_name] = section
-        self.model.auth_list = auth_list_out
-
-
     def pool_list(self):
         arguments = [
             "ceph",
