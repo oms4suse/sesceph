@@ -1,12 +1,18 @@
+# Python imports
+import logging
 import os
 import shutil
 import tempfile
 import os.path
 
-import mdl_updater
+# Local imports
 import utils
 import mdl_query
 import constants
+
+
+log = logging.getLogger(__name__)
+
 
 class Error(Exception):
     """
@@ -69,11 +75,7 @@ def Property(func):
 class keyring_implementation_base(object):
     def __init__(self, mdl, **kwargs):
         self.model = mdl
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        u.defaults_refresh()
-        u.load_confg(self.model.cluster_name)
-        u.mon_members_refresh()
+
 
     def invoke_ceph_authtool(self, keyring_name, keyring_path, caps, secret=None, extra_args=[]):
         """create arguments for invoking the ceph authtool, this simplifies most of
@@ -106,11 +108,6 @@ class keyring_implementation_base(object):
         """
         Create keyring
         """
-        self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        if self.model.cluster_name is None:
-            u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             return _keying_read(keyring_path)
@@ -130,11 +127,6 @@ class keyring_implementation_base(object):
         """
         Persist keyring
         """
-        self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        if self.model.cluster_name is None:
-            u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             return True
@@ -152,20 +144,12 @@ class keyring_implementation_base(object):
         """
         Authorise keyring
         """
-        self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        if self.model.cluster_name is None:
-            u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if not os.path.isfile(keyring_path):
             raise Error("rgw keyring not found")
-        u.load_confg(self.model.cluster_name)
-        u.mon_members_refresh()
         q = mdl_query.mdl_query(self.model)
         if not q.mon_is():
             raise Error("Not ruining a mon daemon")
-        u.mon_status()
         if not q.mon_quorum():
             raise Error("mon daemon is not in quorum")
         arguments = [
@@ -183,17 +167,9 @@ class keyring_implementation_base(object):
         """
         Remove Authorised keyring
         """
-        self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(self.model)
-        u.hostname_refresh()
-        if self.model.cluster_name is None:
-            u.defaults_refresh()
-        u.load_confg(self.model.cluster_name)
-        u.mon_members_refresh()
         q = mdl_query.mdl_query(self.model)
         if not q.mon_is():
             raise Error("Not ruining a mon daemon")
-        u.mon_status()
         if not q.mon_quorum():
             raise Error("mon daemon is not in quorum")
         arguments = [
@@ -210,10 +186,6 @@ class keyring_implementation_base(object):
         """
         Delete keyring
         """
-        self.model.kargs_apply(**kwargs)
-        u = mdl_updater.model_updater(self.model)
-        if self.model.cluster_name is None:
-            u.defaults_refresh()
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             try:
@@ -352,6 +324,11 @@ class keyring_facard(object):
             if implementation is None:
                 self._clear_implementation()
                 raise Error("Invalid Value")
+            try:
+                implementation.get_path_keyring()
+            except Error, e:
+                self._clear_implementation()
+                raise e
             self._keyImp = implementation
             self._keyType = name
             return self._keyType
