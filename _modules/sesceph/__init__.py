@@ -953,7 +953,11 @@ def keyring_auth_list(**kwargs):
         return {}
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    u.auth_list()
+    mur = mdl_updater_remote.model_updater_remote(m)
+    can_connect = mur.connect()
+    if not can_connect:
+        raise Error("Cant connect to cluster.")
+    mur.auth_list()
     p = presenter.mdl_presentor(m)
     return p.auth_list()
 
