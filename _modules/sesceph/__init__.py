@@ -988,9 +988,14 @@ def pool_list(**kwargs):
         return {}
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    u.pool_list()
+    mur = mdl_updater_remote.model_updater_remote(m)
+    can_connect = mur.connect()
+    if not can_connect:
+        raise Error("Cant connect to cluster.")
+    mur.pool_list()
     p = presenter.mdl_presentor(m)
     return p.pool_list()
+
 
 
 def pool_add(pool_name, **kwargs):
@@ -1028,15 +1033,15 @@ def pool_add(pool_name, **kwargs):
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
     u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        return {}
+    u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    u.pool_list()
-    u.pool_add(pool_name, **kwargs)
-    return True
+    mur = mdl_updater_remote.model_updater_remote(m)
+    can_connect = mur.connect()
+    if not can_connect:
+        raise Error("Cant connect to cluster.")
+    mur.pool_list()
+    return mur.pool_add(pool_name, **kwargs)
 
 
 def pool_del(pool_name, **kwargs):
@@ -1059,15 +1064,15 @@ def pool_del(pool_name, **kwargs):
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
     u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        return {}
+    u.defaults_refresh()
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
-    u.pool_list()
-    u.pool_del(pool_name)
-    return True
+    mur = mdl_updater_remote.model_updater_remote(m)
+    can_connect = mur.connect()
+    if not can_connect:
+        raise Error("Cant connect to cluster.")
+    mur.pool_list()
+    return mur.pool_del(pool_name)
 
 
 def purge(**kwargs):
