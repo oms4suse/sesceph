@@ -344,7 +344,6 @@ class keyring_facard(object):
         """
         Create keyring
         """
-        self.key_type == 'osd'
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.create(**kwargs)
