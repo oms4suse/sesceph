@@ -104,6 +104,16 @@ class keyring_implementation_base(object):
         return args
 
 
+    def present(self, **kwargs):
+        """
+        Is keyring present
+        """
+        keyring_path = self.get_path_keyring()
+        if os.path.isfile(keyring_path):
+            return True
+        return False
+
+
     def create(self, **kwargs):
         """
         Create keyring
@@ -339,6 +349,16 @@ class keyring_facard(object):
 
 
         return locals()
+
+
+    def present(self, **kwargs):
+        """
+        Create keyring
+        """
+        if self._keyImp is None:
+            raise Error("Programming error: key type unset")
+        return self._keyImp.present(**kwargs)
+
 
     def create(self, **kwargs):
         """
