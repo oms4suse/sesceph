@@ -386,6 +386,7 @@ class keyring_facard(object):
             raise Error("Programming error: key type unset")
         return self._keyImp.auth_add(**kwargs)
 
+
     def auth_del(self, **kwargs):
         """
         Authorise keyring
@@ -393,6 +394,7 @@ class keyring_facard(object):
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.auth_del(**kwargs)
+
 
     def remove(self, **kwargs):
         """
