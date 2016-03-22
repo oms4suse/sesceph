@@ -72,6 +72,9 @@ def keyring_present_type(**kwargs):
 
 
 def _keyring_purge_type(keyring_type, **kwargs):
+    keyring_type = kwargs.get("keyring_type", None)
+    if (keyring_type is None):
+        raise Error("keyring_type is not set")
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
     u.hostname_refresh()
@@ -161,3 +164,6 @@ def keyring_auth_del_type(**kwargs):
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
     return keyobj.auth_del(**kwargs)
+
+
+
