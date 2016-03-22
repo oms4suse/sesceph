@@ -86,7 +86,7 @@ def _keyring_purge_type(keyring_type, **kwargs):
     return keyobj.remove(**kwargs)
 
 
-def keyring_save_type(key_content=None, **kwargs):
+def keyring_save_type(**kwargs):
     keyring_type = kwargs.get("keyring_type")
     if (keyring_type is None):
         raise Error("keyring_type is None")
