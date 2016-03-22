@@ -158,48 +158,6 @@ class keyring_implementation_base(object):
         return True
 
 
-    def auth_add(self, **kwargs):
-        """
-        Authorise keyring
-        """
-        keyring_path = self.get_path_keyring()
-        if not os.path.isfile(keyring_path):
-            raise Error("rgw keyring not found")
-        q = mdl_query.mdl_query(self.model)
-        if not q.mon_is():
-            raise Error("Not ruining a mon daemon")
-        if not q.mon_quorum():
-            raise Error("mon daemon is not in quorum")
-        arguments = [
-                "ceph",
-                "auth",
-                "import",
-                "-i",
-                keyring_path
-                ]
-        cmd_out = utils.execute_local_command(arguments)
-        return True
-
-
-    def auth_del(self, **kwargs):
-        """
-        Remove Authorised keyring
-        """
-        q = mdl_query.mdl_query(self.model)
-        if not q.mon_is():
-            raise Error("Not ruining a mon daemon")
-        if not q.mon_quorum():
-            raise Error("mon daemon is not in quorum")
-        arguments = [
-                "ceph",
-                "auth",
-                "del",
-                self.keyring_name
-                ]
-        cmd_out = utils.execute_local_command(arguments)
-        return True
-
-
     def remove(self, **kwargs):
         """
         Delete keyring
@@ -385,24 +343,6 @@ class keyring_facard(object):
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.write(key_content,**kwargs)
-
-
-    def auth_add(self, **kwargs):
-        """
-        Authorise keyring
-        """
-        if self._keyImp is None:
-            raise Error("Programming error: key type unset")
-        return self._keyImp.auth_add(**kwargs)
-
-
-    def auth_del(self, **kwargs):
-        """
-        Authorise keyring
-        """
-        if self._keyImp is None:
-            raise Error("Programming error: key type unset")
-        return self._keyImp.auth_del(**kwargs)
 
 
     def remove(self, **kwargs):
