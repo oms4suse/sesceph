@@ -169,7 +169,8 @@ def zap(dev):
     if not os.path.exists(dev):
         raise Error('Cannot find', dev)
     dmode = os.stat(dev).st_mode
-    osdc = osd.osd_ctrl()
+    mdl = model.model(**kwargs)
+    osdc = osd.osd_ctrl(mdl)
     if not stat.S_ISBLK(dmode) or osdc.is_partition(dev):
         raise Error('not full block device; cannot zap', dev)
     try:
