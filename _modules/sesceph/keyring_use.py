@@ -125,6 +125,8 @@ def keyring_auth_add_type(key_content=None, **kwargs):
     u.mon_status()
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
+    if not keyobj.present():
+        raise Error("keyring not present")
     return keyobj.auth_add(**kwargs)
 
 
