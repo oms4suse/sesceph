@@ -207,6 +207,7 @@ class keyring_implementation_base(object):
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             try:
+                log.info("Removing" , keyring_path)
                 os.remove(keyring_path)
             except:
                 raise Error("Keyring could not be deleted")
