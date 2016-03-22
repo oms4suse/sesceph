@@ -162,10 +162,15 @@ def _update_partition(action, dev, description):
 
 
 
-def zap(dev):
+def zap(dev = None, **kwargs):
     """
     Destroy the partition table and content of a given disk.
     """
+    if dev is not None:
+        log.warning("Depricated use of function, use kwargs")
+    dev = kwargs.get("dev", dev)
+    if dev == None:
+        raise Error('Cannot find', dev)
     if not os.path.exists(dev):
         raise Error('Cannot find', dev)
     dmode = os.stat(dev).st_mode
