@@ -366,6 +366,32 @@ def keyring_auth_add(**kwargs):
     return keyring_use.keyring_auth_add_type(**kwargs)
 
 
+def keyring_auth_del(**kwargs):
+    """
+    Remove keyring from authorised list
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_osd_auth_del \\
+                'keyring_type'='admin' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return keyring_use.keyring_auth_add_type(key_content, **kwargs)
+
+
 def keyring_admin_create(**kwargs):
     """
     Create admin keyring for cluster
