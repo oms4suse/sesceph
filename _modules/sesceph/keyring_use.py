@@ -173,7 +173,12 @@ def keyring_auth_del_type(**kwargs):
     keyobj.key_type = keyring_type
     if not keyobj.present():
         raise Error("keyring not present")
-    return keyobj.auth_del(**kwargs)
+    mur = mdl_updater_remote.model_updater_remote(m)
+    can_connect = mur.connect()
+    if not can_connect:
+        raise Error("Cant connect to cluster.")
+    mur.auth_add(keyring_type)
+    return mur.auth_del(keyring_type)
 
 
 
