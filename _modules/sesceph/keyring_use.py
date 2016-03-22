@@ -171,6 +171,8 @@ def keyring_auth_del_type(**kwargs):
     u.mon_status()
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
+    if not keyobj.present():
+        raise Error("keyring not present")
     return keyobj.auth_del(**kwargs)
 
 
