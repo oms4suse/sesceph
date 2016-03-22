@@ -71,7 +71,6 @@ def keyring_present_type(**kwargs):
     return keyobj.present(**kwargs)
 
 
-
 def _keyring_purge_type(keyring_type, **kwargs):
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
@@ -89,14 +88,11 @@ def keyring_save_type(key_content=None, **kwargs):
     if (keyring_type is None):
         raise Error("keyring_type is None")
     key_content = kwargs.get("key_content")
-    
     secret = kwargs.get("secret")
-    
     if (key_content is None) and (secret is None):
         raise Error("Set either the key_content or the key `secret`")
     if 'secret' in kwargs:
         utils.is_valid_base64(kwargs['secret'])
-    
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
     u.hostname_refresh()
