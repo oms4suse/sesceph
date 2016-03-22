@@ -10,6 +10,7 @@ import shlex
 import keyring
 import constants
 import utils
+import mdl_query
 
 
 log = logging.getLogger(__name__)
@@ -155,6 +156,49 @@ class model_updater_remote():
         if prev_sec_name is not None:
             auth_list_out[prev_sec_name] = section
         self.model.auth_list = auth_list_out
+
+
+    def auth_add(self, keyring_type):
+        """
+        Authorise keyring
+        """
+        keyringobj = keyring.keyring_facard(self.model)
+        keyringobj.key_type = keyring_type
+
+
+        if not keyringobj.present():
+            raise Error("rgw keyring not found")
+        q = mdl_query.mdl_query(self.model)
+        if q.mon_is() and q.mon_quorum() is False:
+            raise Error("mon daemon is not in quorum")
+        arguments = [
+                "ceph",
+                "auth",
+                "import",
+                "-i",
+                keyringobj.keyring_path_get()
+                ]
+        cmd_out = utils.execute_local_command(arguments)
+        return True
+
+
+    def auth_del(self, **kwargs):
+        """
+        Remove Authorised keyring
+        """
+        keyringobj = keyring.keyring_facard(self.model)
+        keyringobj.key_type = keyring_type
+        q = mdl_query.mdl_query(self.model)
+        if q.mon_is() and q.mon_quorum() is False:
+            raise Error("mon daemon is not in quorum")
+        arguments = [
+                "ceph",
+                "auth",
+                "del",
+                keyringobj.keyring_path_get()
+                ]
+        cmd_out = utils.execute_local_command(arguments)
+        return True
 
 
     def pool_list(self):
