@@ -311,6 +311,35 @@ def keyring_save(**kwargs):
     return keyring_use.keyring_save_type(**kwargs)
 
 
+def keyring_purge(**kwargs):
+    """
+    Delete keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_purge \\
+                'keyring_type'='admin' \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If no ceph config file is found, this command will fail.
+    """
+    return keyring_use.keyring_purge_type(**kwargs)
+
+
 def keyring_admin_create(**kwargs):
     """
     Create admin keyring for cluster
