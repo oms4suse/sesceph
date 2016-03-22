@@ -71,7 +71,7 @@ def keyring_present_type(**kwargs):
     return keyobj.present(**kwargs)
 
 
-def _keyring_purge_type(keyring_type, **kwargs):
+def keyring_purge_type(**kwargs):
     keyring_type = kwargs.get("keyring_type", None)
     if (keyring_type is None):
         raise Error("keyring_type is not set")
