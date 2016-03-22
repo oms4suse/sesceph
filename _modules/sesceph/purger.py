@@ -185,13 +185,6 @@ def purge(mdl, **kwargs):
         salt '*' sesceph.purge
     """
     service_shutdown_ceph()
-    keyobj = keyring.keyring_facard(mdl)
-    for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
-        try:
-            keyobj.key_type = keytype
-            keyobj.remove(**kwargs)
-        except:
-            pass
     pur_ctrl = purger(mdl)
     try:
         pur_ctrl.update_mon()
@@ -200,6 +193,13 @@ def purge(mdl, **kwargs):
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
+    keyobj = keyring.keyring_facard(mdl)
+    for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
+        try:
+            keyobj.key_type = keytype
+            keyobj.remove(**kwargs)
+        except:
+            pass
     try:
         pur_ctrl.update_osd()
         pur_ctrl.unmount_osd()
