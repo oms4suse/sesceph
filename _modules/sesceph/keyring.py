@@ -93,7 +93,7 @@ class keyring_implementation_base(object):
         args=[constants._path_ceph_authtool, "-n", keyring_name, "--create-keyring", keyring_path]
 
         if secret:
-            args += ["--add-key", secret]
+            args += ["--add-key", secret.strip()]
         else:
             args.append("--gen-key")
 
