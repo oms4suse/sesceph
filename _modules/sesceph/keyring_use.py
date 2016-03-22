@@ -7,6 +7,7 @@ import mdl_updater
 import keyring
 import utils
 import mdl_query
+import mdl_updater_remote
 
 
 log = logging.getLogger(__name__)
@@ -127,7 +128,12 @@ def keyring_auth_add_type(key_content=None, **kwargs):
     keyobj.key_type = keyring_type
     if not keyobj.present():
         raise Error("keyring not present")
-    return keyobj.auth_add(**kwargs)
+    mur = mdl_updater_remote.model_updater_remote(m)
+    can_connect = mur.connect()
+    if not can_connect:
+        raise Error("Cant connect to cluster.")
+    mur.auth_add(keyring_type)
+    return mur.auth_add(keyring_type)
 
 
 
