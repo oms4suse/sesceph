@@ -139,7 +139,8 @@ def partition_is(dev):
     salt '*' sesceph.partition_is /dev/sdc1
 
     """
-    osdc = osd.osd_ctrl()
+    mdl = model.model(**kwargs)
+    osdc = osd.osd_ctrl(mdl)
     return osdc.is_partition(dev)
 
 
