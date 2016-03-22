@@ -125,7 +125,15 @@ class keyring_implementation_base(object):
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
             secret = kwargs.get("secret", None)
-            cmd_out = utils.execute_local_command(self.get_arguments_create(key_path, secret))
+            arguments = self.get_arguments_create(key_path, secret)
+            cmd_out = utils.execute_local_command(arguments)
+            if cmd_out["retcode"] != 0:
+                raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                    " ".join(arguments),
+                    cmd_out["retcode"],
+                    cmd_out["stdout"],
+                    cmd_out["stderr"])
+                    )
             output = _keying_read(key_path)
         finally:
             shutil.rmtree(tmpd)
