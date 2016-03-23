@@ -658,9 +658,9 @@ def keyring_osd_auth_del(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.auth_del(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    return keyring_auth_del(**params)
 
 
 def keyring_osd_purge(**kwargs):
