@@ -286,7 +286,7 @@ class keyring_facard(object):
                 self._clear_implementation()
             if not name in self._availableKeys:
                 self._clear_implementation()
-                raise Error("Invalid Value")
+                raise Error("Invalid Value:%s" % (name))
             implementation = None
             if name == "admin":
                 implementation = keyring_implementation_admin(self.model)
@@ -300,7 +300,7 @@ class keyring_facard(object):
                 implementation = keyring_implementation_rgw(self.model)
             if implementation is None:
                 self._clear_implementation()
-                raise Error("Invalid Value")
+                raise Error("Programming error for invalid Value:%s" % (name))
             try:
                 implementation.get_path_keyring()
             except Error, e:
