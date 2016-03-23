@@ -510,9 +510,9 @@ def keyring_mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mon"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mon"
+    return keyring_create(**params)
 
 
 def keyring_mon_save(key_content=None, **kwargs):
