@@ -108,7 +108,7 @@ def keyring_save_type(**kwargs):
     return keyobj.write(key_content, **kwargs)
 
 
-def keyring_auth_add_type(key_content=None, **kwargs):
+def keyring_auth_add_type(**kwargs):
     keyring_type = kwargs.get("keyring_type")
     if (keyring_type is None):
         raise Error("keyring_type is None")
@@ -121,9 +121,8 @@ def keyring_auth_add_type(key_content=None, **kwargs):
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not ruining a mon daemon")
-    u.mon_status()
+    if q.mon_is():
+        u.mon_status()
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
     if not keyobj.present():
@@ -132,7 +131,6 @@ def keyring_auth_add_type(key_content=None, **kwargs):
     can_connect = mur.connect()
     if not can_connect:
         raise Error("Cant connect to cluster.")
-    mur.auth_add(keyring_type)
     return mur.auth_add(keyring_type)
 
 
@@ -166,9 +164,8 @@ def keyring_auth_del_type(**kwargs):
     u.load_confg(m.cluster_name)
     u.mon_members_refresh()
     q = mdl_query.mdl_query(m)
-    if not q.mon_is():
-        raise Error("Not ruining a mon daemon")
-    u.mon_status()
+    if q.mon_is():
+        u.mon_status()
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
     if not keyobj.present():
@@ -177,7 +174,6 @@ def keyring_auth_del_type(**kwargs):
     can_connect = mur.connect()
     if not can_connect:
         raise Error("Cant connect to cluster.")
-    mur.auth_add(keyring_type)
     return mur.auth_del(keyring_type)
 
 
