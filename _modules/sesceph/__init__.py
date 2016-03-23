@@ -704,9 +704,10 @@ def keyring_mds_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    return keyring_create(**params)
+
 
 def keyring_mds_save(key_content=None, **kwargs):
     """
