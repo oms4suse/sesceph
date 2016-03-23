@@ -585,9 +585,9 @@ def keyring_osd_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    return keyring_create(**params)
 
 
 def keyring_osd_save(key_content=None, **kwargs):
