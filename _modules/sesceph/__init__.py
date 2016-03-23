@@ -825,9 +825,9 @@ def keyring_rgw_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    return keyring_create(**params)
 
 
 def keyring_rgw_save(key_content=None, **kwargs):
