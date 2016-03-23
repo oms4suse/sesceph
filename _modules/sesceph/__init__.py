@@ -435,9 +435,9 @@ def keyring_admin_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "admin"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "admin"
+    return keyring_create(**params)
 
 
 def keyring_admin_save(key_content=None, **kwargs):
