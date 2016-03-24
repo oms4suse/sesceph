@@ -799,9 +799,9 @@ def keyring_mds_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.remove(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    return keyring_purge(**params)
 
 
 def keyring_rgw_create(**kwargs):
