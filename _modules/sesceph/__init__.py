@@ -487,9 +487,9 @@ def keyring_admin_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "admin"
-    return keyobj.remove(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "admin"
+    return keyring_purge(**params)
 
 
 def keyring_mon_create(**kwargs):
