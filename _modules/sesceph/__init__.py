@@ -607,7 +607,7 @@ def keyring_osd_save(key_content=None, **kwargs):
         Set the cluster name. Defaults to "ceph".
     """
     params = dict(kwargs)
-    params["keyring_type"] = "mon"
+    params["keyring_type"] = "osd"
     if key_content is None:
         return keyring_save(**params)
     log.warning("keyring_admin_save using legacy argument call")
