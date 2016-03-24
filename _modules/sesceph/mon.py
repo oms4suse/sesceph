@@ -314,7 +314,7 @@ class mon_implementation_base(object):
                 "--import-keyring",
                 keyring_path_mon,
                 ]
-            output = self._execute(arguments)
+            output = utils.execute_local_command(arguments)
             if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -328,7 +328,7 @@ class mon_implementation_base(object):
                 "--import-keyring",
                 path_admin_keyring,
                 ]
-            output = self._execute(arguments)
+            output = utils.execute_local_command(arguments)
             if output["retcode"] != 0:
                 raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
                     " ".join(arguments),
@@ -336,6 +336,8 @@ class mon_implementation_base(object):
                     output["stdout"],
                     output["stderr"]
                     ))
+            # Now chown the new file
+            os.chown(key_path, self.uid, self.gid)
             # Now clean the install area
             if os.path.isdir(path_mon_dir):
                 log.info("Remove directory content %s" %(path_mon_dir))
@@ -363,6 +365,10 @@ class mon_implementation_base(object):
                     output["stdout"],
                     output["stderr"]
                     ))
+            # check keyring created:
+            path_mon_key = os.path.join(path_mon_dir, "keyring")
+            if not os.path.isfile(path_mon_key):
+                raise Error("Failed to create '%s'" % (path_mon_key))
             # Now start the service
             arguments = {
                 'identifier' : self.model.hostname,
