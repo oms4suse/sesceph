@@ -70,7 +70,7 @@ def keyring_present_type(**kwargs):
         pass
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
-    return keyobj.present(**kwargs)
+    return keyobj.present()
 
 
 def keyring_purge_type(**kwargs):
