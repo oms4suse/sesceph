@@ -458,14 +458,13 @@ def keyring_admin_save(key_content=None, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
-
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "admin"
-    return keyobj.write(key_content, **kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "admin"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
 
 
 def keyring_admin_purge(**kwargs):
