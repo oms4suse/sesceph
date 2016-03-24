@@ -363,6 +363,10 @@ class mon_implementation_base(object):
                     output["stdout"],
                     output["stderr"]
                     ))
+            # check keyring created:
+            path_mon_key = os.path.join(path_mon_dir, "keyring")
+            if not os.path.isfile(path_mon_key):
+                raise Error("Failed to create '%s'" % (path_mon_key))
             # Now start the service
             arguments = {
                 'identifier' : self.model.hostname,
