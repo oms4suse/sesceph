@@ -26,6 +26,7 @@ def keyring_create_type(**kwargs):
     keyring_type = kwargs.get("keyring_type")
     if (keyring_type is None):
         raise Error("keyring_type is None")
+    secret = kwargs.get("secret")
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
     u.hostname_refresh()
@@ -34,7 +35,7 @@ def keyring_create_type(**kwargs):
     u.mon_members_refresh()
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
-    return keyobj.create(**kwargs)
+    return keyobj.create(secret=secret)
 
 
 def keyring_present_type(**kwargs):
