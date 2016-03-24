@@ -107,7 +107,6 @@ def keyring_save_type(**kwargs):
         return keyobj.write_content(key_content)
     raise Error("Set either the key_content or the key `secret`")
 
-
 def keyring_auth_add_type(**kwargs):
     keyring_type = kwargs.get("keyring_type")
     if (keyring_type is None):
