@@ -104,7 +104,7 @@ class keyring_implementation_base(object):
         return args
 
 
-    def present(self, **kwargs):
+    def present(self):
         """
         Is keyring present
         """
@@ -317,13 +317,13 @@ class keyring_facard(object):
         return locals()
 
 
-    def present(self, **kwargs):
+    def present(self):
         """
         Create keyring
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.present(**kwargs)
+        return self._keyImp.present()
 
 
     def create(self, **kwargs):
