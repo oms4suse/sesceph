@@ -150,6 +150,28 @@ class keyring_implementation_base(object):
         return True
 
 
+    def write_secret(self, secret):
+        """
+        Persist keyring
+        """
+        keyring_path = self.get_path_keyring()
+        if os.path.isfile(keyring_path):
+            return True
+        if secret is None:
+            raise Error("Keyring secret is invalid")
+        arguments = self.get_arguments_create(keyring_path, secret)
+        cmd_out = utils.execute_local_command(arguments)
+        if cmd_out["retcode"] != 0:
+            raise Error("Failed executing '%s' Error rc=%s, stdout=%s stderr=%s" % (
+                " ".join(arguments),
+                cmd_out["retcode"],
+                cmd_out["stdout"],
+                cmd_out["stderr"])
+                )
+        output = _keying_read(keyring_path)
+        return True
+
+
     def remove(self, **kwargs):
         """
         Delete keyring
@@ -335,6 +357,15 @@ class keyring_facard(object):
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.write_content(key_content)
+
+
+    def write_secret(self, secret):
+        """
+        Persist keyring
+        """
+        if self._keyImp is None:
+            raise Error("Programming error: key type unset")
+        return self._keyImp.write_secret(secret)
 
 
     def remove(self, **kwargs):
