@@ -847,13 +847,14 @@ def keyring_rgw_save(key_content=None, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.write(key_content, **kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
+
 
 def keyring_rgw_auth_add(**kwargs):
     """
