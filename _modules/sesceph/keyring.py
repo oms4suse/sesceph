@@ -114,7 +114,7 @@ class keyring_implementation_base(object):
         return False
 
 
-    def create(self, **kwargs):
+    def create(self, secret = None):
         """
         Create keyring
         """
@@ -124,7 +124,6 @@ class keyring_implementation_base(object):
         try:
             tmpd = tempfile.mkdtemp()
             key_path = os.path.join(tmpd,"keyring")
-            secret = kwargs.get("secret", None)
             arguments = self.get_arguments_create(key_path, secret)
             cmd_out = utils.execute_local_command(arguments)
             if cmd_out["retcode"] != 0:
@@ -138,7 +137,6 @@ class keyring_implementation_base(object):
         finally:
             shutil.rmtree(tmpd)
         return output
-
 
 
     def write(self, **kwargs):
@@ -326,13 +324,13 @@ class keyring_facard(object):
         return self._keyImp.present()
 
 
-    def create(self, **kwargs):
+    def create(self, secret = None):
         """
         Create keyring
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.create(**kwargs)
+        return self._keyImp.create(secret)
 
 
     def write(self, **kwargs):
