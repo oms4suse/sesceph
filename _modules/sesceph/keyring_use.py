@@ -90,14 +90,8 @@ def keyring_purge_type(**kwargs):
 
 def keyring_save_type(**kwargs):
     keyring_type = kwargs.get("keyring_type")
-    if (keyring_type is None):
-        raise Error("keyring_type is None")
     key_content = kwargs.get("key_content")
     secret = kwargs.get("secret")
-    if (key_content is None) and (secret is None):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
     m = model.model(**kwargs)
     u = mdl_updater.model_updater(m)
     u.hostname_refresh()
@@ -106,7 +100,12 @@ def keyring_save_type(**kwargs):
     u.mon_members_refresh()
     keyobj = keyring.keyring_facard(m)
     keyobj.key_type = keyring_type
-    return keyobj.write(key_content, **kwargs)
+    if secret is not None:
+        utils.is_valid_base64(secret)
+        return keyobj.write_secret(secret)
+    if key_content is not None:
+        return keyobj.write_content(key_content)
+    raise Error("Set either the key_content or the key `secret`")
 
 
 def keyring_auth_add_type(**kwargs):
