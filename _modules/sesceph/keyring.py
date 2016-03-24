@@ -73,7 +73,7 @@ def Property(func):
 
 
 class keyring_implementation_base(object):
-    def __init__(self, mdl, **kwargs):
+    def __init__(self, mdl):
         self.model = mdl
 
 
