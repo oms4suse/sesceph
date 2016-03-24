@@ -172,7 +172,7 @@ class keyring_implementation_base(object):
         return True
 
 
-    def remove(self, **kwargs):
+    def remove(self):
         """
         Delete keyring
         """
@@ -368,13 +368,13 @@ class keyring_facard(object):
         return self._keyImp.write_secret(secret)
 
 
-    def remove(self, **kwargs):
+    def remove(self):
         """
         Remove keyring
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.remove(**kwargs)
+        return self._keyImp.remove()
 
 
     def keyring_path_get(self):
