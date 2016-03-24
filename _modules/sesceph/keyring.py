@@ -139,18 +139,13 @@ class keyring_implementation_base(object):
         return output
 
 
-    def write(self, **kwargs):
+    def write_content(self, key_content):
         """
         Persist keyring
         """
         keyring_path = self.get_path_keyring()
         if os.path.isfile(keyring_path):
             return True
-        key_content = kwargs.get('key_content')
-        # We only check for secret, as init itself catches the case if
-        # key_content is already set
-        if 'secret' in kwargs:
-            key_content=self.create(**kwargs)
         _keying_write(keyring_path, key_content)
         return True
 
@@ -333,13 +328,13 @@ class keyring_facard(object):
         return self._keyImp.create(secret)
 
 
-    def write(self, **kwargs):
+    def write_content(self, key_content):
         """
         Persist keyring
         """
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
-        return self._keyImp.write(**kwargs)
+        return self._keyImp.write_content(key_content)
 
 
     def remove(self, **kwargs):
