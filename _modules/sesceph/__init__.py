@@ -561,9 +561,9 @@ def keyring_mon_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mon"
-    return keyobj.remove(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mon"
+    return keyring_purge(**params)
 
 
 def keyring_osd_create(**kwargs):
