@@ -197,9 +197,15 @@ def purge(mdl, **kwargs):
     for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
         try:
             keyobj.key_type = keytype
-            keyobj.remove(**kwargs)
-        except:
-            pass
+
+        except keyring.error, E:
+            log.warning(E)
+            continue
+        if keyobj.present() is False:
+            log.info("Already removed '%s' keyring" % (keytype))
+            continue
+        log.info("Removing '%s' keyring" % (keytype))
+        keyobj.remove()
     try:
         pur_ctrl.update_osd()
         pur_ctrl.unmount_osd()
