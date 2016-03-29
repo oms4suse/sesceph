@@ -51,7 +51,7 @@ class model_updater_remote():
 
 
     def connect(self):
-        keyring_obj = keyring.keyring_facard()
+        keyring_obj = keyring.keyring_facard(self.model)
         for keytype in ["admin", "osd", "mds", "rgw", "mon"]:
             log.debug("Trying keyring:%s" % (keytype))
             keyring_obj.key_type = keytype
