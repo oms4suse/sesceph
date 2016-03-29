@@ -176,6 +176,30 @@ class mdl_presentor():
             return {}
         return {fsid : output}
 
+    def cluster_status(self):
+        """
+        Present the cluster status
+        """
+        if (None == self.model.cluster_status):
+            return {}
+        fsid = None
+        output = {}
+        for key in self.model.cluster_status.keys():
+            if key == 'monmap':
+                monmap_in = self.model.cluster_status.get(key)
+                monmap_out = {}
+                for monmap_key in monmap_in.keys():
+                    if monmap_key == 'fsid':
+                        fsid = monmap_in.get(monmap_key)
+                        continue
+                    monmap_out[monmap_key] = monmap_in.get(monmap_key)
+                output[key] = monmap_out
+                continue
+            output[key] = self.model.cluster_status.get(key)
+        if fsid is None:
+            return {}
+        return {fsid : output}
+
     def auth_list(self):
         output = {}
         for keyname in self.model.auth_list.keys():

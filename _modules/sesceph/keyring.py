@@ -404,3 +404,21 @@ class keyring_facard(object):
         if self._keyImp is None:
             raise Error("Programming error: key type unset")
         return self._keyImp.remove(**kwargs)
+
+
+    def keyring_path_get(self):
+        """
+        Get keyring path
+        """
+        if self._keyImp is None:
+            raise Error("Programming error: key type unset")
+        return self._keyImp.get_path_keyring()
+
+
+    def keyring_identity_get(self):
+        """
+        Get keyring path
+        """
+        if self._keyImp is None:
+            raise Error("Programming error: key type unset")
+        return self._keyImp.keyring_name

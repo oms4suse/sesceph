@@ -66,6 +66,8 @@ keyring_admin_save:
     - kwargs: {
        'secret' : 'AQBR8KhWgKw6FhAAoXvTT6MdBE+bV+zPKzIo6w=='
         }
+    - require:
+      - module: keyring_admin_create
 
 
 keyring_mon_save:
@@ -74,6 +76,8 @@ keyring_mon_save:
     - kwargs: {
        'secret' : 'AQB/8KhWmIfENBAABq8EEbzCJMjEFoazMNb+oQ=='
         }
+    - require:
+      - module: keyring_mon_create
 
 
 keyring_osd_save:
@@ -82,7 +86,8 @@ keyring_osd_save:
     - kwargs: {
        'secret' : 'AQCxU6dWKJzuEBAAjh0WSiThjl+Ruvj3QCsDDQ=='
         }
-
+    - require:
+      - module: keyring_osd_create
 
 keyring_rgw_save:
   module.run:
@@ -107,24 +112,48 @@ keyring_mds_save:
 mon_create:
     module.run:
     - name: sesceph.mon_create
+    - require:
+      - module: keyring_admin_save
+      - module: keyring_mon_save
+
+# Get cluster status
+#
+# Note:
+# - This will only succeed on nodes with a cluster in quorum
+
+cluster_status:
+    module.run:
+    - name: sesceph.cluster_status
+    - require:
+      - module: keyring_admin_save
+      - module: keyring_mon_save
 
 # Add the OSD key to the clusters authorized key list
 
 keyring_osd_auth_add:
   module.run:
     - name: sesceph.keyring_osd_auth_add
+    - require:
+      - module: cluster_status
+      - module: keyring_osd_save
 
 # Add the rgw key to the clusters authorized key list
 
 keyring_auth_add_rgw:
   module.run:
     - name: sesceph.keyring_rgw_auth_add
+    - require:
+      - module: cluster_status
+      - module: keyring_rgw_save
 
 # Add the mds key to the clusters authorized key list
 
 keyring_auth_add_mds:
   module.run:
     - name: sesceph.keyring_mds_auth_add
+    - require:
+      - module: cluster_status
+      - module: keyring_mds_save
 
 # Prepare disks for OSD use
 
@@ -134,7 +163,8 @@ prepare_vdb:
     - kwargs: {
         osd_dev: /dev/vdb
         }
-
+    - require:
+      - module: keyring_osd_auth_add
 
 prepare_vdc:
   module.run:
@@ -142,7 +172,8 @@ prepare_vdc:
     - kwargs: {
         osd_dev: /dev/vdc
         }
-
+    - require:
+      - module: keyring_osd_auth_add
 # Activate OSD's on prepared disks
 
 activate_vdb:
@@ -165,6 +196,8 @@ activate_vdc:
 rgw_prep:
   module.run:
     - name: sesceph.rgw_pools_create
+    - require:
+      - module: keyring_osd_auth_add
 
 # Create the rgw
 
@@ -174,6 +207,8 @@ rgw_create:
     - kwargs: {
         name: rgw-{{ grains['machine_id'] }}
         }
+    - require:
+      - module: rgw_prep
 
 # Create the mds
 
@@ -185,3 +220,5 @@ mds_create:
         port: 1000,
         addr:{{ grains['fqdn_ip4'] }}
         }
+    - require:
+      - module: keyring_osd_auth_add
