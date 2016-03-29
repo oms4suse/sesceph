@@ -1104,11 +1104,10 @@ def cluster_quorum(**kwargs):
     CLI Example:
 
         salt '*' sesceph.cluster_status \\
-                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
-    Get the cluster status including health and quorum status
+    Get the cluster quorum status.
 
     Scope:
     Cluster wide
@@ -1142,11 +1141,10 @@ def cluster_status(**kwargs):
     CLI Example:
 
         salt '*' sesceph.cluster_status \\
-                '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
-    Get the cluster status including health and qurumn status
+    Get the cluster status including health if in quorum.
 
     Scope:
     Cluster wide
