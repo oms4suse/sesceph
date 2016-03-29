@@ -17,13 +17,13 @@ import mdl_updater
 import presenter
 import mdl_query
 import utils
-import keyring
 import osd
 import mon
 import rgw
 import mds
 import purger
 import mdl_updater_remote
+import keyring_use
 
 log = logging.getLogger(__name__)
 
@@ -257,6 +257,165 @@ def osd_activate(**kwargs):
     return osd.osd_activate(**kwargs)
 
 
+def keyring_create(**kwargs):
+    """
+    Create keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_create \\
+                'keyring_type'='admin' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return keyring_use.keyring_create_type(**kwargs)
+
+
+def keyring_save(**kwargs):
+    """
+    Create save keyring locally
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_save \\
+                'keyring_type'='admin' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid' \\
+                ''
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return keyring_use.keyring_save_type(**kwargs)
+
+
+def keyring_purge(**kwargs):
+    """
+    Delete keyring for cluster
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_purge \\
+                'keyring_type'='admin' \\
+                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    If no ceph config file is found, this command will fail.
+    """
+    return keyring_use.keyring_purge_type(**kwargs)
+
+
+def keyring_present(**kwargs):
+    """
+    Is keyring on disk
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mon_present \\
+                'keyring_type'='admin' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+    Required paramter
+    Can be set to:
+        admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return keyring_use.keyring_present_type(**kwargs)
+
+
+def keyring_auth_add(**kwargs):
+    """
+    Add keyring to authorised list
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_mon_present \\
+                'keyring_type'='admin' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return keyring_use.keyring_auth_add_type(**kwargs)
+
+
+def keyring_auth_del(**kwargs):
+    """
+    Remove keyring from authorised list
+
+    CLI Example:
+
+        salt '*' sesceph.keyring_osd_auth_del \\
+                'keyring_type'='admin' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    keyring_type
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return keyring_use.keyring_auth_add_type(**kwargs)
+
 
 def keyring_admin_create(**kwargs):
     """
@@ -275,9 +434,9 @@ def keyring_admin_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "admin"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "admin"
+    return keyring_create(**params)
 
 
 def keyring_admin_save(key_content=None, **kwargs):
@@ -298,14 +457,13 @@ def keyring_admin_save(key_content=None, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
-
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "admin"
-    return keyobj.write(key_content, **kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "admin"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
 
 
 def keyring_admin_purge(**kwargs):
@@ -328,9 +486,9 @@ def keyring_admin_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "admin"
-    return keyobj.remove(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "admin"
+    return keyring_purge(**params)
 
 
 def keyring_mon_create(**kwargs):
@@ -350,9 +508,9 @@ def keyring_mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mon"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mon"
+    return keyring_create(**params)
 
 
 def keyring_mon_save(key_content=None, **kwargs):
@@ -373,14 +531,13 @@ def keyring_mon_save(key_content=None, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
-
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mon"
-    return keyobj.write(key_content, **kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mon"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
 
 
 def keyring_mon_purge(**kwargs):
@@ -403,9 +560,9 @@ def keyring_mon_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mon"
-    return keyobj.remove(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mon"
+    return keyring_purge(**params)
 
 
 def keyring_osd_create(**kwargs):
@@ -425,9 +582,9 @@ def keyring_osd_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    return keyring_create(**params)
 
 
 def keyring_osd_save(key_content=None, **kwargs):
@@ -448,14 +605,13 @@ def keyring_osd_save(key_content=None, **kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
-
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.write(key_content, **kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
 
 
 def keyring_osd_auth_add(**kwargs):
@@ -476,9 +632,9 @@ def keyring_osd_auth_add(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.auth_add(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    return keyring_auth_add(**params)
 
 
 def keyring_osd_auth_del(**kwargs):
@@ -498,9 +654,9 @@ def keyring_osd_auth_del(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.auth_del(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    return keyring_auth_del(**params)
 
 
 def keyring_osd_purge(**kwargs):
@@ -521,10 +677,9 @@ def keyring_osd_purge(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "osd"
-    return keyobj.remove(**kwargs)
-
+    params = dict(kwargs)
+    params["keyring_type"] = "osd"
+    return keyring_purge(**params)
 
 
 def keyring_mds_create(**kwargs):
@@ -544,9 +699,10 @@ def keyring_mds_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    return keyring_create(**params)
+
 
 def keyring_mds_save(key_content=None, **kwargs):
     """
@@ -568,14 +724,14 @@ def keyring_mds_save(key_content=None, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
 
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.write(key_content, **kwargs)
 
 def keyring_mds_auth_add(**kwargs):
     """
@@ -595,9 +751,9 @@ def keyring_mds_auth_add(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.auth_add(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    return keyring_auth_add(**params)
 
 
 def keyring_mds_auth_del(**kwargs):
@@ -617,9 +773,9 @@ def keyring_mds_auth_del(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.auth_del(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    return keyring_auth_del(**params)
 
 
 def keyring_mds_purge(**kwargs):
@@ -642,9 +798,9 @@ def keyring_mds_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "mds"
-    return keyobj.remove(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "mds"
+    return keyring_purge(**params)
 
 
 def keyring_rgw_create(**kwargs):
@@ -664,9 +820,9 @@ def keyring_rgw_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.create(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    return keyring_create(**params)
 
 
 def keyring_rgw_save(key_content=None, **kwargs):
@@ -689,13 +845,14 @@ def keyring_rgw_save(key_content=None, **kwargs):
 
     If the value is set, it will not be changed untill the keyring is deleted.
     """
-    if (key_content is None) != ('secret' in kwargs):
-        raise Error("Set either the key_content or the key `secret`")
-    if 'secret' in kwargs:
-        utils.is_valid_base64(kwargs['secret'])
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.write(key_content, **kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    if key_content is None:
+        return keyring_save(**params)
+    log.warning("keyring_admin_save using legacy argument call")
+    params["key_content"] = str(key_content)
+    return keyring_save(**params)
+
 
 def keyring_rgw_auth_add(**kwargs):
     """
@@ -715,9 +872,9 @@ def keyring_rgw_auth_add(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.auth_add(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    return keyring_auth_add(**params)
 
 
 def keyring_rgw_auth_del(**kwargs):
@@ -737,9 +894,9 @@ def keyring_rgw_auth_del(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.auth_del(**kwargs)
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    return keyring_auth_del(**params)
 
 
 def keyring_rgw_purge(**kwargs):
@@ -762,10 +919,9 @@ def keyring_rgw_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    keyobj = keyring.keyring_facard()
-    keyobj.key_type = "rgw"
-    return keyobj.remove(**kwargs)
-
+    params = dict(kwargs)
+    params["keyring_type"] = "rgw"
+    return keyring_purge(**params)
 
 
 def mon_is(**kwargs):
@@ -1083,7 +1239,8 @@ def purge(**kwargs):
 
         salt '*' sesceph.purge
     """
-    purger.purge(**kwargs)
+    m = model.model(**kwargs)
+    purger.purge(m, **kwargs)
 
 
 def ceph_version():

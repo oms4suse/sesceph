@@ -1,7 +1,7 @@
 import ConfigParser
 
 
-class version:
+class version(object):
     def __init__(self, **kwargs):
         self.major = kwargs.get("major")
         self.minor = kwargs.get("minor")
@@ -21,7 +21,7 @@ class version:
         return "<version(%s,%s,%s,%s)>" % (self.major, self.minor, self.revision, self.uuid)
 
 
-class model:
+class model(object):
     """
     Basic model class to store detrived data
     """
@@ -47,4 +47,3 @@ class model:
     def kargs_apply(self, **kwargs):
         self.cluster_name = kwargs.get("cluster_name")
         self.cluster_uuid = kwargs.get("cluster_uuid")
-        self.secret = kwargs.get("secret", None)

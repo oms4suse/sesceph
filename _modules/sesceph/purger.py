@@ -5,7 +5,6 @@ import os.path
 # local modules
 import constants
 import utils
-import model
 import mdl_updater
 import service
 import keyring
@@ -41,8 +40,8 @@ def service_shutdown_ceph():
 
 
 class purger(object):
-    def __init__(self, **kwargs):
-        self.model = model.model(**kwargs)
+    def __init__(self, mdl):
+        self.model = mdl
         self.model.init = "systemd"
 
     def update_mon(self):
@@ -177,7 +176,7 @@ class purger(object):
             self.remove_dir(dir_data)
 
 
-def purge(**kwargs):
+def purge(mdl, **kwargs):
     """
     purge ceph configuration on the node
 
@@ -186,14 +185,7 @@ def purge(**kwargs):
         salt '*' sesceph.purge
     """
     service_shutdown_ceph()
-    keyobj = keyring.keyring_facard()
-    for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
-        try:
-            keyobj.key_type = keytype
-            keyobj.remove(**kwargs)
-        except:
-            pass
-    pur_ctrl = purger(**kwargs)
+    pur_ctrl = purger(mdl)
     try:
         pur_ctrl.update_mon()
     except mdl_updater.Error, e:
@@ -201,6 +193,19 @@ def purge(**kwargs):
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
+    keyobj = keyring.keyring_facard(mdl)
+    for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
+        try:
+            keyobj.key_type = keytype
+
+        except keyring.error, E:
+            log.warning(E)
+            continue
+        if keyobj.present() is False:
+            log.info("Already removed '%s' keyring" % (keytype))
+            continue
+        log.info("Removing '%s' keyring" % (keytype))
+        keyobj.remove()
     try:
         pur_ctrl.update_osd()
         pur_ctrl.unmount_osd()
