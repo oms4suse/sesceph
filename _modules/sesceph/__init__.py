@@ -341,7 +341,7 @@ def keyring_purge(**kwargs):
 
 def keyring_present(**kwargs):
     """
-    Is mon keyring on disk
+    Is keyring on disk
 
     CLI Example:
 
