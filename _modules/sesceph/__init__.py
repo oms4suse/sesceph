@@ -17,7 +17,6 @@ import mdl_updater
 import presenter
 import mdl_query
 import utils
-import keyring
 import osd
 import mon
 import rgw
