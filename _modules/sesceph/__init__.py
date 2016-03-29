@@ -1083,7 +1083,8 @@ def purge(**kwargs):
 
         salt '*' sesceph.purge
     """
-    purger.purge(**kwargs)
+    m = model.model(**kwargs)
+    purger.purge(m, **kwargs)
 
 
 def ceph_version():
