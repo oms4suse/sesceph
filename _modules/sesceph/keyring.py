@@ -208,7 +208,7 @@ class keyring_implementation_mon(keyring_implementation_base):
         if self.model.cluster_name is None:
             raise  Error("Cluster name not found")
         if self.model.hostname is None:
-            raise  Error("Cluster name not found")
+            raise  Error("hostname not found")
         return _get_path_keyring_mon_bootstrap(self.model.cluster_name,
                 self.model.hostname)
 
