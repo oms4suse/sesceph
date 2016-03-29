@@ -1108,7 +1108,7 @@ def cluster_quorum(**kwargs):
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
-    Get the cluster status including health and qurumn status
+    Get the cluster status including health and quorum status
 
     Scope:
     Cluster wide
