@@ -42,18 +42,7 @@ def service_shutdown_ceph():
 class purger(object):
     def __init__(self, mdl):
         self.model = mdl
-        self.model.init = "systemd"
 
-    def update_mon(self):
-        self.updater = mdl_updater.model_updater(self.model)
-        self.updater.hostname_refresh()
-        self.updater.defaults_refresh()
-        if self.model.cluster_name == None:
-            log.error("Cluster name not found")
-        log.debug("Cluster name %s" % (self.model.cluster_name))
-        self.updater.load_confg(self.model.cluster_name)
-        self.updater.mon_members_refresh()
-        self.init_system = service.init_system(init_type=self.model.init)
 
     def update_osd(self):
         self.updater.symlinks_refresh()
@@ -202,13 +191,22 @@ def purge(mdl, **kwargs):
     """
     service_shutdown_ceph()
     pur_ctrl = purger(mdl)
+    updater = mdl_updater.model_updater(mdl)
+    updater.hostname_refresh()
     try:
-        pur_ctrl.update_mon()
-    except mdl_updater.Error, e:
-        log.error(e)
+        updater.defaults_refresh()
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
+    if mdl.cluster_name == None:
+        log.error("Cluster name not found")
+    else:
+        try:
+            log.debug("Cluster name %s" % (mdl.cluster_name))
+            updater.load_confg(mdl.cluster_name)
+            updater.mon_members_refresh()
+        except mdl_updater.Error, e:
+            log.error(e)
     pur_ctrl.auth_remove()
     try:
         pur_ctrl.update_osd()
