@@ -44,12 +44,6 @@ class purger(object):
         self.model = mdl
 
 
-    def update_osd(self):
-        self.updater.symlinks_refresh()
-        self.updater.partitions_all_refresh()
-        self.updater.discover_partitions_refresh()
-
-
     def auth_remove(self):
         keyobj = keyring.keyring_facard(self.model)
         for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
@@ -208,12 +202,13 @@ def purge(mdl, **kwargs):
         except mdl_updater.Error, e:
             log.error(e)
     pur_ctrl.auth_remove()
+    updater.symlinks_refresh()
+    updater.partitions_all_refresh()
     try:
-        pur_ctrl.update_osd()
-        pur_ctrl.unmount_osd()
+        updater.discover_partitions_refresh()
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
-
+    pur_ctrl.unmount_osd()
     pur_ctrl.list_files()
     pur_ctrl.remove_config()
