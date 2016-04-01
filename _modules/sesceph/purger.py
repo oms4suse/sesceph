@@ -60,6 +60,22 @@ class purger(object):
         self.updater.partitions_all_refresh()
         self.updater.discover_partitions_refresh()
 
+
+    def auth_remove(self):
+        keyobj = keyring.keyring_facard(self.model)
+        for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
+            try:
+                keyobj.key_type = keytype
+            except ValueError, E:
+                log.warning(E)
+                continue
+            if keyobj.present() is False:
+                log.info("Already removed '%s' keyring" % (keytype))
+                continue
+            log.info("Removing '%s' keyring" % (keytype))
+            keyobj.remove()
+
+
     def unmount_osd(self):
         for part in self.model.partitions_osd:
             disk = self.model.part_pairent.get(part)
@@ -193,19 +209,7 @@ def purge(mdl, **kwargs):
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
-    keyobj = keyring.keyring_facard(mdl)
-    for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
-        try:
-            keyobj.key_type = keytype
-
-        except keyring.error, E:
-            log.warning(E)
-            continue
-        if keyobj.present() is False:
-            log.info("Already removed '%s' keyring" % (keytype))
-            continue
-        log.info("Removing '%s' keyring" % (keytype))
-        keyobj.remove()
+    pur_ctrl.auth_remove()
     try:
         pur_ctrl.update_osd()
         pur_ctrl.unmount_osd()
