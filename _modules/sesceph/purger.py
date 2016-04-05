@@ -42,23 +42,22 @@ def service_shutdown_ceph():
 class purger(object):
     def __init__(self, mdl):
         self.model = mdl
-        self.model.init = "systemd"
 
-    def update_mon(self):
-        self.updater = mdl_updater.model_updater(self.model)
-        self.updater.hostname_refresh()
-        self.updater.defaults_refresh()
-        if self.model.cluster_name == None:
-            log.error("Cluster name not found")
-        log.debug("Cluster name %s" % (self.model.cluster_name))
-        self.updater.load_confg(self.model.cluster_name)
-        self.updater.mon_members_refresh()
-        self.init_system = service.init_system(init_type=self.model.init)
 
-    def update_osd(self):
-        self.updater.symlinks_refresh()
-        self.updater.partitions_all_refresh()
-        self.updater.discover_partitions_refresh()
+    def auth_remove(self):
+        keyobj = keyring.keyring_facard(self.model)
+        for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
+            try:
+                keyobj.key_type = keytype
+            except ValueError, E:
+                log.warning(E)
+                continue
+            if keyobj.present() is False:
+                log.info("Already removed '%s' keyring" % (keytype))
+                continue
+            log.info("Removing '%s' keyring" % (keytype))
+            keyobj.remove()
+
 
     def unmount_osd(self):
         for part in self.model.partitions_osd:
@@ -186,32 +185,30 @@ def purge(mdl, **kwargs):
     """
     service_shutdown_ceph()
     pur_ctrl = purger(mdl)
+    updater = mdl_updater.model_updater(mdl)
+    updater.hostname_refresh()
     try:
-        pur_ctrl.update_mon()
-    except mdl_updater.Error, e:
-        log.error(e)
+        updater.defaults_refresh()
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
-    keyobj = keyring.keyring_facard(mdl)
-    for keytype in ["mds", "rgw", "osd", "mon", "admin"]:
+    if mdl.cluster_name == None:
+        log.error("Cluster name not found")
+    else:
         try:
-            keyobj.key_type = keytype
-
-        except keyring.error, E:
-            log.warning(E)
-            continue
-        if keyobj.present() is False:
-            log.info("Already removed '%s' keyring" % (keytype))
-            continue
-        log.info("Removing '%s' keyring" % (keytype))
-        keyobj.remove()
+            log.debug("Cluster name %s" % (mdl.cluster_name))
+            updater.load_confg(mdl.cluster_name)
+            updater.mon_members_refresh()
+        except mdl_updater.Error, e:
+            log.error(e)
+    pur_ctrl.auth_remove()
+    updater.symlinks_refresh()
+    updater.partitions_all_refresh()
     try:
-        pur_ctrl.update_osd()
-        pur_ctrl.unmount_osd()
+        updater.discover_partitions_refresh()
     except utils.Error, e:
         log.error("exception self.updater.defaults_refresh()")
         log.error(e)
-
+    pur_ctrl.unmount_osd()
     pur_ctrl.list_files()
     pur_ctrl.remove_config()
