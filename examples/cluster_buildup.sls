@@ -18,53 +18,73 @@
 # First we need to create the keys.
 #
 # Note:
-# - This only needs to be done once per site.
+# - This only needs to be done once per cluster.
+
 
 keyring_admin_create:
   module.run:
-    - name: sesceph.keyring_admin_create
+    - name: sesceph.keyring_create
+    - kwargs: {
+        'keyring_type' : 'admin'
+        }
     - require:
       - file: /etc/ceph/ceph.conf
 
 
 keyring_mon_create:
   module.run:
-    - name: sesceph.keyring_mon_create
+    - name: sesceph.keyring_create
+    - kwargs: {
+        'keyring_type' : 'mon'
+        }
     - require:
       - file: /etc/ceph/ceph.conf
 
 
 keyring_osd_create:
   module.run:
-    - name: sesceph.keyring_osd_create
+    - name: sesceph.keyring_create
+    - kwargs: {
+        'keyring_type' : 'osd'
+        }
     - require:
       - file: /etc/ceph/ceph.conf
 
 
 keyring_rgw_create:
   module.run:
-    - name: sesceph.keyring_rgw_create
+    - name: sesceph.keyring_create
+    - kwargs: {
+        'keyring_type' : 'rgw'
+        }
     - require:
       - file: /etc/ceph/ceph.conf
 
 
 keyring_mds_create:
   module.run:
-    - name: sesceph.keyring_mds_create
+    - name: sesceph.keyring_create
+    - kwargs: {
+        'keyring_type' : 'mds'
+        }
     - require:
       - file: /etc/ceph/ceph.conf
+
 
 # Save the keys to the nodes so ceph can use them.
 #
 # Note:
 # - You should customise the 'secret' values for your site using the values from
 #   the previous create step
+# - All keys must be saved before the mon is created as this has a side effect
+#   of creating keys not managed by salt.
 
 keyring_admin_save:
   module.run:
-    - name: sesceph.keyring_admin_save
+    - name: sesceph.keyring_save
     - kwargs: {
-       'secret' : 'AQBR8KhWgKw6FhAAoXvTT6MdBE+bV+zPKzIo6w=='
+        'keyring_type' : 'admin',
+        'secret' : 'AQBR8KhWgKw6FhAAoXvTT6MdBE+bV+zPKzIo6w=='
         }
     - require:
       - module: keyring_admin_create
@@ -72,9 +92,10 @@ keyring_admin_save:
 
 keyring_mon_save:
   module.run:
-    - name: sesceph.keyring_mon_save
+    - name: sesceph.keyring_save
     - kwargs: {
-       'secret' : 'AQB/8KhWmIfENBAABq8EEbzCJMjEFoazMNb+oQ=='
+        'keyring_type' : 'mon',
+        'secret' : 'AQB/8KhWmIfENBAABq8EEbzCJMjEFoazMNb+oQ=='
         }
     - require:
       - module: keyring_mon_create
@@ -82,25 +103,28 @@ keyring_mon_save:
 
 keyring_osd_save:
   module.run:
-    - name: sesceph.keyring_osd_save
+    - name: sesceph.keyring_save
     - kwargs: {
-       'secret' : 'AQCxU6dWKJzuEBAAjh0WSiThjl+Ruvj3QCsDDQ=='
+        'keyring_type' : 'osd',
+        'secret' : 'AQCxU6dWKJzuEBAAjh0WSiThjl+Ruvj3QCsDDQ=='
         }
     - require:
       - module: keyring_osd_create
 
 keyring_rgw_save:
   module.run:
-    - name: sesceph.keyring_rgw_save
+    - name: sesceph.keyring_save
     - kwargs: {
-       'secret' : 'AQDant1WGP7qJBAA1Iqr9YoNo4YExai4ieXYMg=='
+        'keyring_type' : 'rgw',
+        'secret' : 'AQDant1WGP7qJBAA1Iqr9YoNo4YExai4ieXYMg=='
         }
 
 keyring_mds_save:
   module.run:
-    - name: sesceph.keyring_mds_save
+    - name: sesceph.keyring_save
     - kwargs: {
-       'secret' : 'AQADn91WzLT9OBAA+LqKkXFBzwszBX4QkCkFYw=='
+        'keyring_type' : 'mds',
+        'secret' : 'AQADn91WzLT9OBAA+LqKkXFBzwszBX4QkCkFYw=='
         }
 
 # Create the mon server
@@ -108,6 +132,8 @@ keyring_mds_save:
 # Note:
 # - This will throw and exception on non mon nodes.
 # - This is depenent on having 'saved' the mon and admin keys.
+# - Not saving the mds key on all mon nodes has a side effect
+#   of creating keys not managed by salt.
 
 mon_create:
     module.run:
