@@ -49,31 +49,61 @@ Example
 
 Get a list of potential MON keys:
 
-    # salt "*ceph-node*" sesceph.keyring_admin_create
+    # salt "*ceph-node*" sesceph.keyring_create \
+        keyring_type=admin
 
 This will not persist the created key, but if a persistent key already exists 
 this function will return the persistent key.
 
-Use one output to write the keyring to admin nodes:
+Use the output to write the keyring to admin nodes:
 
-    # salt "*ceph-node*" sesceph.keyring_admin_save '[client.admin]
-    > key = AQDHYqZWkGHiEhAA5T+214L5CiIeek5o3zGZtQ==
-    > auid = 0
-    > caps mds = "allow *"
-    > caps mon = "allow *"
-    > caps osd = "allow *"
-    > '
+    # salt "*ceph-node*" sesceph.keyring_save \
+        keyring_type=admin \
+        secret='AQBR8KhWgKw6FhAAoXvTT6MdBE+bV+zPKzIo6w=='
 
 Repeat the process for the MON keyring:
 
-    # salt "*ceph-node*" sesceph.keyring_mon_create
+    # salt "*ceph-node*" sesceph.keyring_create \
+        keyring_type=mon
 
-Use one output to write the keyring to MON nodes:
+Use the output to write the keyring to MON nodes:
 
-    # salt "*ceph-node*" sesceph.keyring_mon_save '[mon.]
-    > key = AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ==
-    > caps mon = "allow *"
-    > '
+    # salt "*ceph-node*" sesceph.keyring_save \
+        keyring_type=admin \
+        secret='AQCpY6ZW2KCRExAAxbJ+dljnln40wYmb7UvHcQ=='
+
+Repeat the process for the osd keyring:
+
+    # salt "*ceph-node*" sesceph.keyring_create \
+        keyring_type=osd
+
+Use the output to write the keyring to osd and mon nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_save \
+        keyring_type=osd \
+        secret='AQDant1WGP7qJBAA1Iqr9YoNo4YExai4ieXYMg=='
+
+Repeat the process for the rgw keyring:
+
+    # salt "*ceph-node*" sesceph.keyring_create \
+        keyring_type=rgw
+
+Use the output to write the keyring to rgw and mon nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_save \
+        keyring_type=rgw \
+        secret='AQDant1WGP7qJBAA1Iqr9YoNo4YExai4ieXYMg=='
+
+Repeat the process for the mds keyring:
+
+    # salt "*ceph-node*" sesceph.keyring_create \
+        keyring_type=mds
+
+Use the output to write the keyring to mds and mon nodes:
+
+    # salt "*ceph-node*" sesceph.keyring_save \
+        keyring_type=mds \
+        secret='AQADn91WzLT9OBAA+LqKkXFBzwszBX4QkCkFYw=='
 
 Create the monitor daemons:
 
