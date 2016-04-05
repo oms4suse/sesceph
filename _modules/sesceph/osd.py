@@ -26,17 +26,9 @@ class Error(Exception):
 
 
 class osd_ctrl(object):
-    def __init__(self, **kwargs):
-        self.model = model.model(**kwargs)
+    def __init__(self, mdl):
+        self.model = mdl
         self.model.init = "systemd"
-
-
-    def update_model(self):
-        u = mdl_updater.model_updater(self.model)
-        u.symlinks_refresh()
-        u.defaults_refresh()
-        u.partitions_all_refresh()
-        u.discover_partitions_refresh()
 
 
     def _get_dev_name(self, path):
@@ -310,13 +302,24 @@ class osd_ctrl(object):
         return True
 
 
+def update_model(mdl):
+    # Utility function to update model for osd_ctrl
+    u = mdl_updater.model_updater(mdl)
+    u.symlinks_refresh()
+    u.defaults_refresh()
+    u.partitions_all_refresh()
+    u.discover_partitions_refresh()
+
+
 def osd_prepare(**kwargs):
-    osdc = osd_ctrl(**kwargs)
-    osdc.update_model()
+    mdl = model.model(**kwargs)
+    update_model(mdl)
+    osdc = osd_ctrl(mdl)
     return osdc.prepare(**kwargs)
 
 
 def osd_activate(**kwargs):
-    osdc = osd_ctrl(**kwargs)
-    osdc.update_model()
+    mdl = model.model(**kwargs)
+    update_model(mdl)
+    osdc = osd_ctrl(mdl)
     return osdc.activate_targets(**kwargs)
