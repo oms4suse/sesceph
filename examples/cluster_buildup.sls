@@ -231,7 +231,7 @@ rgw_create:
   module.run:
     - name: sesceph.rgw_create
     - kwargs: {
-        name: rgw-{{ grains['machine_id'] }}
+        name: rgw.{{ grains['machine_id'] }}
         }
     - require:
       - module: rgw_prep
@@ -242,7 +242,7 @@ mds_create:
   module.run:
     - name: sesceph.mds_create
     - kwargs: {
-        name: mds-{{ grains['machine_id'] }},
+        name: mds.{{ grains['machine_id'] }},
         port: 1000,
         addr:{{ grains['fqdn_ip4'] }}
         }
