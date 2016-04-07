@@ -1,3 +1,10 @@
+0.0.7
+------
+ * rgw keyring now more locked using profiles.
+ * mds keyring now more locked using profiles.
+ * improve logging of commands with spaces in attributes.
+   + supporting cut and paste into bash.
+
 0.0.6
 ------
  * Update documentation to use new keyring functions.
