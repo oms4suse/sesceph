@@ -1,3 +1,8 @@
+0.0.6
+------
+ * Update documentation to use new keyring functions.
+ * zap method to use kwargs.
+
 0.0.5
 ------
 * Allow "*auth_add" and "*auth_del" run not just on mon nodes.
