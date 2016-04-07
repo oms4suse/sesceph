@@ -88,9 +88,10 @@ class mds_ctrl(rados_client.ctrl_rados_client):
                 '--cluster', self.model.cluster_name,
                 '--name', 'client.bootstrap-mds',
                 '--keyring', path_bootstrap_keyring,
-                'auth', 'get-or-create', 'client.{name}'.format(name=self.mds_name),
+                'auth', 'get-or-create', 'mds.{name}'.format(name=self.mds_name),
                 'osd', 'allow rwx',
-                'mon', 'allow rw',
+                'mds', 'allow',
+                'mon', 'allow profile mds',
                 '-o',
                 mds_path_keyring
             ]
