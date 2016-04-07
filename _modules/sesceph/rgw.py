@@ -86,6 +86,13 @@ class rgw_ctrl(rados_client.ctrl_rados_client):
 
 
     def prepare(self):
+        # Due to the way keyring profiles work and the init scripts for rgw we need to
+        # force users to only create rgw with a 'rgw.' prefix. The reason we dont hide
+        # this from the user is due to both the systemd files and rgw deployments may
+        # exist without the prefix if the bootstrap keyring was not used in the key
+        # creation for the rgw service.
+        if not self.rgw_name.startswith("rgw."):
+            raise Error("rgw name must start with 'rgw.'")
         missing_pools = self.rgw_pools_missing()
         if len(missing_pools) > 0:
             raise Error("Pools missing: %s" % (", ".join(missing_pools)))
