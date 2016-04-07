@@ -24,8 +24,15 @@ class Error(Exception):
         doc = self.__doc__.strip()
         return ': '.join([doc] + [str(a) for a in self.args])
 
+
+def _quote_arguments_with_space(argument):
+    if " " in argument:
+        return "'" + argument + "'"
+    return argument
+
+
 def execute_local_command(command_attrib_list):
-    log.info("executing " + " ".join(command_attrib_list))
+    log.info("executing " + " ".join(map(_quote_arguments_with_space, command_attrib_list)))
     if '__salt__' in locals():
         return __salt__['cmd.run_all'](command_attrib_list,
                                       python_shell=False)
