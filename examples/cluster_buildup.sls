@@ -158,8 +158,7 @@ mon_create:
 # - This will only succeed on nodes with a cluster in quorum
 
 cluster_status:
-    module.run:
-    - name: ceph.cluster_status
+    ceph.quorum:
     - require:
       - module: keyring_admin_save
       - module: keyring_mon_save
@@ -170,7 +169,7 @@ keyring_osd_auth_add:
   module.run:
     - name: ceph.keyring_osd_auth_add
     - require:
-      - module: cluster_status
+      - ceph: cluster_status
       - module: keyring_osd_save
 
 # Add the rgw key to the clusters authorized key list
@@ -179,7 +178,7 @@ keyring_auth_add_rgw:
   module.run:
     - name: ceph.keyring_rgw_auth_add
     - require:
-      - module: cluster_status
+      - ceph: cluster_status
       - module: keyring_rgw_save
 
 # Add the mds key to the clusters authorized key list
@@ -188,7 +187,7 @@ keyring_auth_add_mds:
   module.run:
     - name: ceph.keyring_mds_auth_add
     - require:
-      - module: cluster_status
+      - ceph: cluster_status
       - module: keyring_mds_save
 
 # Prepare disks for OSD use
@@ -210,6 +209,7 @@ prepare_vdc:
         }
     - require:
       - module: keyring_osd_auth_add
+
 # Activate OSD's on prepared disks
 
 activate_vdb:
