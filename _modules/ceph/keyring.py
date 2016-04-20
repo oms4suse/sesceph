@@ -159,6 +159,9 @@ class keyring_implementation_base(object):
             return True
         if secret is None:
             raise Error("Keyring secret is invalid")
+        keyring_dir = os.path.dirname(keyring_path)
+        if not os.path.isdir(keyring_dir):
+            os.makedirs(keyring_dir)
         arguments = self.get_arguments_create(keyring_path, secret)
         cmd_out = utils.execute_local_command(arguments)
         if cmd_out["retcode"] != 0:
