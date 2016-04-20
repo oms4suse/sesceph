@@ -2,12 +2,12 @@ This is a basic salt module for ceph configuration and deployment.
 
 All methods in this module are intended to be atomic and idempotent. Some state
 changes are in practice made up of many steps, but will verify that all stages
-have succeeded before presenting the result to the caller. Most functions are 
-fully idempotent in operation so can be repeated or retried as often as 
+have succeeded before presenting the result to the caller. Most functions are
+fully idempotent in operation so can be repeated or retried as often as
 necessary without causing unintended effects. This is so clients of this module
 do not need to keep track of whether the operation was already performed or not.
-Some methods do depend upon the successful completion of other methods. While 
-not strictly idempotent, this is considered acceptable modules having 
+Some methods do depend upon the successful completion of other methods. While
+not strictly idempotent, this is considered acceptable modules having
 dependencies on other methods operation should present clear error messages.
 
 Installation
@@ -24,6 +24,23 @@ and run:
 This will distribute the runner to all salt minions. To verify this process has
 succeeded, on a specific node it is best to try and access the online
 documentation.
+
+The module will not execute unless the python library ceph-cfg is installed.
+
+The source is available here:
+
+   https://github.com/oms4suse/python-ceph-cfg
+
+If this library is packaged for your platform you can install it with the
+following code in your sls file:
+
+    packages:
+      pkg:
+        - installed
+        - names:
+          - python-ceph-cfg
+
+Otherwise this library must be installed by hand on all platforms.
 
 Documentation
 -------------
@@ -50,7 +67,7 @@ Get a list of potential MON keys:
     # salt "*ceph-node*" ceph.keyring_create \
         keyring_type=admin
 
-This will not persist the created key, but if a persistent key already exists 
+This will not persist the created key, but if a persistent key already exists
 this function will return the persistent key.
 
 Use the output to write the keyring to admin nodes:
@@ -121,7 +138,7 @@ List authorized keys:
 
     # salt "*ceph-node*" ceph.keyring_auth_list
 
-The ceph.auth_list function will only execute successfully on nodes running 
+The ceph.auth_list function will only execute successfully on nodes running
 mon daemons which are in quorum.
 
 Get a list of potential OSD keys:

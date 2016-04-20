@@ -1,3 +1,13 @@
+# We need a ceph and the ceph configre library
+#
+
+packages:
+  pkg:
+    - installed
+    - names:
+      - ceph
+      - python-ceph-cfg
+
 # We need a ceph config file before we start.
 #
 # Note:
