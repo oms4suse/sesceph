@@ -1,3 +1,8 @@
+0.0.9
+-----
+* Bugfix Create bootstrapmon dir if missing.
+* Documentation fixes
+
 0.0.8
 -----
 * Rename module as ceph
