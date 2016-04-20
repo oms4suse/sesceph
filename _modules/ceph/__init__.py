@@ -27,7 +27,7 @@ import keyring_use
 
 log = logging.getLogger(__name__)
 
-__virtualname__ = 'sesceph'
+__virtualname__ = 'ceph'
 
 __has_salt = True
 
