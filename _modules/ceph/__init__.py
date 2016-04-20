@@ -1,63 +1,20 @@
 import logging
-import shlex
-import tempfile
-import stat
-import ConfigParser
-import os.path
-import os
-import platform
-import json
-import shutil
-import constants
 
-# local modules
-import utils
-import model
-import mdl_updater
-import presenter
-import mdl_query
-import utils
-import osd
-import mon
-import rgw
-import mds
-import purger
-import mdl_updater_remote
-import keyring_use
 
 log = logging.getLogger(__name__)
 
 __virtualname__ = 'ceph'
 
-__has_salt = True
-
 try:
-    import salt.client
-    import salt.config
-except :
-    __has_salt = False
-
-try:
-    from salt.utils import which as _find_executable
-except:
-    from distutils.spawn import _find_executable
-
-
-
-class Error(Exception):
-    """
-    Error
-    """
-
-    def __str__(self):
-        doc = self.__doc__.strip()
-        return ': '.join([doc] + [str(a) for a in self.args])
+    import ceph_cfg
+    HAS_CEPH_CFG = True
+except ImportError:
+    HAS_CEPH_CFG = False
 
 
 def __virtual__():
-    if not constants._path_lsblk:
-        log.info("Error 'lsblk' command not find.")
-        return False
+    if HAS_CEPH_CFG is False:
+        return False, 'The %s execution module cannot be loaded: ceph_cfg unavailable.' % (__virtualname__)
     return __virtualname__
 
 
@@ -71,13 +28,8 @@ def partition_list():
 
         salt '*' ceph.partitions_list
     '''
-    m = model.model()
-    u = mdl_updater.model_updater(m)
-    u.symlinks_refresh()
-    u.partitions_all_refresh()
-    u.partition_table_refresh()
-    p = presenter.mdl_presentor(m)
-    return p.partitions_all()
+    return ceph_cfg.partition_list()
+
 
 def partition_list_osd():
     '''
@@ -89,13 +41,7 @@ def partition_list_osd():
 
         salt '*' ceph.partitions_osd
     '''
-    m = model.model()
-    u = mdl_updater.model_updater(m)
-    u.symlinks_refresh()
-    u.partitions_all_refresh()
-    u.discover_partitions_refresh()
-    p = presenter.mdl_presentor(m)
-    return p.discover_osd_partitions()
+    return ceph_cfg.partition_list_osd()
 
 
 def partition_list_journal():
@@ -108,13 +54,8 @@ def partition_list_journal():
 
         salt '*' ceph.partitions_list_journal
     '''
-    m = model.model()
-    u = mdl_updater.model_updater(m)
-    u.symlinks_refresh()
-    u.partitions_all_refresh()
-    u.discover_partitions_refresh()
-    p = presenter.mdl_presentor(m)
-    return p.discover_journal_partitions()
+    return ceph_cfg.partition_list_journal()
+
 
 def osd_discover():
     """
@@ -127,14 +68,7 @@ def osd_discover():
         salt '*' ceph.osd_discover
 
     """
-    m = model.model()
-    u = mdl_updater.model_updater(m)
-
-    u.symlinks_refresh()
-    u.partitions_all_refresh()
-    u.discover_partitions_refresh()
-    p = presenter.mdl_presentor(m)
-    return p.discover_osd()
+    return ceph_cfg.osd_discover()
 
 
 def partition_is(dev):
@@ -148,79 +82,19 @@ def partition_is(dev):
     salt '*' ceph.partition_is /dev/sdc1
 
     """
-    mdl = model.model(**kwargs)
-    osdc = osd.osd_ctrl(mdl)
-    return osdc.is_partition(dev)
-
-
-def _update_partition(action, dev, description):
-    # try to make sure the kernel refreshes the table.  note
-    # that if this gets ebusy, we are probably racing with
-    # udev because it already updated it.. ignore failure here.
-
-    # On RHEL and CentOS distros, calling partprobe forces a reboot of the
-    # server. Since we are not resizing partitons so we rely on calling
-    # partx
-
-    utils.execute_local_command(
-        [
-             constants._path_partprobe,
-             dev,
-        ],
-    )
-
+    return ceph_cfg.partition_is(dev)
 
 
 def zap(dev = None, **kwargs):
     """
     Destroy the partition table and content of a given disk.
     """
+
     if dev is not None:
         log.warning("Depricated use of function, use kwargs")
     dev = kwargs.get("dev", dev)
-    if dev == None:
-        raise Error('Cannot find', dev)
-    if not os.path.exists(dev):
-        raise Error('Cannot find', dev)
-    dmode = os.stat(dev).st_mode
-    mdl = model.model(**kwargs)
-    osdc = osd.osd_ctrl(mdl)
-    if not stat.S_ISBLK(dmode) or osdc.is_partition(dev):
-        raise Error('not full block device; cannot zap', dev)
-    try:
-        log.debug('Zapping partition table on %s', dev)
-
-        # try to wipe out any GPT partition table backups.  sgdisk
-        # isn't too thorough.
-        lba_size = 4096
-        size = 33 * lba_size
-        with file(dev, 'wb') as dev_file:
-            dev_file.seek(-size, os.SEEK_END)
-            dev_file.write(size*'\0')
-
-        utils.execute_local_command(
-            [
-                constants._path_sgdisk,
-                '--zap-all',
-                '--',
-                dev,
-            ],
-        )
-        utils.execute_local_command(
-            [
-                constants._path_sgdisk,
-                '--clear',
-                '--mbrtogpt',
-                '--',
-                dev,
-            ],
-        )
-
-
-        _update_partition('-d', dev, 'zapped')
-    except subprocess.CalledProcessError as e:
-        raise Error(e)
-    return True
+    kwargs["dev"] = dev
+    return ceph_cfg.zap(**kwargs)
 
 
 def osd_prepare(**kwargs):
@@ -261,7 +135,7 @@ def osd_prepare(**kwargs):
     journal_uuid
         set the OSD journal UUID. If set will return if OSD with journal UUID already exists.
     """
-    return osd.osd_prepare(**kwargs)
+    return ceph_cfg.osd_prepare(**kwargs)
 
 
 def osd_activate(**kwargs):
@@ -274,7 +148,7 @@ def osd_activate(**kwargs):
 
         salt '*' ceph.osd_activate 'osd_dev'='/dev/vdc'
     """
-    return osd.osd_activate(**kwargs)
+    return ceph_cfg.osd_activate(**kwargs)
 
 
 def keyring_create(**kwargs):
@@ -302,7 +176,7 @@ def keyring_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    return keyring_use.keyring_create_type(**kwargs)
+    return ceph_cfg.keyring_create(**kwargs)
 
 
 def keyring_save(**kwargs):
@@ -331,7 +205,7 @@ def keyring_save(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    return keyring_use.keyring_save_type(**kwargs)
+    return ceph_cfg.keyring_save(**kwargs)
 
 
 def keyring_purge(**kwargs):
@@ -362,7 +236,7 @@ def keyring_purge(**kwargs):
 
     If no ceph config file is found, this command will fail.
     """
-    return keyring_use.keyring_purge_type(**kwargs)
+    return ceph_cfg.keyring_purge(**kwargs)
 
 
 def keyring_present(**kwargs):
@@ -390,7 +264,7 @@ def keyring_present(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    return keyring_use.keyring_present_type(**kwargs)
+    return ceph_cfg.keyring_present(**kwargs)
 
 
 def keyring_auth_add(**kwargs):
@@ -418,7 +292,7 @@ def keyring_auth_add(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    return keyring_use.keyring_auth_add_type(**kwargs)
+    return ceph_cfg.keyring_auth_add(**kwargs)
 
 
 def keyring_auth_del(**kwargs):
@@ -446,7 +320,7 @@ def keyring_auth_del(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    return keyring_use.keyring_auth_add_type(**kwargs)
+    return ceph_cfg.keyring_auth_del(**kwargs)
 
 
 def keyring_admin_create(**kwargs):
@@ -1017,8 +891,7 @@ def mon_is(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    ctrl_mon = mon.mon_facard(**kwargs)
-    return ctrl_mon.is_mon()
+    return ceph_cfg.mon_is(**kwargs)
 
 
 def mon_status(**kwargs):
@@ -1040,8 +913,8 @@ def mon_status(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard(**kwargs)
-    return ctrl_mon.status()
+    return ceph_cfg.status(**kwargs)
+
 
 def mon_quorum(**kwargs):
     """
@@ -1062,9 +935,7 @@ def mon_quorum(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard(**kwargs)
-    return ctrl_mon.quorum()
-
+    return ceph_cfg.mon_quorum(**kwargs)
 
 
 def mon_active(**kwargs):
@@ -1086,8 +957,7 @@ def mon_active(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard(**kwargs)
-    return ctrl_mon.active()
+    return ceph_cfg.mon_active(**kwargs)
 
 
 def mon_create(**kwargs):
@@ -1109,62 +979,49 @@ def mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    ctrl_mon = mon.mon_facard(**kwargs)
-    return ctrl_mon.create()
+    return ceph_cfg.mon_create(**kwargs)
 
 
 def rgw_pools_create(**kwargs):
     """
     Create pools for rgw
     """
-    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
-    ctrl_rgw.update()
-    return ctrl_rgw.rgw_pools_create()
+    return ceph_cfg.rgw_pools_create()
+
 
 def rgw_pools_missing(**kwargs):
     """
     Show pools missing for rgw
     """
-    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
-    ctrl_rgw.update()
-    return ctrl_rgw.rgw_pools_missing()
+    return ceph_cfg.rgw_pools_missing(**kwargs)
 
 
 def rgw_create(**kwargs):
     """
     Create a rgw
     """
-    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
-    ctrl_rgw.update()
-    return ctrl_rgw.create()
+    return ceph_cfg.rgw_create(**kwargs)
 
 
 def rgw_destroy(**kwargs):
     """
     Remove a rgw
     """
-    ctrl_rgw = rgw.rgw_ctrl(**kwargs)
-    ctrl_rgw.update()
-    return ctrl_rgw.destroy()
-
+    return ceph_cfg.rgw_destroy(**kwargs)
 
 
 def mds_create(**kwargs):
     """
     Create a mds
     """
-    ctrl_mds = mds.mds_ctrl(**kwargs)
-    ctrl_mds.update()
-    return ctrl_mds.create()
+    return ceph_cfg.mds_create(**kwargs)
 
 
 def mds_destroy(**kwargs):
     """
     Remove a mds
     """
-    ctrl_mds = mds.mds_ctrl(**kwargs)
-    ctrl_mds.update()
-    return ctrl_mds.destroy()
+    return ceph_cfg.mds_destroy(**kwargs)
 
 
 def keyring_auth_list(**kwargs):
@@ -1186,22 +1043,7 @@ def keyring_auth_list(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        return {}
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    mur = mdl_updater_remote.model_updater_remote(m)
-    can_connect = mur.connect()
-    if not can_connect:
-        raise Error("Cant connect to cluster.")
-    mur.auth_list()
-    p = presenter.mdl_presentor(m)
-    return p.auth_list()
+    return ceph_cfg.keyring_auth_list(**kwargs)
 
 
 def pool_list(**kwargs):
@@ -1223,23 +1065,7 @@ def pool_list(**kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    try:
-        u.defaults_refresh()
-    except:
-        return {}
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    mur = mdl_updater_remote.model_updater_remote(m)
-    can_connect = mur.connect()
-    if not can_connect:
-        raise Error("Cant connect to cluster.")
-    mur.pool_list()
-    p = presenter.mdl_presentor(m)
-    return p.pool_list()
-
+    return ceph_cfg.pool_list(**kwargs)
 
 
 def pool_add(pool_name, **kwargs):
@@ -1276,18 +1102,7 @@ def pool_add(pool_name, **kwargs):
     crush_ruleset
         Set the crush map rule set
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    mur = mdl_updater_remote.model_updater_remote(m)
-    can_connect = mur.connect()
-    if not can_connect:
-        raise Error("Cant connect to cluster.")
-    mur.pool_list()
-    return mur.pool_add(pool_name, **kwargs)
+    return ceph_cfg.pool_add(pool_name, **kwargs)
 
 
 def pool_del(pool_name, **kwargs):
@@ -1309,18 +1124,7 @@ def pool_del(pool_name, **kwargs):
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    mur = mdl_updater_remote.model_updater_remote(m)
-    can_connect = mur.connect()
-    if not can_connect:
-        raise Error("Cant connect to cluster.")
-    mur.pool_list()
-    return mur.pool_del(pool_name)
+    return ceph_cfg.pool_del(pool_name, **kwargs)
 
 
 def purge(**kwargs):
@@ -1333,19 +1137,14 @@ def purge(**kwargs):
 
         salt '*' ceph.purge
     """
-    m = model.model(**kwargs)
-    purger.purge(m, **kwargs)
+    return ceph_cfg.purge(**kwargs)
 
 
 def ceph_version():
     """
     Get the version of ceph installed
     """
-    m = model.model()
-    u = mdl_updater.model_updater(m)
-    u.ceph_version_refresh()
-    p = presenter.mdl_presentor(m)
-    return p.ceph_version()
+    return ceph_cfg.ceph_version()
 
 
 def cluster_quorum(**kwargs):
@@ -1373,18 +1172,7 @@ def cluster_quorum(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    mur = mdl_updater_remote.model_updater_remote(m)
-    can_connect = mur.connect()
-    if not can_connect:
-        return False
-    q = mdl_query.mdl_query(m)
-    return q.cluster_quorum()
+    return ceph_cfg.cluster_quorum(**kwargs)
 
 
 def cluster_status(**kwargs):
@@ -1412,16 +1200,4 @@ def cluster_status(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     """
-    m = model.model(**kwargs)
-    u = mdl_updater.model_updater(m)
-    u.hostname_refresh()
-    u.defaults_refresh()
-    u.load_confg(m.cluster_name)
-    u.mon_members_refresh()
-    mur = mdl_updater_remote.model_updater_remote(m)
-    can_connect = mur.connect()
-    if not can_connect:
-        raise Error("Cant connect to cluster.")
-    p = presenter.mdl_presentor(m)
-    return p.cluster_status()
-
+    return ceph_cfg.cluster_status(**kwargs)
