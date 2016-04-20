@@ -67,7 +67,7 @@ def partition_list():
 
     CLI Example:
 
-        salt '*' sesceph.partitions_all
+        salt '*' sesceph.partitions_list
     '''
     m = model.model()
     u = mdl_updater.model_updater(m)
@@ -100,7 +100,7 @@ def partition_list_journal():
 
     CLI Example:
 
-        salt '*' sesceph.partitions_journal
+        salt '*' sesceph.partitions_list_journal
     '''
     m = model.model()
     u = mdl_updater.model_updater(m)
@@ -352,7 +352,7 @@ def keyring_present(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mon_present \\
+        salt '*' sesceph.keyring_present \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -378,7 +378,7 @@ def keyring_auth_add(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.keyring_mon_present \\
+        salt '*' sesceph.keyring_auth_add \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -1096,7 +1096,7 @@ def keyring_auth_list(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.auth_list \\
+        salt '*' sesceph.keyring_auth_list \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1267,7 +1267,7 @@ def cluster_quorum(**kwargs):
 
     CLI Example:
 
-        salt '*' sesceph.cluster_status \\
+        salt '*' sesceph.cluster_quorum \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
