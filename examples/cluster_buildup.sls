@@ -24,6 +24,9 @@ packages:
     - group: root
     - mode: 644
     - makedirs: True
+    - require:
+      - pkg: packages
+
 
 # First we need to create the keys.
 #
@@ -89,6 +92,7 @@ keyring_mds_create:
 # - All keys must be saved before the mon is created as this has a side effect
 #   of creating keys not managed by salt.
 
+
 keyring_admin_save:
   module.run:
     - name: ceph.keyring_save
@@ -98,6 +102,7 @@ keyring_admin_save:
         }
     - require:
       - module: keyring_admin_create
+      - file: /etc/ceph/ceph.conf
 
 
 keyring_mon_save:
@@ -109,6 +114,7 @@ keyring_mon_save:
         }
     - require:
       - module: keyring_mon_create
+      - file: /etc/ceph/ceph.conf
 
 
 keyring_osd_save:
@@ -120,6 +126,8 @@ keyring_osd_save:
         }
     - require:
       - module: keyring_osd_create
+      - file: /etc/ceph/ceph.conf
+
 
 keyring_rgw_save:
   module.run:
@@ -128,6 +136,10 @@ keyring_rgw_save:
         'keyring_type' : 'rgw',
         'secret' : 'AQDant1WGP7qJBAA1Iqr9YoNo4YExai4ieXYMg=='
         }
+    - require:
+      - module: keyring_osd_create
+      - file: /etc/ceph/ceph.conf
+
 
 keyring_mds_save:
   module.run:
@@ -136,6 +148,10 @@ keyring_mds_save:
         'keyring_type' : 'mds',
         'secret' : 'AQADn91WzLT9OBAA+LqKkXFBzwszBX4QkCkFYw=='
         }
+    - require:
+      - module: keyring_osd_create
+      - file: /etc/ceph/ceph.conf
+
 
 # Create the mon server
 #
@@ -152,17 +168,16 @@ mon_create:
       - module: keyring_admin_save
       - module: keyring_mon_save
 
-# Get cluster status
-#
-# Note:
-# - This will only succeed on nodes with a cluster in quorum
+# Check system is quorum
+
+
 
 cluster_status:
-    module.run:
-    - name: ceph.cluster_status
+    ceph.quorum:
     - require:
       - module: keyring_admin_save
       - module: keyring_mon_save
+
 
 # Add the OSD key to the clusters authorized key list
 
@@ -170,7 +185,7 @@ keyring_osd_auth_add:
   module.run:
     - name: ceph.keyring_osd_auth_add
     - require:
-      - module: cluster_status
+      - ceph: cluster_status
       - module: keyring_osd_save
 
 # Add the rgw key to the clusters authorized key list
@@ -179,7 +194,7 @@ keyring_auth_add_rgw:
   module.run:
     - name: ceph.keyring_rgw_auth_add
     - require:
-      - module: cluster_status
+      - ceph: cluster_status
       - module: keyring_rgw_save
 
 # Add the mds key to the clusters authorized key list
@@ -188,7 +203,7 @@ keyring_auth_add_mds:
   module.run:
     - name: ceph.keyring_mds_auth_add
     - require:
-      - module: cluster_status
+      - ceph: cluster_status
       - module: keyring_mds_save
 
 # Prepare disks for OSD use
