@@ -1,3 +1,9 @@
+0.1.0
+-----
+* Change code base to use a library.
+* Add state quorum.
+* Update example file examples/cluster_buildup.sls
+
 0.0.9
 -----
 * Bugfix Create bootstrapmon dir if missing.
