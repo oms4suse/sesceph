@@ -10,14 +10,14 @@ packages:
 # We need a ceph configuration file before we start.
 #
 # Note:
-# - The file name is dependennt on the cluster name:
+# - The file name is dependent on the cluster name:
 #    /etc/ceph/${CLUSTER_NAME}.conf
 
 /etc/ceph/ceph.conf:
   file:
     - managed
     - source:
-        # Where to get the source file will have to be customised to your enviroment.
+        # Where to get the source file will have to be customized to your environment.
         - salt://osceph/ceph.conf
     - user: root
     - group: root
@@ -88,7 +88,7 @@ keyring_mds_create:
 # Save the keys to the nodes so ceph can use them.
 #
 # Note:
-# - You should customise the 'secret' values for your site using the values from
+# - You should customize the 'secret' values for your site using the values from
 #   the previous create step
 # - All keys must be saved before the mon is created as this has a side effect
 #   of creating keys not managed by salt.
@@ -158,7 +158,7 @@ keyring_mds_save:
 #
 # Note:
 # - This will throw and exception on non-mon nodes.
-# - This is depenent on having 'saved' the mon and admin keys.
+# - This is dependent on having 'saved' the mon and admin keys.
 # - Not saving the mds key on all mon nodes has a side effect
 #   of creating keys not managed by salt.
 
