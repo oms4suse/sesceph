@@ -1,5 +1,4 @@
-# We need a ceph and the ceph configre library
-#
+# We need to install ceph and its configuration library
 
 packages:
   pkg:
@@ -8,7 +7,7 @@ packages:
       - ceph
       - python-ceph-cfg
 
-# We need a ceph config file before we start.
+# We need a ceph configuration file before we start.
 #
 # Note:
 # - The file name is dependennt on the cluster name:
@@ -31,6 +30,8 @@ packages:
 # First we need to create the keys.
 #
 # Note:
+# - Normally do this manually with "salt '*' ceph.keyring_create type=<keyring_type>"
+#   before saving the keys, and use the 'secrets' values below.
 # - This only needs to be done once per cluster.
 
 
@@ -156,7 +157,7 @@ keyring_mds_save:
 # Create the mon server
 #
 # Note:
-# - This will throw and exception on non mon nodes.
+# - This will throw and exception on non-mon nodes.
 # - This is depenent on having 'saved' the mon and admin keys.
 # - Not saving the mds key on all mon nodes has a side effect
 #   of creating keys not managed by salt.
@@ -169,8 +170,6 @@ mon_create:
       - module: keyring_mon_save
 
 # Check system is quorum
-
-
 
 cluster_status:
     ceph.quorum:
