@@ -1,3 +1,7 @@
+0.1.1
+-----
+* Removed typos from documentation.
+
 0.1.0
 -----
 * Change code base to use a library.
