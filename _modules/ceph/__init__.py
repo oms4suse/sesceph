@@ -26,7 +26,7 @@ def partition_list():
 
 	.. code-block:: bash
 
-        salt '*' ceph.partitions_list
+        salt '*' ceph.partition_list
     '''
     return ceph_cfg.partition_list()
 
@@ -39,7 +39,7 @@ def partition_list_osd():
 
 	.. code-block:: bash
 
-        salt '*' ceph.partitions_osd
+        salt '*' ceph.partition_list_osd
     '''
     return ceph_cfg.partition_list_osd()
 
@@ -52,7 +52,7 @@ def partition_list_journal():
 
 	.. code-block:: bash
 
-        salt '*' ceph.partitions_list_journal
+        salt '*' ceph.partition_list_journal
     '''
     return ceph_cfg.partition_list_journal()
 
@@ -1048,7 +1048,7 @@ def keyring_auth_list(**kwargs):
 
 def pool_list(**kwargs):
     """
-    List all cephx authorization keys
+    List all pools
 
     CLI Example:
 
@@ -1070,7 +1070,7 @@ def pool_list(**kwargs):
 
 def pool_add(pool_name, **kwargs):
     """
-    List all cephx authorization keys
+    Create a pool
 
     CLI Example:
 
@@ -1107,7 +1107,7 @@ def pool_add(pool_name, **kwargs):
 
 def pool_del(pool_name, **kwargs):
     """
-    List all cephx authorization keys
+    Delete a pool
 
     CLI Example:
 
@@ -1149,7 +1149,7 @@ def ceph_version():
 
 def cluster_quorum(**kwargs):
     """
-    Get the cluster status
+    Get the cluster's quorum status
 
     CLI Example:
 
