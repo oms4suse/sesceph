@@ -3,7 +3,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-__virtualname__ = 'ceph'
+__virtualname__ = 'ceph_cfg'
 
 try:
     import ceph_cfg
@@ -14,7 +14,7 @@ except ImportError:
 
 def __virtual__():
     if HAS_CEPH_CFG is False:
-        return False, 'The %s execution module cannot be loaded: ceph_cfg unavailable.' % (__virtualname__)
+        return False, 'The %s execution module cannot be loaded: ceph_cfg module unavailable.' % (__virtualname__)
     return __virtualname__
 
 
@@ -26,7 +26,7 @@ def partition_list():
 
 	.. code-block:: bash
 
-        salt '*' ceph.partition_list
+        salt '*' ceph_cfg.partition_list
     '''
     return ceph_cfg.partition_list()
 
@@ -39,7 +39,7 @@ def partition_list_osd():
 
 	.. code-block:: bash
 
-        salt '*' ceph.partition_list_osd
+        salt '*' ceph_cfg.partition_list_osd
     '''
     return ceph_cfg.partition_list_osd()
 
@@ -52,7 +52,7 @@ def partition_list_journal():
 
 	.. code-block:: bash
 
-        salt '*' ceph.partition_list_journal
+        salt '*' ceph_cfg.partition_list_journal
     '''
     return ceph_cfg.partition_list_journal()
 
@@ -65,7 +65,7 @@ def osd_discover():
 
 	.. code-block:: bash
 
-        salt '*' ceph.osd_discover
+        salt '*' ceph_cfg.osd_discover
 
     """
     return ceph_cfg.osd_discover()
@@ -79,7 +79,7 @@ def partition_is(dev):
 
 	.. code-block:: bash
 
-    salt '*' ceph.partition_is /dev/sdc1
+    salt '*' ceph_cfg.partition_is /dev/sdc1
 
     """
     return ceph_cfg.partition_is(dev)
@@ -105,7 +105,7 @@ def osd_prepare(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.osd_prepare 'osd_dev'='/dev/vdc' \\
+        salt '*' ceph_cfg.osd_prepare 'osd_dev'='/dev/vdc' \\
                 'journal_dev'='device' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid' \\
@@ -146,7 +146,7 @@ def osd_activate(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.osd_activate 'osd_dev'='/dev/vdc'
+        salt '*' ceph_cfg.osd_activate 'osd_dev'='/dev/vdc'
     """
     return ceph_cfg.osd_activate(**kwargs)
 
@@ -159,7 +159,7 @@ def keyring_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_create \\
+        salt '*' ceph_cfg.keyring_create \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -187,7 +187,7 @@ def keyring_save(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_save \\
+        salt '*' ceph_cfg.keyring_save \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid' \\
@@ -216,7 +216,7 @@ def keyring_purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_purge \\
+        salt '*' ceph_cfg.keyring_purge \\
                 'keyring_type'='admin' \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
@@ -247,7 +247,7 @@ def keyring_present(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_present \\
+        salt '*' ceph_cfg.keyring_present \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -275,7 +275,7 @@ def keyring_auth_add(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_auth_add \\
+        salt '*' ceph_cfg.keyring_auth_add \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -303,7 +303,7 @@ def keyring_auth_del(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_osd_auth_del \\
+        salt '*' ceph_cfg.keyring_osd_auth_del \\
                 'keyring_type'='admin' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -331,7 +331,7 @@ def keyring_admin_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_admin_create \\
+        salt '*' ceph_cfg.keyring_admin_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -355,7 +355,7 @@ def keyring_admin_save(key_content=None, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_admin_save \\
+        salt '*' ceph_cfg.keyring_admin_save \\
                 '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -384,7 +384,7 @@ def keyring_admin_purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_admin_purge \\
+        salt '*' ceph_cfg.keyring_admin_purge \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -411,7 +411,7 @@ def keyring_mon_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mon_create \\
+        salt '*' ceph_cfg.keyring_mon_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -435,7 +435,7 @@ def keyring_mon_save(key_content=None, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mon_save \\
+        salt '*' ceph_cfg.keyring_mon_save \\
                 '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -464,7 +464,7 @@ def keyring_mon_purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mon_purge \\
+        salt '*' ceph_cfg.keyring_mon_purge \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -491,7 +491,7 @@ def keyring_osd_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_osd_create \\
+        salt '*' ceph_cfg.keyring_osd_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -515,7 +515,7 @@ def keyring_osd_save(key_content=None, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_osd_save \\
+        salt '*' ceph_cfg.keyring_osd_save \\
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -544,7 +544,7 @@ def keyring_osd_auth_add(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_osd_auth_add \\
+        salt '*' ceph_cfg.keyring_osd_auth_add \\
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -569,7 +569,7 @@ def keyring_osd_auth_del(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_osd_auth_del \\
+        salt '*' ceph_cfg.keyring_osd_auth_del \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -593,7 +593,7 @@ def keyring_osd_purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_osd_purge \\
+        salt '*' ceph_cfg.keyring_osd_purge \\
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -618,7 +618,7 @@ def keyring_mds_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mds_create \\
+        salt '*' ceph_cfg.keyring_mds_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -642,7 +642,7 @@ def keyring_mds_save(key_content=None, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mds_save \\
+        salt '*' ceph_cfg.keyring_mds_save \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -673,7 +673,7 @@ def keyring_mds_auth_add(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mds_auth_add \\
+        salt '*' ceph_cfg.keyring_mds_auth_add \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -698,7 +698,7 @@ def keyring_mds_auth_del(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mds_auth_del \\
+        salt '*' ceph_cfg.keyring_mds_auth_del \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -722,7 +722,7 @@ def keyring_mds_purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_mds_purge \\
+        salt '*' ceph_cfg.keyring_mds_purge \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -749,7 +749,7 @@ def keyring_rgw_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_rgw_create \\
+        salt '*' ceph_cfg.keyring_rgw_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -773,7 +773,7 @@ def keyring_rgw_save(key_content=None, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_rgw_save \\
+        salt '*' ceph_cfg.keyring_rgw_save \\
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -804,7 +804,7 @@ def keyring_rgw_auth_add(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_rgw_auth_add \\
+        salt '*' ceph_cfg.keyring_rgw_auth_add \\
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -829,7 +829,7 @@ def keyring_rgw_auth_del(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_rgw_auth_del \\
+        salt '*' ceph_cfg.keyring_rgw_auth_del \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -853,7 +853,7 @@ def keyring_rgw_purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_rgw_purge \\
+        salt '*' ceph_cfg.keyring_rgw_purge \\
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
@@ -880,7 +880,7 @@ def mon_is(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.mon_is \\
+        salt '*' ceph_cfg.mon_is \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -902,7 +902,7 @@ def mon_status(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.mon_status \\
+        salt '*' ceph_cfg.mon_status \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -924,7 +924,7 @@ def mon_quorum(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.mon_quorum \\
+        salt '*' ceph_cfg.mon_quorum \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -946,7 +946,7 @@ def mon_active(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.mon_active \\
+        salt '*' ceph_cfg.mon_active \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -968,7 +968,7 @@ def mon_create(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.mon_create \\
+        salt '*' ceph_cfg.mon_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1032,7 +1032,7 @@ def keyring_auth_list(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.keyring_auth_list \\
+        salt '*' ceph_cfg.keyring_auth_list \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1054,7 +1054,7 @@ def pool_list(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.pool_list \\
+        salt '*' ceph_cfg.pool_list \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1076,7 +1076,7 @@ def pool_add(pool_name, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.pool_add pool_name \\
+        salt '*' ceph_cfg.pool_add pool_name \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1113,7 +1113,7 @@ def pool_del(pool_name, **kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.pool_del pool_name \\
+        salt '*' ceph_cfg.pool_del pool_name \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1135,7 +1135,7 @@ def purge(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.purge
+        salt '*' ceph_cfg.purge
     """
     return ceph_cfg.purge(**kwargs)
 
@@ -1155,7 +1155,7 @@ def cluster_quorum(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.cluster_quorum \\
+        salt '*' ceph_cfg.cluster_quorum \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1183,7 +1183,7 @@ def cluster_status(**kwargs):
 
 	.. code-block:: bash
 
-        salt '*' ceph.cluster_status \\
+        salt '*' ceph_cfg.cluster_status \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
