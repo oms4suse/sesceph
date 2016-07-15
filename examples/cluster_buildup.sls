@@ -37,7 +37,7 @@ packages:
 
 keyring_admin_create:
   module.run:
-    - name: ceph.keyring_create
+    - name: ceph_cfg.keyring_create
     - kwargs: {
         'keyring_type' : 'admin'
         }
@@ -47,7 +47,7 @@ keyring_admin_create:
 
 keyring_mon_create:
   module.run:
-    - name: ceph.keyring_create
+    - name: ceph_cfg.keyring_create
     - kwargs: {
         'keyring_type' : 'mon'
         }
@@ -57,7 +57,7 @@ keyring_mon_create:
 
 keyring_osd_create:
   module.run:
-    - name: ceph.keyring_create
+    - name: ceph_cfg.keyring_create
     - kwargs: {
         'keyring_type' : 'osd'
         }
@@ -67,7 +67,7 @@ keyring_osd_create:
 
 keyring_rgw_create:
   module.run:
-    - name: ceph.keyring_create
+    - name: ceph_cfg.keyring_create
     - kwargs: {
         'keyring_type' : 'rgw'
         }
@@ -77,7 +77,7 @@ keyring_rgw_create:
 
 keyring_mds_create:
   module.run:
-    - name: ceph.keyring_create
+    - name: ceph_cfg.keyring_create
     - kwargs: {
         'keyring_type' : 'mds'
         }
@@ -96,7 +96,7 @@ keyring_mds_create:
 
 keyring_admin_save:
   module.run:
-    - name: ceph.keyring_save
+    - name: ceph_cfg.keyring_save
     - kwargs: {
         'keyring_type' : 'admin',
         'secret' : 'AQBR8KhWgKw6FhAAoXvTT6MdBE+bV+zPKzIo6w=='
@@ -108,7 +108,7 @@ keyring_admin_save:
 
 keyring_mon_save:
   module.run:
-    - name: ceph.keyring_save
+    - name: ceph_cfg.keyring_save
     - kwargs: {
         'keyring_type' : 'mon',
         'secret' : 'AQB/8KhWmIfENBAABq8EEbzCJMjEFoazMNb+oQ=='
@@ -120,7 +120,7 @@ keyring_mon_save:
 
 keyring_osd_save:
   module.run:
-    - name: ceph.keyring_save
+    - name: ceph_cfg.keyring_save
     - kwargs: {
         'keyring_type' : 'osd',
         'secret' : 'AQCxU6dWKJzuEBAAjh0WSiThjl+Ruvj3QCsDDQ=='
@@ -132,7 +132,7 @@ keyring_osd_save:
 
 keyring_rgw_save:
   module.run:
-    - name: ceph.keyring_save
+    - name: ceph_cfg.keyring_save
     - kwargs: {
         'keyring_type' : 'rgw',
         'secret' : 'AQDant1WGP7qJBAA1Iqr9YoNo4YExai4ieXYMg=='
@@ -144,7 +144,7 @@ keyring_rgw_save:
 
 keyring_mds_save:
   module.run:
-    - name: ceph.keyring_save
+    - name: ceph_cfg.keyring_save
     - kwargs: {
         'keyring_type' : 'mds',
         'secret' : 'AQADn91WzLT9OBAA+LqKkXFBzwszBX4QkCkFYw=='
@@ -164,7 +164,7 @@ keyring_mds_save:
 
 mon_create:
     module.run:
-    - name: ceph.mon_create
+    - name: ceph_cfg.mon_create
     - require:
       - module: keyring_admin_save
       - module: keyring_mon_save
@@ -182,7 +182,7 @@ cluster_status:
 
 keyring_osd_auth_add:
   module.run:
-    - name: ceph.keyring_osd_auth_add
+    - name: ceph_cfg.keyring_osd_auth_add
     - require:
       - ceph: cluster_status
       - module: keyring_osd_save
@@ -191,7 +191,7 @@ keyring_osd_auth_add:
 
 keyring_auth_add_rgw:
   module.run:
-    - name: ceph.keyring_rgw_auth_add
+    - name: ceph_cfg.keyring_rgw_auth_add
     - require:
       - ceph: cluster_status
       - module: keyring_rgw_save
@@ -200,7 +200,7 @@ keyring_auth_add_rgw:
 
 keyring_auth_add_mds:
   module.run:
-    - name: ceph.keyring_mds_auth_add
+    - name: ceph_cfg.keyring_mds_auth_add
     - require:
       - ceph: cluster_status
       - module: keyring_mds_save
@@ -209,7 +209,7 @@ keyring_auth_add_mds:
 
 prepare_vdb:
   module.run:
-    - name: ceph.osd_prepare
+    - name: ceph_cfg.osd_prepare
     - kwargs: {
         osd_dev: /dev/vdb
         }
@@ -218,7 +218,7 @@ prepare_vdb:
 
 prepare_vdc:
   module.run:
-    - name: ceph.osd_prepare
+    - name: ceph_cfg.osd_prepare
     - kwargs: {
         osd_dev: /dev/vdc
         }
@@ -228,7 +228,7 @@ prepare_vdc:
 
 activate_vdb:
   module.run:
-    - name: ceph.osd_activate
+    - name: ceph_cfg.osd_activate
     - kwargs: {
         osd_dev: /dev/vdb
         }
@@ -236,7 +236,7 @@ activate_vdb:
 
 activate_vdc:
   module.run:
-    - name: ceph.osd_activate
+    - name: ceph_cfg.osd_activate
     - kwargs: {
         osd_dev: /dev/vdc
         }
@@ -245,7 +245,7 @@ activate_vdc:
 
 rgw_prep:
   module.run:
-    - name: ceph.rgw_pools_create
+    - name: ceph_cfg.rgw_pools_create
     - require:
       - module: keyring_osd_auth_add
 
@@ -253,7 +253,7 @@ rgw_prep:
 
 rgw_create:
   module.run:
-    - name: ceph.rgw_create
+    - name: ceph_cfg.rgw_create
     - kwargs: {
         name: rgw.{{ grains['machine_id'] }}
         }
@@ -264,7 +264,7 @@ rgw_create:
 
 mds_create:
   module.run:
-    - name: ceph.mds_create
+    - name: ceph_cfg.mds_create
     - kwargs: {
         name: mds.{{ grains['machine_id'] }},
         port: 1000,
