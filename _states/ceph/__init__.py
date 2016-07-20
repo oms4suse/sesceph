@@ -40,7 +40,7 @@ def quorum(name, **kwargs):
     Example usage in sls file:
 
 quorum:
-  sesceph.quorum:
+  ceph.quorum:
     - require:
         - sesceph: mon_running
     """
@@ -51,7 +51,7 @@ quorum:
     if __opts__['test']:
         return _test(name, "cluster quorum")
     try:
-        cluster_quorum = __salt__['ceph.cluster_quorum'](**paramters)
+        cluster_quorum = __salt__['ceph_cfg.cluster_quorum'](**paramters)
     except (CommandExecutionError, CommandNotFoundError) as e:
         return _error(name, e.message)
     if cluster_quorum:
