@@ -1,3 +1,10 @@
+0.1.2
+-----
+* Fix docstrings
+* Change execution module namespace to ceph_cfg from ceph.
+
+  * Avoiding namespace clash with calamari.
+
 0.1.1
 -----
 * Removed typos from documentation.
