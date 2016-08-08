@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+'''
+Module to provide ceph control with salt.
+
+:depends:   - ceph_cfg Python module
+
+.. versionadded:: Carbon
+'''
+# Import Python Libs
+from __future__ import absolute_import
 import logging
 
 
@@ -14,7 +24,8 @@ except ImportError:
 
 def __virtual__():
     if HAS_CEPH_CFG is False:
-        return False, 'The %s execution module cannot be loaded: ceph_cfg module unavailable.' % (__virtualname__)
+        msg = 'ceph_cfg unavailable: {0} execution module cant be loaded '.format(__virtualname__)
+        return False, msg
     return __virtualname__
 
 
@@ -24,7 +35,7 @@ def partition_list():
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.partition_list
     '''
@@ -37,7 +48,7 @@ def partition_list_osd():
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.partition_list_osd
     '''
@@ -50,7 +61,7 @@ def partition_list_journal():
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.partition_list_journal
     '''
@@ -58,37 +69,55 @@ def partition_list_journal():
 
 
 def osd_discover():
-    """
+    '''
     List all OSD by cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.osd_discover
 
-    """
+    '''
     return ceph_cfg.osd_discover()
 
 
 def partition_is(dev):
-    """
+    '''
     Check whether a given device path is a partition or a full disk.
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
     salt '*' ceph_cfg.partition_is /dev/sdc1
 
-    """
+    '''
     return ceph_cfg.partition_is(dev)
 
 
-def zap(dev = None, **kwargs):
-    """
+def zap(dev=None, **kwargs):
+    '''
     Destroy the partition table and content of a given disk.
-    """
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.osd_prepare 'dev'='/dev/vdc' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    dev
+        The block device to format.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster date will be added too. Defaults to the value found in
+        local config.
+    '''
 
     if dev is not None:
         log.warning("Depricated use of function, use kwargs")
@@ -98,12 +127,12 @@ def zap(dev = None, **kwargs):
 
 
 def osd_prepare(**kwargs):
-    """
+    '''
     prepare an OSD
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.osd_prepare 'osd_dev'='/dev/vdc' \\
                 'journal_dev'='device' \\
@@ -134,30 +163,30 @@ def osd_prepare(**kwargs):
 
     journal_uuid
         set the OSD journal UUID. If set will return if OSD with journal UUID already exists.
-    """
+    '''
     return ceph_cfg.osd_prepare(**kwargs)
 
 
 def osd_activate(**kwargs):
-    """
+    '''
     Activate an OSD
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.osd_activate 'osd_dev'='/dev/vdc'
-    """
+    '''
     return ceph_cfg.osd_activate(**kwargs)
 
 
 def keyring_create(**kwargs):
-    """
+    '''
     Create keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_create \\
                 'keyring_type'='admin' \\
@@ -175,17 +204,17 @@ def keyring_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.keyring_create(**kwargs)
 
 
 def keyring_save(**kwargs):
-    """
+    '''
     Create save keyring locally
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_save \\
                 'keyring_type'='admin' \\
@@ -204,21 +233,20 @@ def keyring_save(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.keyring_save(**kwargs)
 
 
 def keyring_purge(**kwargs):
-    """
+    '''
     Delete keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_purge \\
                 'keyring_type'='admin' \\
-                '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -235,17 +263,17 @@ def keyring_purge(**kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If no ceph config file is found, this command will fail.
-    """
+    '''
     return ceph_cfg.keyring_purge(**kwargs)
 
 
 def keyring_present(**kwargs):
-    """
+    '''
     Is keyring on disk
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_present \\
                 'keyring_type'='admin' \\
@@ -254,26 +282,26 @@ def keyring_present(**kwargs):
     Notes:
 
     keyring_type
-    Required paramter
-    Can be set to:
-        admin, mon, osd, rgw, mds
+        Required paramter
+        Can be set to:
+            admin, mon, osd, rgw, mds
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.keyring_present(**kwargs)
 
 
 def keyring_auth_add(**kwargs):
-    """
+    '''
     Add keyring to authorised list
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_auth_add \\
                 'keyring_type'='admin' \\
@@ -291,17 +319,17 @@ def keyring_auth_add(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.keyring_auth_add(**kwargs)
 
 
 def keyring_auth_del(**kwargs):
-    """
+    '''
     Remove keyring from authorised list
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_osd_auth_del \\
                 'keyring_type'='admin' \\
@@ -319,17 +347,17 @@ def keyring_auth_del(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.keyring_auth_del(**kwargs)
 
 
 def keyring_admin_create(**kwargs):
-    """
+    '''
     Create admin keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_admin_create \\
                 'cluster_name'='ceph' \\
@@ -341,19 +369,19 @@ def keyring_admin_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "admin"
     return keyring_create(**params)
 
 
 def keyring_admin_save(key_content=None, **kwargs):
-    """
+    '''
     Write admin keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_admin_save \\
                 '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \\
@@ -366,7 +394,7 @@ def keyring_admin_save(key_content=None, **kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "admin"
     if key_content is None:
@@ -377,12 +405,12 @@ def keyring_admin_save(key_content=None, **kwargs):
 
 
 def keyring_admin_purge(**kwargs):
-    """
+    '''
     Delete Mon keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_admin_purge \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
@@ -397,19 +425,19 @@ def keyring_admin_purge(**kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If no ceph config file is found, this command will fail.
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "admin"
     return keyring_purge(**params)
 
 
 def keyring_mon_create(**kwargs):
-    """
+    '''
     Create mon keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mon_create \\
                 'cluster_name'='ceph' \\
@@ -421,19 +449,19 @@ def keyring_mon_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mon"
     return keyring_create(**params)
 
 
 def keyring_mon_save(key_content=None, **kwargs):
-    """
+    '''
     Write admin keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mon_save \\
                 '[mon.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mon = \"allow *\"\n' \\
@@ -446,7 +474,7 @@ def keyring_mon_save(key_content=None, **kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mon"
     if key_content is None:
@@ -457,12 +485,12 @@ def keyring_mon_save(key_content=None, **kwargs):
 
 
 def keyring_mon_purge(**kwargs):
-    """
+    '''
     Delete Mon keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mon_purge \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
@@ -477,19 +505,19 @@ def keyring_mon_purge(**kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If no ceph config file is found, this command will fail.
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mon"
     return keyring_purge(**params)
 
 
 def keyring_osd_create(**kwargs):
-    """
+    '''
     Create osd keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_osd_create \\
                 'cluster_name'='ceph' \\
@@ -501,19 +529,19 @@ def keyring_osd_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "osd"
     return keyring_create(**params)
 
 
 def keyring_osd_save(key_content=None, **kwargs):
-    """
+    '''
     Write admin keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_osd_save \\
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
@@ -526,7 +554,7 @@ def keyring_osd_save(key_content=None, **kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "osd"
     if key_content is None:
@@ -537,12 +565,12 @@ def keyring_osd_save(key_content=None, **kwargs):
 
 
 def keyring_osd_auth_add(**kwargs):
-    """
+    '''
     Write admin keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_osd_auth_add \\
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
@@ -555,19 +583,19 @@ def keyring_osd_auth_add(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "osd"
     return keyring_auth_add(**params)
 
 
 def keyring_osd_auth_del(**kwargs):
-    """
+    '''
     Write rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_osd_auth_del \\
                 'cluster_name'='ceph' \\
@@ -579,19 +607,19 @@ def keyring_osd_auth_del(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "osd"
     return keyring_auth_del(**params)
 
 
 def keyring_osd_purge(**kwargs):
-    """
+    '''
     Write admin keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_osd_purge \\
                 '[osd.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps osd = \"allow *\"\n' \\
@@ -604,19 +632,19 @@ def keyring_osd_purge(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "osd"
     return keyring_purge(**params)
 
 
 def keyring_mds_create(**kwargs):
-    """
+    '''
     Create mds keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mds_create \\
                 'cluster_name'='ceph' \\
@@ -628,19 +656,19 @@ def keyring_mds_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mds"
     return keyring_create(**params)
 
 
 def keyring_mds_save(key_content=None, **kwargs):
-    """
+    '''
     Write mds keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mds_save \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
@@ -655,7 +683,7 @@ def keyring_mds_save(key_content=None, **kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If the value is set, it will not be changed untill the keyring is deleted.
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mds"
     if key_content is None:
@@ -666,12 +694,12 @@ def keyring_mds_save(key_content=None, **kwargs):
 
 
 def keyring_mds_auth_add(**kwargs):
-    """
+    '''
     Write mds keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mds_auth_add \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
@@ -684,19 +712,19 @@ def keyring_mds_auth_add(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mds"
     return keyring_auth_add(**params)
 
 
 def keyring_mds_auth_del(**kwargs):
-    """
+    '''
     Write rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mds_auth_del \\
                 'cluster_name'='ceph' \\
@@ -708,19 +736,19 @@ def keyring_mds_auth_del(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mds"
     return keyring_auth_del(**params)
 
 
 def keyring_mds_purge(**kwargs):
-    """
+    '''
     Delete MDS keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_mds_purge \\
                 '[mds.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps mds = \"allow *\"\n' \\
@@ -735,19 +763,19 @@ def keyring_mds_purge(**kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If no ceph config file is found, this command will fail.
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "mds"
     return keyring_purge(**params)
 
 
 def keyring_rgw_create(**kwargs):
-    """
+    '''
     Create rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_rgw_create \\
                 'cluster_name'='ceph' \\
@@ -759,19 +787,19 @@ def keyring_rgw_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "rgw"
     return keyring_create(**params)
 
 
 def keyring_rgw_save(key_content=None, **kwargs):
-    """
+    '''
     Write rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_rgw_save \\
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
@@ -786,7 +814,7 @@ def keyring_rgw_save(key_content=None, **kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If the value is set, it will not be changed untill the keyring is deleted.
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "rgw"
     if key_content is None:
@@ -797,12 +825,12 @@ def keyring_rgw_save(key_content=None, **kwargs):
 
 
 def keyring_rgw_auth_add(**kwargs):
-    """
+    '''
     Write rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_rgw_auth_add \\
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
@@ -815,19 +843,19 @@ def keyring_rgw_auth_add(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "rgw"
     return keyring_auth_add(**params)
 
 
 def keyring_rgw_auth_del(**kwargs):
-    """
+    '''
     Write rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_rgw_auth_del \\
                 'cluster_name'='ceph' \\
@@ -839,19 +867,19 @@ def keyring_rgw_auth_del(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "rgw"
     return keyring_auth_del(**params)
 
 
 def keyring_rgw_purge(**kwargs):
-    """
+    '''
     Delete rgw keyring for cluster
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_rgw_purge \\
                 '[rgw.]\n\tkey = AQA/vZ9WyDwsKRAAxQ6wjGJH6WV8fDJeyzxHrg==\n\tcaps rgw = \"allow *\"\n' \\
@@ -866,19 +894,19 @@ def keyring_rgw_purge(**kwargs):
         Set the cluster name. Defaults to "ceph".
 
     If no ceph config file is found, this command will fail.
-    """
+    '''
     params = dict(kwargs)
     params["keyring_type"] = "rgw"
     return keyring_purge(**params)
 
 
 def mon_is(**kwargs):
-    """
+    '''
     Is this a mon node
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.mon_is \\
                 'cluster_name'='ceph' \\
@@ -890,17 +918,17 @@ def mon_is(**kwargs):
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
-    """
+    '''
     return ceph_cfg.mon_is(**kwargs)
 
 
 def mon_status(**kwargs):
-    """
+    '''
     Get status from mon deamon
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.mon_status \\
                 'cluster_name'='ceph' \\
@@ -912,17 +940,17 @@ def mon_status(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.status(**kwargs)
 
 
 def mon_quorum(**kwargs):
-    """
+    '''
     Is mon deamon in quorum
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.mon_quorum \\
                 'cluster_name'='ceph' \\
@@ -934,17 +962,17 @@ def mon_quorum(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.mon_quorum(**kwargs)
 
 
 def mon_active(**kwargs):
-    """
+    '''
     Is mon deamon running
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.mon_active \\
                 'cluster_name'='ceph' \\
@@ -956,17 +984,17 @@ def mon_active(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.mon_active(**kwargs)
 
 
 def mon_create(**kwargs):
-    """
+    '''
     Create a mon node
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.mon_create \\
                 'cluster_name'='ceph' \\
@@ -978,59 +1006,181 @@ def mon_create(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.mon_create(**kwargs)
 
 
 def rgw_pools_create(**kwargs):
-    """
+    '''
     Create pools for rgw
-    """
-    return ceph_cfg.rgw_pools_create()
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.rgw_pools_create
+
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.rgw_pools_create(**kwargs)
 
 
 def rgw_pools_missing(**kwargs):
-    """
+    '''
     Show pools missing for rgw
-    """
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.rgw_pools_missing
+
+    Notes:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
     return ceph_cfg.rgw_pools_missing(**kwargs)
 
 
 def rgw_create(**kwargs):
-    """
+    '''
     Create a rgw
-    """
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.rgw_create \\
+                'name' = 'rgw.name' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    name:
+        Required paramter
+        Set the rgw client name. Must start with 'rgw.'
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
     return ceph_cfg.rgw_create(**kwargs)
 
 
 def rgw_destroy(**kwargs):
-    """
+    '''
     Remove a rgw
-    """
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.rgw_destroy \\
+                'name' = 'rgw.name' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    name:
+        Required paramter
+        Set the rgw client name. Must start with 'rgw.'
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
     return ceph_cfg.rgw_destroy(**kwargs)
 
 
 def mds_create(**kwargs):
-    """
+    '''
     Create a mds
-    """
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.mds_create \\
+                'name' = 'mds.name' \\
+                'port' = 1000, \\
+                'addr' = 'fqdn.example.org' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    name:
+        Required paramter
+        Set the rgw client name. Must start with 'mds.'
+
+    port:
+        Required paramter
+        Port for the mds to listen to.
+
+    addr:
+        Required paramter
+        Address or IP address for the mds to listen to.
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
     return ceph_cfg.mds_create(**kwargs)
 
 
 def mds_destroy(**kwargs):
-    """
+    '''
     Remove a mds
-    """
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.mds_destroy \\
+                'name' = 'mds.name' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    name:
+        Required paramter
+        Set the rgw client name. Must start with 'mds.'
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
     return ceph_cfg.mds_destroy(**kwargs)
 
 
 def keyring_auth_list(**kwargs):
-    """
+    '''
     List all cephx authorization keys
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.keyring_auth_list \\
                 'cluster_name'='ceph' \\
@@ -1042,17 +1192,17 @@ def keyring_auth_list(**kwargs):
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
-    """
+    '''
     return ceph_cfg.keyring_auth_list(**kwargs)
 
 
 def pool_list(**kwargs):
-    """
+    '''
     List all pools
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.pool_list \\
                 'cluster_name'='ceph' \\
@@ -1064,17 +1214,17 @@ def pool_list(**kwargs):
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
-    """
+    '''
     return ceph_cfg.pool_list(**kwargs)
 
 
 def pool_add(pool_name, **kwargs):
-    """
+    '''
     Create a pool
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.pool_add pool_name \\
                 'cluster_name'='ceph' \\
@@ -1101,17 +1251,17 @@ def pool_add(pool_name, **kwargs):
 
     crush_ruleset
         Set the crush map rule set
-    """
+    '''
     return ceph_cfg.pool_add(pool_name, **kwargs)
 
 
 def pool_del(pool_name, **kwargs):
-    """
+    '''
     Delete a pool
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.pool_del pool_name \\
                 'cluster_name'='ceph' \\
@@ -1123,37 +1273,47 @@ def pool_del(pool_name, **kwargs):
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
-    """
+    '''
     return ceph_cfg.pool_del(pool_name, **kwargs)
 
 
 def purge(**kwargs):
-    """
+    '''
     purge ceph configuration on the node
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
-        salt '*' ceph_cfg.purge
-    """
+        salt '*' ceph_cfg.purge \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+    '''
     return ceph_cfg.purge(**kwargs)
 
 
 def ceph_version():
-    """
+    '''
     Get the version of ceph installed
-    """
+    '''
     return ceph_cfg.ceph_version()
 
 
 def cluster_quorum(**kwargs):
-    """
+    '''
     Get the cluster's quorum status
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.cluster_quorum \\
                 'cluster_name'='ceph' \\
@@ -1171,17 +1331,17 @@ def cluster_quorum(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.cluster_quorum(**kwargs)
 
 
 def cluster_status(**kwargs):
-    """
+    '''
     Get the cluster status
 
     CLI Example:
 
-	.. code-block:: bash
+    .. code-block:: bash
 
         salt '*' ceph_cfg.cluster_status \\
                 'cluster_name'='ceph' \\
@@ -1199,5 +1359,5 @@ def cluster_status(**kwargs):
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
-    """
+    '''
     return ceph_cfg.cluster_status(**kwargs)
