@@ -17,6 +17,12 @@ __virtualname__ = 'ceph_cfg'
 
 try:
     import ceph_cfg
+    # Due to a bug in salt
+    # https://github.com/saltstack/salt/issues/35444
+    # we cant rely on previous import to
+    # detect that the library ceph_cfg is present.
+    # Hence we import the version of the library.
+    from ceph_cfg.__version__ import version as ceph_cfg_version
     HAS_CEPH_CFG = True
 except ImportError:
     HAS_CEPH_CFG = False
