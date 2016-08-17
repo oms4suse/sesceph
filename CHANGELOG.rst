@@ -1,3 +1,9 @@
+0.1.3
+-----
+* Merge changes from up streaming this code to salt.
+* Remove potential infante loop when python-ceph-cfg
+  is not installed.
+
 0.1.2
 -----
 * Fix docstrings
