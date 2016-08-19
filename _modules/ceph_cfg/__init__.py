@@ -1367,3 +1367,103 @@ def cluster_status(**kwargs):
         Set the cluster name. Defaults to "ceph".
     '''
     return ceph_cfg.cluster_status(**kwargs)
+
+
+def cephfs_list(**kwargs):
+    '''
+    list the cephfs filesystems
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.cephfs_ls \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+    List the cephfs instances.
+
+    Scope:
+    Cluster wide
+
+    Arguments:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.cephfs_ls(**kwargs)
+
+
+def cephfs_add(fs_name, **kwargs):
+    '''
+    Add a cephfs filesystems
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.cephfs_add \\
+                new_cephfs \\
+                'pool_data'='pool_data_new_cephfs' \\
+                'pool_metadata'='pool_metadata_new_cephfs' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+    More than one cephfs is an experimental feature in ceph.
+
+    Scope:
+    Cluster wide
+
+    Arguments:
+
+    fs_name:
+        file system name to create.
+
+    pool_data:
+        ceph pool to store the data for filesystem.
+
+    pool_metadata:
+        ceph pool to store the mata data for filesystem.
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.cephfs_add(fs_name, **kwargs)
+
+
+def cephfs_del(fs_name, **kwargs):
+    '''
+    Delete a cephfs filesystem
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.cephfs_del \\
+                del_cephfs \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+    All mon nodes should be stopped to allow this operation to success.
+
+    Scope:
+    Cluster wide
+
+    Arguments:
+
+    fs_name:
+        file system name to create.
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.cephfs_del(fs_name, **kwargs)
