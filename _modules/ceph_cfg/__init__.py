@@ -947,7 +947,7 @@ def mon_status(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     '''
-    return ceph_cfg.status(**kwargs)
+    return ceph_cfg.mon_status(**kwargs)
 
 
 def mon_quorum(**kwargs):
