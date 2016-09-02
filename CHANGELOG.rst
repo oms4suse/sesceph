@@ -1,3 +1,8 @@
+0.1.4
+-----
+* Work around salt bug when kwargs and args have same name.
+* Add cephfs methods.
+
 0.1.3
 -----
 * Merge changes from up streaming this code to salt.
