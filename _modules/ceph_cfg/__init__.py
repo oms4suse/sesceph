@@ -185,6 +185,38 @@ def osd_activate(**kwargs):
     return ceph_cfg.osd_activate(**kwargs)
 
 
+def osd_reweight(**kwargs):
+    """
+    Reweight an OSD
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.osd_reweight \\
+                'cluster_name'='admin' \\
+                'cluster_name'='ceph' \\
+                'osd_number'='23' \\
+                'weight'='0'
+    Notes:
+
+
+    osd_number
+        OSD number to reweight.
+
+    weight
+        The new weight for the osd. Weight is a float, and must be
+        in the range 0 to 1. Setting the weight to 0 will drain an OSD.
+
+    cluster_uuid
+        Set the deivce to store the osd data on.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return ceph_cfg.osd_reweight(**kwargs)
+
+
 def keyring_create(**kwargs):
     '''
     Create keyring for cluster
