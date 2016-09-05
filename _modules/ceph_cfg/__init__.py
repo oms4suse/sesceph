@@ -1034,6 +1034,58 @@ def mon_create(**kwargs):
     .. code-block:: bash
 
         salt '*' ceph_cfg.mon_create \\
+                'mon_name'='new_mon' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    mon_name
+        Set the mon service name. Required
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.mon_create(**kwargs)
+
+
+def mon_destroy(**kwargs):
+    '''
+    Destroy a mon node
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.mon_destroy \\
+                'mon_name'='wrong_node' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+
+    mon_name
+        Set the mon service name. Required
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.mon_destroy(**kwargs)
+
+
+def mon_list(**kwargs):
+    '''
+    Create a mon node
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.mon_create \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
@@ -1044,7 +1096,7 @@ def mon_create(**kwargs):
     cluster_name
         Set the cluster name. Defaults to "ceph".
     '''
-    return ceph_cfg.mon_create(**kwargs)
+    return ceph_cfg.mon_list(**kwargs)
 
 
 def rgw_pools_create(**kwargs):
