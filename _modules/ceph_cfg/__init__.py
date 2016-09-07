@@ -1479,6 +1479,34 @@ def cluster_status(**kwargs):
     return ceph_cfg.cluster_status(**kwargs)
 
 
+def cluster_df(**kwargs):
+    '''
+    Get the cluster free space
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.cluster_df \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+    Get the cluster free space.
+
+    Scope:
+    Cluster wide
+
+    Arguments:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.cluster_df(**kwargs)
+
+
 def cephfs_list(**kwargs):
     '''
     list the cephfs filesystems
