@@ -165,6 +165,9 @@ keyring_mds_save:
 mon_create:
     module.run:
     - name: ceph_cfg.mon_create
+    - kwargs: {
+        mon_name: {{ grains['localhost'] }}
+        }
     - require:
       - module: keyring_admin_save
       - module: keyring_mon_save
