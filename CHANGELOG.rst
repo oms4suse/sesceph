@@ -1,3 +1,10 @@
+0.1.5
+-----
+* Add new examples of the API directly and reorganise them.
+* Add new method osd_reweight
+
+  * Allows rebalancing of OSD's and graceful decomisioning.
+
 0.1.4
 -----
 * Work around salt bug when kwargs and args have same name.
