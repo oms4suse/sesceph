@@ -946,9 +946,13 @@ def mon_is(**kwargs):
     .. code-block:: bash
 
         salt '*' ceph_cfg.mon_is \\
+                'mon_name'='mon_01' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
+
+    mon_name
+        Set the mon service name. Required
 
     cluster_name
         Set the cluster name. Defaults to "ceph".
@@ -968,9 +972,13 @@ def mon_status(**kwargs):
     .. code-block:: bash
 
         salt '*' ceph_cfg.mon_status \\
+                'mon_name'='mon_01' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
+
+    mon_name
+        Set the mon service name. Required
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
@@ -990,9 +998,13 @@ def mon_quorum(**kwargs):
     .. code-block:: bash
 
         salt '*' ceph_cfg.mon_quorum \\
+                'mon_name'='mon_01' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
+
+    mon_name
+        Set the mon service name. Required
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
@@ -1012,9 +1024,13 @@ def mon_active(**kwargs):
     .. code-block:: bash
 
         salt '*' ceph_cfg.mon_active \\
+                'mon_name'='mon_01' \\
                 'cluster_name'='ceph' \\
                 'cluster_uuid'='cluster_uuid'
     Notes:
+
+    mon_name
+        Set the mon serrvice name. Required
 
     cluster_uuid
         Set the cluster UUID. Defaults to value found in ceph config file.
@@ -1027,7 +1043,7 @@ def mon_active(**kwargs):
 
 def mon_create(**kwargs):
     '''
-    Create a mon node
+    Create a mon service on node
 
     CLI Example:
 
@@ -1053,7 +1069,7 @@ def mon_create(**kwargs):
 
 def mon_destroy(**kwargs):
     '''
-    Destroy a mon node
+    Destroy a mon service
 
     CLI Example:
 
@@ -1079,7 +1095,7 @@ def mon_destroy(**kwargs):
 
 def mon_list(**kwargs):
     '''
-    Create a mon node
+    List mon services on node
 
     CLI Example:
 
