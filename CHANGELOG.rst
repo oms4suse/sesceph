@@ -1,3 +1,14 @@
+0.1.6
+-----
+* Improve documentation of methods for mon operations.
+
+  * mon_active
+  * mon_create
+  * mon_destroy
+  * mon_is
+  * mon_quorum
+  * mon_status
+
 0.1.5
 -----
 * Add new examples of the API directly and reorganise them.
