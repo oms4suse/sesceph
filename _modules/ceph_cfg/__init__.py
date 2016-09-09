@@ -965,7 +965,7 @@ def mon_is(**kwargs):
 
 def mon_status(**kwargs):
     '''
-    Get status from local mon deamon
+    Get status from mon deamon
 
     CLI Example:
 
@@ -991,7 +991,7 @@ def mon_status(**kwargs):
 
 def mon_quorum(**kwargs):
     '''
-    Is local mon deamon in quorum
+    Is mon deamon in quorum
 
     CLI Example:
 
@@ -1043,7 +1043,7 @@ def mon_active(**kwargs):
 
 def mon_create(**kwargs):
     '''
-    Create a mon service on local node
+    Create a mon service on node
 
     CLI Example:
 
@@ -1095,7 +1095,7 @@ def mon_destroy(**kwargs):
 
 def mon_list(**kwargs):
     '''
-    List mon services on local node
+    List mon services on node
 
     CLI Example:
 
