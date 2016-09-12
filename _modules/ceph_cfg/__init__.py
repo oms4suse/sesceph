@@ -217,6 +217,33 @@ def osd_reweight(**kwargs):
     return ceph_cfg.osd_reweight(**kwargs)
 
 
+def osd_df(**kwargs):
+    """
+    OSD disk space report
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.osd_df \\
+                'osd_number'='23' \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+
+    Notes:
+
+    osd_number
+        OSD number to report space from.
+
+    cluster_uuid
+        Set the deivce to store the osd data on.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    """
+    return ceph_cfg.osd_df(**kwargs)
+
+
 def keyring_create(**kwargs):
     '''
     Create keyring for cluster
@@ -1466,6 +1493,34 @@ def cluster_status(**kwargs):
         Set the cluster name. Defaults to "ceph".
     '''
     return ceph_cfg.cluster_status(**kwargs)
+
+
+def cluster_df(**kwargs):
+    '''
+    Get the cluster free space
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' ceph_cfg.cluster_df \\
+                'cluster_name'='ceph' \\
+                'cluster_uuid'='cluster_uuid'
+    Notes:
+    Get the cluster free space.
+
+    Scope:
+    Cluster wide
+
+    Arguments:
+
+    cluster_uuid
+        Set the cluster UUID. Defaults to value found in ceph config file.
+
+    cluster_name
+        Set the cluster name. Defaults to "ceph".
+    '''
+    return ceph_cfg.cluster_df(**kwargs)
 
 
 def cephfs_list(**kwargs):
